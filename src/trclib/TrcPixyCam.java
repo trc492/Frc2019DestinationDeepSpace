@@ -97,26 +97,7 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
         ALIGN,
         CHECKSUM,
         NORMAL_BLOCK,
-        COLOR_CODE_BLOCK,
-        //
-        // Tags for BYTE_TRANSACTION.
-        //
-        SYNC_LOW,
-        SYNC_HIGH,
-        CHECKSUM_LOW,
-        CHECKSUM_HIGH,
-        SIGNATURE_LOW,
-        SIGNATURE_HIGH,
-        CENTERX_LOW,
-        CENTERX_HIGH,
-        CENTERY_LOW,
-        CENTERY_HIGH,
-        WIDTH_LOW,
-        WIDTH_HIGH,
-        HEIGHT_LOW,
-        HEIGHT_HIGH,
-        ANGLE_LOW,
-        ANGLE_HIGH
+        COLOR_CODE_BLOCK
     }   //enum RequestTag
 
     private final String instanceName;
