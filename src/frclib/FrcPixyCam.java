@@ -46,7 +46,7 @@ public class FrcPixyCam extends TrcPixyCam
     public static final SerialPort.Parity DEF_PARITY = SerialPort.Parity.kNone;
     public static final SerialPort.StopBits DEF_STOP_BITS = SerialPort.StopBits.kOne;
 
-    private TrcSerialBusDevice pixyCam = null;
+    private final TrcSerialBusDevice pixyCam;
 
     /**
      * Constructor: Create an instance of the object.
