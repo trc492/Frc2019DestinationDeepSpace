@@ -113,11 +113,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     y /= RobotInfo.DRIVE_SLOW_YSCALE;
                     rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 }
-//                    double xForceOz = x * RobotInfo.MAX_WHEEL_FORCE_OZ;
-//                    double yForceOz = y * RobotInfo.MAX_WHEEL_FORCE_OZ;
                 robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
-//                    HalDashboard.putNumber("xForceOz", xForceOz);
-//                    HalDashboard.putNumber("yForceOz", yForceOz);
                 break;
         }
 

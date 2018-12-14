@@ -318,6 +318,8 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
+            openTraceLog(runMode == RunMode.AUTO_MODE? "FrcAuto":
+                         runMode == RunMode.TELEOP_MODE? "FrcTeleOp": "FrcTest");
             setTraceLogEnabled(true);
 
             Date now = new Date();
@@ -376,6 +378,7 @@ public class Robot extends FrcRobotBase
                 funcName, "TotalEnergy=%.3fWh (%.2f%%)",
                 totalEnergy, totalEnergy*100.0/RobotInfo.BATTERY_CAPACITY_WATT_HOUR);
             setTraceLogEnabled(false);
+            closeTraceLog();
         }
     }   //robotStopMode
 

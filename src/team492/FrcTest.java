@@ -22,8 +22,6 @@
 
 package team492;
 
-import java.util.Locale;
-
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -116,8 +114,6 @@ public class FrcTest extends FrcTeleOp
         // Call TeleOp startMode.
         //
         super.startMode(prevMode, nextMode);
-        robot.openTraceLog(String.format(Locale.US, "%s_%s%03d", robot.eventName, robot.matchType, robot.matchNumber));
-
         //
         // Retrieve menu choice values.
         //
@@ -193,16 +189,6 @@ public class FrcTest extends FrcTeleOp
         LiveWindow.setEnabled(liveWindowEnabled);
         sm.start(State.START);
     } // startMode
-
-    @Override
-    public void stopMode(RunMode prevMode, RunMode nextMode)
-    {
-        robot.closeTraceLog();
-        //
-        // Call TeleOp stopMode.
-        //
-        super.stopMode(prevMode,nextMode);
-    } // stopMode
 
     //
     // Must override TeleOp so it doesn't fight with us.
@@ -340,8 +326,8 @@ public class FrcTest extends FrcTeleOp
     /**
      * This method reads all sensors and prints out their values. This is a very
      * useful diagnostic tool to check if all sensors are working properly. For
-     * encoders, since test sensor mode is also teleop mode, you can operate the
-     * gamepads to turn the motors and check the corresponding encoder counts.
+     * encoders, since test subsystem mode is also teleop mode, you can operate the
+     * joysticks to turn the motors and check the corresponding encoder counts.
      */
     private void doSensorsTest()
     {

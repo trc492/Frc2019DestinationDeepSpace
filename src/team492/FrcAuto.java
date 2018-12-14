@@ -22,8 +22,6 @@
 
 package team492;
 
-import java.util.Locale;
-
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
@@ -47,19 +45,12 @@ public class FrcAuto implements TrcRobot.RobotMode
         DO_NOTHING
     } // enum AutoStrategy
 
-    public static enum YesOrNo
-    {
-        YES,
-        NO
-    } // enum YesOrNo
-
     private Robot robot;
 
     //
     // Menus.
     //
     private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
-
     private AutoStrategy autoStrategy;
     private double delay;
     
@@ -92,7 +83,6 @@ public class FrcAuto implements TrcRobot.RobotMode
     {
         final String funcName = moduleName + ".startMode";
 
-        robot.openTraceLog(String.format(Locale.US, "%s_%s%03d", robot.eventName, robot.matchType, robot.matchNumber));
         robot.getGameInfo();
         robot.globalTracer.traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s",
             robot.eventName, robot.matchType, robot.matchNumber, robot.alliance.toString(), robot.location,
@@ -105,7 +95,6 @@ public class FrcAuto implements TrcRobot.RobotMode
         // Retrieve menu choice values.
         //
         autoStrategy = autoStrategyMenu.getCurrentChoiceObject();
-
         delay = HalDashboard.getNumber("Auto/Delay", 0.0);
         switch (autoStrategy)
         {
@@ -142,7 +131,6 @@ public class FrcAuto implements TrcRobot.RobotMode
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
         TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
-        robot.closeTraceLog();
     } // stopMode
 
     @Override
