@@ -128,6 +128,17 @@ public class FrcChoiceMenu<T>
     }   //addChoice
 
     /**
+     * This method adds a choice to the menu. The choices will be displayed in the order of them being added.
+     *
+     * @param choiceText specifies the choice text that will be displayed on the dashboard.
+     * @param choiceObject specifies the object to be returned if the choice is selected.
+     */
+    public void addChoice(String choiceText, T choiceObject)
+    {
+        addChoice(choiceText, choiceObject, false, false);
+    }   //addChoice
+
+    /**
      * This method returns the current selected choice item. Every menu has a current choice even if the user hasn't
      * picked a choice. In that case, the current choice is the default selection of the menu.
      *

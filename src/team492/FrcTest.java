@@ -49,6 +49,9 @@ public class FrcTest extends FrcTeleOp
         X_DISTANCE_DRIVE,
         Y_DISTANCE_DRIVE,
         TURN_DEGREES,
+        TUNE_X_PID,
+        TUNE_Y_PID,
+        TUNE_TURN_PID,
         LIVE_WINDOW
     } // enum Test
 
@@ -89,13 +92,16 @@ public class FrcTest extends FrcTeleOp
         //
         testMenu = new FrcChoiceMenu<>("Test/Tests");
         testMenu.addChoice("Sensors Test", FrcTest.Test.SENSORS_TEST, true, false);
-        testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST, false, false);
-        testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST, false, false);
-        testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE, false, false);
-        testMenu.addChoice("Y Timed Drive", FrcTest.Test.Y_TIMED_DRIVE, false, false);
-        testMenu.addChoice("X Distance Drive", FrcTest.Test.X_DISTANCE_DRIVE, false, false);
-        testMenu.addChoice("Y Distance Drive", FrcTest.Test.Y_DISTANCE_DRIVE, false, false);
-        testMenu.addChoice("Turn Degrees", FrcTest.Test.TURN_DEGREES, false, false);
+        testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST);
+        testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST);
+        testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE);
+        testMenu.addChoice("Y Timed Drive", FrcTest.Test.Y_TIMED_DRIVE);
+        testMenu.addChoice("X Distance Drive", FrcTest.Test.X_DISTANCE_DRIVE);
+        testMenu.addChoice("Y Distance Drive", FrcTest.Test.Y_DISTANCE_DRIVE);
+        testMenu.addChoice("Turn Degrees", FrcTest.Test.TURN_DEGREES);
+        testMenu.addChoice("Tune X PID", FrcTest.Test.TUNE_X_PID);
+        testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
+        testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
     } // FrcTest
 
@@ -151,17 +157,32 @@ public class FrcTest extends FrcTeleOp
 
             case X_DISTANCE_DRIVE:
                 pidDriveCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, 0.0, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, true);
+                    robot, robot.pidDrive, 0.0, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
-                pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive,
-                    0.0, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, true);
+                pidDriveCommand = new CmdPidDrive(
+                    robot, robot.pidDrive, 0.0, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, false);
                 break;
 
             case TURN_DEGREES:
-                pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive,
-                    0.0, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, true);
+                pidDriveCommand = new CmdPidDrive(
+                    robot, robot.pidDrive, 0.0, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, false);
+                break;
+
+            case TUNE_X_PID:
+                pidDriveCommand = new CmdPidDrive(
+                    robot, robot.pidDrive, 0.0, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, true);
+                break;
+
+            case TUNE_Y_PID:
+                pidDriveCommand = new CmdPidDrive(
+                    robot, robot.pidDrive, 0.0, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, true);
+                break;
+
+            case TUNE_TURN_PID:
+                pidDriveCommand = new CmdPidDrive(
+                    robot, robot.pidDrive, 0.0, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, true);
                 break;
 
             case LIVE_WINDOW:
@@ -238,6 +259,9 @@ public class FrcTest extends FrcTeleOp
             case X_DISTANCE_DRIVE:
             case Y_DISTANCE_DRIVE:
             case TURN_DEGREES:
+            case TUNE_X_PID:
+            case TUNE_Y_PID:
+            case TUNE_TURN_PID:
                 robot.dashboard.displayPrintf(2, "xPos=%.1f,yPos=%.1f,heading=%.1f, lf=%.2f,rf=%.2f,lr=%.2f,rr=%.2f",
                     robot.driveBase.getXPosition(), robot.driveBase.getYPosition(),
                     robot.driveBase.getHeading(),
