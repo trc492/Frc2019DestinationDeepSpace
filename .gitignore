@@ -3,6 +3,8 @@
 ### IDEA Stuff ###
 .idea/*
 *.iml
+*.ipr
+*.iws
 
 ### C++ ###
 # Prerequisites
