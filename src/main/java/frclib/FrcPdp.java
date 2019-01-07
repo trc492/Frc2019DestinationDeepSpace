@@ -24,6 +24,7 @@ package frclib;
 
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Sendable;
+import edu.wpi.first.wpilibj.SensorUtil;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import trclib.TrcDbgTrace;
 import trclib.TrcRobot;
@@ -42,6 +43,7 @@ public class FrcPdp extends PowerDistributionPanel
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
+    public static final int kPDPChannels = SensorUtil.kPDPChannels;
     private TrcDbgTrace dbgTrace = null;
 
     private final TrcTaskMgr.TaskObject energyUsedTaskObj;
