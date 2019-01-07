@@ -25,10 +25,8 @@ package frclib;
 import com.ctre.phoenix.motion.MotionProfileStatus;
 import com.ctre.phoenix.motion.SetValueMotionProfile;
 import com.ctre.phoenix.motion.TrajectoryPoint;
-import com.ctre.phoenix.motion.TrajectoryPoint.TrajectoryDuration;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Notifier;
 
 import trclib.TrcEvent;
@@ -52,7 +50,6 @@ import trclib.TrcUtil;
 public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
 {
     private static final double MIN_TRAJ_SECONDS = 0.5; // How many seconds of points to buffer before beginning?
-    private static final TrajectoryDuration DEFAULT_TRAJECTORY_DURATION = TrajectoryDuration.Trajectory_Duration_10ms;
 
     private enum State
     {
@@ -518,24 +515,6 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
     }
 
     /**
-     * Get a TrajectoryDuration object with the specified time
-     *
-     * @param duration Milliseconds for the duration
-     * @return TrajectoryDuration object representing the supplied time, if available
-     */
-    private TrajectoryDuration getTrajectoryDuration(int duration)
-    {
-        TrajectoryDuration dur = TrajectoryDuration.valueOf(duration);
-
-        if (dur.value != duration)
-        {
-            DriverStation.reportError("Duration " + duration + "ms not supported!", false);
-            dur = DEFAULT_TRAJECTORY_DURATION;
-        }
-        return dur;
-    }
-
-    /**
      * Clear the previous motion profile and underrun flags
      */
     private void resetTalons()
@@ -571,7 +550,7 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
             TrcMotionProfilePoint profilePoint = profile.getLeftPoints()[i];
             point.position = profilePoint.encoderPosition;
             point.velocity = profilePoint.velocity;
-            point.timeDur = getTrajectoryDuration((int) (profilePoint.timeStep * 1000)); // Convert from sec to ms
+            point.timeDur = (int) profilePoint.timeStep * 1000; // Convert from sec to ms
             point.profileSlotSelect0 = pidSlot;
             point.profileSlotSelect1 = pidSlot;
             point.zeroPos = (i == 0);
@@ -582,7 +561,7 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
             profilePoint = profile.getRightPoints()[i];
             point.position = profilePoint.encoderPosition;
             point.velocity = profilePoint.velocity;
-            point.timeDur = getTrajectoryDuration((int) (profilePoint.timeStep * 1000)); // Convert from sec to ms
+            point.timeDur = (int) profilePoint.timeStep * 1000; // Convert from sec to ms
             point.profileSlotSelect0 = pidSlot;
             point.profileSlotSelect1 = pidSlot;
             point.zeroPos = (i == 0);
