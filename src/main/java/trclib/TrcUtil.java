@@ -277,7 +277,7 @@ public class TrcUtil
      * @param value  The value to be checked.
      * @param low    The low limit of the interval.
      * @param high   The high limit of the interval.
-     * @param closed If closed is true, the interval is [low,high].Otherwise, the interval is (low,high).
+     * @param closed If closed is true, the interval is [low,high]. Otherwise, the interval is (low,high).
      * @return True if the value is within the range, false otherwise.
      */
     public static boolean inRange(int value, int low, int high, boolean closed)
@@ -311,7 +311,7 @@ public class TrcUtil
      * @param value  The value to be checked.
      * @param low    The low limit of the interval.
      * @param high   The high limit of the interval.
-     * @param closed If closed is true, the interval is [low,high].Otherwise, the interval is (low,high).
+     * @param closed If closed is true, the interval is [low,high]. Otherwise, the interval is (low,high).
      * @return True if the value is within the range, false otherwise.
      */
     public static boolean inRange(double value, double low, double high, boolean closed)
