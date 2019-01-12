@@ -57,7 +57,7 @@ public class TrcUtil
      */
     public static double getCurrentTime()
     {
-        return System.nanoTime()/1000000000.0;
+        return System.nanoTime() / 1000000000.0;
     }   //getCurrentTime
 
     /**
@@ -144,14 +144,13 @@ public class TrcUtil
      * This method sums an array of numbers.
      *
      * @param nums specifies the array of numbers to be summed.
-     *
      * @return sum of the numbers.
      */
     public static double sum(double... nums)
     {
         double total = 0.0;
 
-        for (double num: nums)
+        for (double num : nums)
         {
             total += num;
         }
@@ -167,8 +166,8 @@ public class TrcUtil
      */
     public static double average(double... nums)
     {
-        return sum(nums)/nums.length;
-//        return Arrays.stream(nums).average().orElse(0.0);
+        return sum(nums) / nums.length;
+        //        return Arrays.stream(nums).average().orElse(0.0);
     }   //average
 
     /**
@@ -181,27 +180,26 @@ public class TrcUtil
     {
         double total = 0.0;
 
-        for (double num: nums)
+        for (double num : nums)
         {
-            total += num*num;
+            total += num * num;
         }
 
         return Math.sqrt(total);
-//        return Math.sqrt(Arrays.stream(nums).map(e -> e*e).sum());
+        //        return Math.sqrt(Arrays.stream(nums).map(e -> e*e).sum());
     }   //magnitude
 
     /**
      * This method returns the maximum magnitude of numbers in the specified array.
      *
      * @param nums specifies the number array.
-     *
      * @return maximum magnitude of the numbers in the array.
      */
     public static double maxMagnitude(double... nums)
     {
         double maxMag = Math.abs(nums[0]);
 
-        for (double num: nums)
+        for (double num : nums)
         {
             double magnitude = Math.abs(num);
             if (magnitude > maxMag)
@@ -245,8 +243,8 @@ public class TrcUtil
         normalizeInPlace(result);
 
         return result;
-//        double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
-//        return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
+        //        double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
+        //        return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
     }   //normalize
 
     /**
@@ -261,10 +259,78 @@ public class TrcUtil
     }   //round
 
     /**
+     * This method checks if the given value is within the range from low to high.
+     *
+     * @param value The value to be checked.
+     * @param low   The low limit of the interval.
+     * @param high  The high limit of the interval.
+     * @return True if the value is within the range, false otherwise.
+     */
+    public static boolean inRange(int value, int low, int high)
+    {
+        return inRange(value, low, high, true);
+    }
+
+    /**
+     * This method checks if the given value is within the range from low to high.
+     *
+     * @param value  The value to be checked.
+     * @param low    The low limit of the interval.
+     * @param high   The high limit of the interval.
+     * @param closed If closed is true, the interval is [low,high].Otherwise, the interval is (low,high).
+     * @return True if the value is within the range, false otherwise.
+     */
+    public static boolean inRange(int value, int low, int high, boolean closed)
+    {
+        if (closed)
+        {
+            return value >= low && value <= high;
+        }
+        else
+        {
+            return value > low && value < high;
+        }
+    }
+
+    /**
+     * This method checks if the given value is within the range from low to high.
+     *
+     * @param value The value to be checked.
+     * @param low   The low limit of the interval.
+     * @param high  The high limit of the interval.
+     * @return True if the value is within the range, false otherwise.
+     */
+    public static boolean inRange(double value, double low, double high)
+    {
+        return inRange(value, low, high, true);
+    }
+
+    /**
+     * This method checks if the given value is within the range from low to high.
+     *
+     * @param value  The value to be checked.
+     * @param low    The low limit of the interval.
+     * @param high   The high limit of the interval.
+     * @param closed If closed is true, the interval is [low,high].Otherwise, the interval is (low,high).
+     * @return True if the value is within the range, false otherwise.
+     */
+    public static boolean inRange(double value, double low, double high, boolean closed)
+    {
+        if (closed)
+        {
+            return value >= low && value <= high;
+        }
+        else
+        {
+            return value > low && value < high;
+        }
+    }
+
+    /**
      * This method clips the given value to the range limited by the given low and high limits.
      *
-     * @param value specifies the value to be clipped
-     * @param lowLimit specifies the low limit of the range.
+     * @param value     specifies the value to be clipped
+     * @param lowLimit  specifies the low limit of the range.
      * @param highLimit specifies the high limit of the range.
      * @return the result of the clipped value.
      */
@@ -276,8 +342,8 @@ public class TrcUtil
     /**
      * This method clips the given value to the range limited by the given low and high limits.
      *
-     * @param value specifies the value to be clipped
-     * @param lowLimit specifies the low limit of the range.
+     * @param value     specifies the value to be clipped
+     * @param lowLimit  specifies the low limit of the range.
      * @param highLimit specifies the high limit of the range.
      * @return the result of the clipped value.
      */
@@ -300,83 +366,80 @@ public class TrcUtil
     /**
      * This method scales the given value from the source range to the target range.
      *
-     * @param value specifies the value to be scaled.
-     * @param lowSrcRange specifies the low limit of the source range.
+     * @param value        specifies the value to be scaled.
+     * @param lowSrcRange  specifies the low limit of the source range.
      * @param highSrcRange specifies the high limit of the source range.
-     * @param lowDstRange specifies the low limit of the target range.
+     * @param lowDstRange  specifies the low limit of the target range.
      * @param highDstRange specifies the high limit of the target range
      * @return the result of the scaled value.
      */
     public static int scaleRange(int value, int lowSrcRange, int highSrcRange, int lowDstRange, int highDstRange)
     {
-        return lowDstRange + (value - lowSrcRange)*(highDstRange - lowDstRange)/(highSrcRange - lowSrcRange);
+        return lowDstRange + (value - lowSrcRange) * (highDstRange - lowDstRange) / (highSrcRange - lowSrcRange);
     }   //scaleRange
 
     /**
      * This method scales the given value from the source range to the target range.
      *
-     * @param value specifies the value to be scaled.
-     * @param lowSrcRange specifies the low limit of the source range.
+     * @param value        specifies the value to be scaled.
+     * @param lowSrcRange  specifies the low limit of the source range.
      * @param highSrcRange specifies the high limit of the source range.
-     * @param lowDstRange specifies the low limit of the target range.
+     * @param lowDstRange  specifies the low limit of the target range.
      * @param highDstRange specifies the high limit of the target range
      * @return the result of the scaled value.
      */
-    public static double scaleRange(
-            double value, double lowSrcRange, double highSrcRange, double lowDstRange, double highDstRange)
+    public static double scaleRange(double value, double lowSrcRange, double highSrcRange, double lowDstRange,
+        double highDstRange)
     {
-        return lowDstRange + (value - lowSrcRange)*(highDstRange - lowDstRange)/(highSrcRange - lowSrcRange);
+        return lowDstRange + (value - lowSrcRange) * (highDstRange - lowDstRange) / (highSrcRange - lowSrcRange);
     }   //scaleRange
 
     /**
      * This method checks if the given value is within the deadband range. If so, it returns 0.0 else it returns
      * the unchanged value.
      *
-     * @param value specifies the value to be checked.
+     * @param value    specifies the value to be checked.
      * @param deadband specifies the deadband zone.
      * @return the value 0.0 if within deadband, unaltered otherwise.
      */
     public static double applyDeadband(double value, double deadband)
     {
-        return Math.abs(value) >= deadband? value: 0.0;
+        return Math.abs(value) >= deadband ? value : 0.0;
     }   //applyDeadband
 
     /**
      * This method combines two bytes into an integer.
      *
-     * @param low specifies the low byte.
+     * @param low  specifies the low byte.
      * @param high specifies the high byte.
-     *
      * @return the converted integer.
      */
     public static int bytesToInt(byte low, byte high)
     {
-        return ((int)low & 0xff) | (((int)high & 0xff) << 8);
+        return ((int) low & 0xff) | (((int) high & 0xff) << 8);
     }   //bytesToInt
 
     /**
      * This method converts a byte into an integer.
      *
      * @param data specifies the byte data.
-     *
      * @return the converted integer.
      */
     public static int bytesToInt(byte data)
     {
-        return bytesToInt(data, (byte)0);
+        return bytesToInt(data, (byte) 0);
     }   //bytesToInt
 
     /**
      * This method combines two bytes into a short.
      *
-     * @param low specifies the low byte.
+     * @param low  specifies the low byte.
      * @param high specifies the high byte.
-     *
      * @return the converted short.
      */
     public static short bytesToShort(byte low, byte high)
     {
-        return (short)bytesToInt(low, high);
+        return (short) bytesToInt(low, high);
     }   //bytesToShort
 
 }   //class TrcUtil
