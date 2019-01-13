@@ -27,7 +27,6 @@ import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
 import trclib.TrcMotor;
-import trclib.TrcUtil;
 
 public class FrcCANSparkMax extends TrcMotor
 {
