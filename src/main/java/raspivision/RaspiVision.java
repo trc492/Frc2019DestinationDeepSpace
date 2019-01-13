@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 public class RaspiVision
 {
     private static final int TEAM_NUMBER = 492;
+    private static final boolean SERVER = true; // true for debugging only
 
     public static void main(String[] args)
     {
@@ -38,23 +39,39 @@ public class RaspiVision
     {
         gson = new Gson();
 
+        System.out.println("Starting network tables!");
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
+        if(SERVER)
+        {
+            System.out.print("Initializing server...");
+            instance.startServer();
+            System.out.println("Done!");
+        }
+        else
+        {
+            System.out.print("Connecting to server...");
+            instance.startClientTeam(TEAM_NUMBER);
+            System.out.println("Done!");
+        }
         NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
-        instance.startClientTeam(TEAM_NUMBER);
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
 
         cameraConfig.addListener(event -> camera.setConfigJson(event.value.getString()),
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate);
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+
+        System.out.println("Initialization complete!");
     }
 
     public void start()
     {
+        System.out.print("Starting vision thread...");
         visionThread.start();
+        System.out.println("Done!");
     }
 
     private double getCorrectedAngle(RotatedRect calculatedRect)
@@ -89,10 +106,15 @@ public class RaspiVision
                 TargetData data = selectTarget(targets);
                 visionData.setString(gson.toJson(data));
             }
+            else
+            {
+                visionData.setString("");
+            }
         }
         catch (Exception e)
         {
             e.printStackTrace();
+            visionData.setString("");
         }
     }
 
