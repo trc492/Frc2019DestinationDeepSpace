@@ -23,7 +23,6 @@ public class VisionTargetPipeline implements VisionPipeline
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> convexHullsOutput = new ArrayList<>();
-    private Mat maskOutput = new Mat();
 
     static
     {
@@ -69,11 +68,6 @@ public class VisionTargetPipeline implements VisionPipeline
         ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
         convexHulls(convexHullsContours, convexHullsOutput);
 
-        // Step Mask0:
-        Mat maskInput = source0;
-        Mat maskMask = hslThresholdOutput;
-        mask(maskInput, maskMask, maskOutput);
-
     }
 
     /**
@@ -114,16 +108,6 @@ public class VisionTargetPipeline implements VisionPipeline
     public ArrayList<MatOfPoint> convexHullsOutput()
     {
         return convexHullsOutput;
-    }
-
-    /**
-     * This method is a generated getter for the output of a Mask.
-     *
-     * @return Mat output from Mask.
-     */
-    public Mat maskOutput()
-    {
-        return maskOutput;
     }
 
     /**
@@ -255,6 +239,5 @@ public class VisionTargetPipeline implements VisionPipeline
         Core.bitwise_xor(output, output, output);
         input.copyTo(output, mask);
     }
-
 }
 
