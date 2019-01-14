@@ -167,7 +167,7 @@ public class TrcUtil
     public static double average(double... nums)
     {
         return sum(nums) / nums.length;
-        //        return Arrays.stream(nums).average().orElse(0.0);
+        // return Arrays.stream(nums).average().orElse(0.0);
     }   //average
 
     /**
@@ -186,7 +186,7 @@ public class TrcUtil
         }
 
         return Math.sqrt(total);
-        //        return Math.sqrt(Arrays.stream(nums).map(e -> e*e).sum());
+        // return Math.sqrt(Arrays.stream(nums).map(e -> e*e).sum());
     }   //magnitude
 
     /**
@@ -243,8 +243,8 @@ public class TrcUtil
         normalizeInPlace(result);
 
         return result;
-        //        double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
-        //        return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
+        // double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
+        // return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
     }   //normalize
 
     /**
@@ -259,72 +259,58 @@ public class TrcUtil
     }   //round
 
     /**
-     * This method checks if the given value is within the range from low to high.
+     * This method checks if the given value is within the specified range.
+     *
+     * @param value  The value to be checked.
+     * @param low    The low limit of the range.
+     * @param high   The high limit of the range.
+     * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low, high).
+     * @return true if the value is within range, false otherwise.
+     */
+    public static boolean inRange(int value, int low, int high, boolean inclusive)
+    {
+        return inclusive ? value >= low && value <= high: value > low && value < high;
+    }   //inRange
+
+    /**
+     * This method checks if the given value is within the specified range inclusive.
      *
      * @param value The value to be checked.
-     * @param low   The low limit of the interval.
-     * @param high  The high limit of the interval.
-     * @return True if the value is within the range, false otherwise.
+     * @param low   The low limit of the range.
+     * @param high  The high limit of the range.
+     * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(int value, int low, int high)
     {
         return inRange(value, low, high, true);
-    }
+    }   //inRange
 
     /**
-     * This method checks if the given value is within the range from low to high.
+     * This method checks if the given value is within the specified range.
      *
      * @param value  The value to be checked.
-     * @param low    The low limit of the interval.
-     * @param high   The high limit of the interval.
-     * @param closed If closed is true, the interval is [low,high]. Otherwise, the interval is (low,high).
-     * @return True if the value is within the range, false otherwise.
+     * @param low    The low limit of the range.
+     * @param high   The high limit of the range.
+     * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low,high).
+     * @return true if the value is within range, false otherwise.
      */
-    public static boolean inRange(int value, int low, int high, boolean closed)
+    public static boolean inRange(double value, double low, double high, boolean inclusive)
     {
-        if (closed)
-        {
-            return value >= low && value <= high;
-        }
-        else
-        {
-            return value > low && value < high;
-        }
-    }
+        return inclusive ? value >= low && value <= high: value > low && value < high;
+    }   //inRange
 
     /**
-     * This method checks if the given value is within the range from low to high.
+     * This method checks if the given value is within the specified range inclusive.
      *
      * @param value The value to be checked.
-     * @param low   The low limit of the interval.
-     * @param high  The high limit of the interval.
-     * @return True if the value is within the range, false otherwise.
+     * @param low   The low limit of the range.
+     * @param high  The high limit of the range.
+     * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(double value, double low, double high)
     {
         return inRange(value, low, high, true);
-    }
-
-    /**
-     * This method checks if the given value is within the range from low to high.
-     *
-     * @param value  The value to be checked.
-     * @param low    The low limit of the interval.
-     * @param high   The high limit of the interval.
-     * @param closed If closed is true, the interval is [low,high]. Otherwise, the interval is (low,high).
-     * @return True if the value is within the range, false otherwise.
-     */
-    public static boolean inRange(double value, double low, double high, boolean closed)
-    {
-        if (closed)
-        {
-            return value >= low && value <= high;
-        }
-        else
-        {
-            return value > low && value < high;
-        }
-    }
+    }   //inRange
 
     /**
      * This method clips the given value to the range limited by the given low and high limits.
