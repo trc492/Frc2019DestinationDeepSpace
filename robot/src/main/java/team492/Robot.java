@@ -117,7 +117,7 @@ public class Robot extends FrcRobotBase
     public FrcAHRSGyro gyro = null;
     public AnalogInput pressureSensor = null;
     //
-    // VisionTarget subsystem.
+    // VisionTargetPipeline subsystem.
     //
     public PixyVision pixy = null;
     //
