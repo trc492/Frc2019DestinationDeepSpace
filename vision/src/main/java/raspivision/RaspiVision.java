@@ -13,7 +13,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.RotatedRect;
 import org.opencv.imgproc.Imgproc;
-import trclib.TrcUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -175,6 +174,11 @@ public class RaspiVision
         return Integer.compare(target1.x, target2.x);
     }
 
+    private int round(double d)
+    {
+        return (int)(Math.floor(d+0.5));
+    }
+
     private VisionTarget mapContourToVisionTarget(MatOfPoint m)
     {
         MatOfPoint2f contour = new MatOfPoint2f();
@@ -183,10 +187,10 @@ public class RaspiVision
 
         VisionTarget target = new VisionTarget();
         target.isLeftTarget = getCorrectedAngle(rect) <= 90;
-        target.x = TrcUtil.round(rect.center.x);
-        target.y = TrcUtil.round(rect.center.y);
-        target.w = TrcUtil.round(rect.size.width);
-        target.h = TrcUtil.round(rect.size.height);
+        target.x = round(rect.center.x);
+        target.y = round(rect.center.y);
+        target.w = round(rect.size.width);
+        target.h = round(rect.size.height);
         return target;
     }
 

@@ -23,3 +23,6 @@ pluginManagement {
         }
     }
 }
+
+include 'vision'
+include 'robot'
