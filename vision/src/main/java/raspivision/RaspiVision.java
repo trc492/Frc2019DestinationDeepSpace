@@ -23,6 +23,8 @@ public class RaspiVision
 {
     private static final int TEAM_NUMBER = 492;
     private static final boolean SERVER = true; // true for debugging only
+    private static final boolean MEASURE_FPS = true;
+    private static final double FPS_AVG_WINDOW = 5; // 5 seconds
 
     public static void main(String[] args)
     {
@@ -33,6 +35,8 @@ public class RaspiVision
     private Gson gson;
     private VisionThread visionThread;
     private NetworkTableEntry visionData;
+    private int numFrames = 0;
+    private double startTime = 0;
 
     public RaspiVision()
     {
@@ -40,7 +44,7 @@ public class RaspiVision
 
         System.out.println("Starting network tables!");
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
-        if(SERVER)
+        if (SERVER)
         {
             System.out.print("Initializing server...");
             instance.startServer();
@@ -57,6 +61,7 @@ public class RaspiVision
         visionData = table.getEntry("VisionData");
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+        camera.setResolution(320,240); // Default to 320x240, unless overridden by json config
         visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
 
@@ -70,6 +75,7 @@ public class RaspiVision
     {
         System.out.print("Starting vision thread...");
         visionThread.start();
+        startTime = getTime();
         System.out.println("Done!");
     }
 
@@ -87,33 +93,58 @@ public class RaspiVision
 
     private void processImage(VisionTargetPipeline pipeline)
     {
+        String dataString = "";
         try
         {
             List<MatOfPoint> contours = pipeline.convexHullsOutput();
+            if (contours.isEmpty())
+            {
+                return;
+            }
             List<VisionTarget> targets = contours.stream().map(this::mapContourToVisionTarget)
                 .sorted(this::compareVisionTargets).collect(Collectors.toCollection(ArrayList::new));
             while (!targets.get(0).isLeftTarget)
             {
                 targets.remove(0);
+                if (targets.isEmpty())
+                {
+                    return;
+                }
             }
             while (targets.get(targets.size() - 1).isLeftTarget)
             {
                 targets.remove(targets.size() - 1);
+                if (targets.isEmpty())
+                {
+                    return;
+                }
             }
             if (isValid(targets))
             {
                 TargetData data = selectTarget(targets);
-                visionData.setString(gson.toJson(data));
-            }
-            else
-            {
-                visionData.setString("");
+                dataString = gson.toJson(data);
             }
         }
         catch (Exception e)
         {
             e.printStackTrace();
-            visionData.setString("");
+        }
+        finally
+        {
+            visionData.setString(dataString);
+            if (MEASURE_FPS)
+            {
+                numFrames++;
+                double currTime = getTime();
+                double elapsedTime = currTime - startTime;
+                if (elapsedTime >= FPS_AVG_WINDOW)
+                {
+                    double fps = (double) numFrames / elapsedTime;
+                    System.out.printf("Avg fps over %.3fsec: %.3f\n", elapsedTime, fps);
+                    numFrames = 0;
+                    startTime = currTime;
+                }
+            }
         }
     }
 
@@ -174,9 +205,14 @@ public class RaspiVision
         return Integer.compare(target1.x, target2.x);
     }
 
+    private double getTime()
+    {
+        return (double) System.currentTimeMillis() / 1000;
+    }
+
     private int round(double d)
     {
-        return (int)(Math.floor(d+0.5));
+        return (int) (Math.floor(d + 0.5));
     }
 
     private VisionTarget mapContourToVisionTarget(MatOfPoint m)
