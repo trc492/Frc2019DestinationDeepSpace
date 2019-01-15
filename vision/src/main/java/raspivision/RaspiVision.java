@@ -1,6 +1,7 @@
 package raspivision;
 
 import com.google.gson.Gson;
+import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
@@ -8,12 +9,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionThread;
-import org.opencv.core.CvType;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
-import org.opencv.core.RotatedRect;
+import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -25,6 +24,10 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
+    private static final boolean DEBUG_DISPLAY = true;
+
+    private static final int DEFAULT_WIDTH = 320;
+    private static final int DEFAULT_HEIGHT = 240;
 
     public static void main(String[] args)
     {
@@ -35,8 +38,11 @@ public class RaspiVision
     private Gson gson;
     private VisionThread visionThread;
     private NetworkTableEntry visionData;
+    private NetworkTableEntry cameraData;
     private int numFrames = 0;
     private double startTime = 0;
+    private CvSource dashboardDisplay;
+    private int width, height;
 
     public RaspiVision()
     {
@@ -59,16 +65,32 @@ public class RaspiVision
         NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
+        cameraData = table.getEntry("CameraData");
+
+        cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
+
+        if (DEBUG_DISPLAY)
+        {
+            dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        }
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
-        camera.setResolution(320,240); // Default to 320x240, unless overridden by json config
+        camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
         visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
 
-        cameraConfig.addListener(event -> camera.setConfigJson(event.value.getString()),
+        cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         System.out.println("Initialization complete!");
+    }
+
+    private void configCamera(UsbCamera camera, String json)
+    {
+        if (!camera.setConfigJson(json))
+        {
+            System.err.println("Invalid json configuration file!");
+        }
     }
 
     public void start()
@@ -94,8 +116,16 @@ public class RaspiVision
     private void processImage(VisionTargetPipeline pipeline)
     {
         String dataString = "";
+        TargetData data = null;
         try
         {
+            if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
+            {
+                width = pipeline.getInput().width();
+                height = pipeline.getInput().height();
+                cameraData.setDoubleArray(new double[] { width, height });
+            }
+
             List<MatOfPoint> contours = pipeline.convexHullsOutput();
             if (contours.isEmpty())
             {
@@ -121,7 +151,7 @@ public class RaspiVision
             }
             if (isValid(targets))
             {
-                TargetData data = selectTarget(targets);
+                data = selectTarget(targets);
                 dataString = gson.toJson(data);
             }
         }
@@ -132,6 +162,20 @@ public class RaspiVision
         finally
         {
             visionData.setString(dataString);
+            if (DEBUG_DISPLAY)
+            {
+                Mat image = pipeline.getInput();
+                if (data != null)
+                {
+                    image = pipeline.getInput().clone();
+                    int minX = data.x - data.w / 2;
+                    int maxX = data.x + data.w / 2;
+                    int minY = data.y - data.h / 2;
+                    int maxY = data.y + data.h / 2;
+                    Imgproc.rectangle(image, new Point(minX, minY), new Point(maxX, maxY), new Scalar(0, 255, 0));
+                }
+                dashboardDisplay.putFrame(image);
+            }
             if (MEASURE_FPS)
             {
                 numFrames++;

@@ -19,6 +19,7 @@ public class VisionTargetPipeline implements VisionPipeline
 {
 
     //Outputs
+    private Mat input = new Mat();
     private Mat hslThresholdOutput = new Mat();
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
@@ -34,6 +35,7 @@ public class VisionTargetPipeline implements VisionPipeline
      */
     public void process(Mat source0)
     {
+        input = source0;
         // Step HSL_Threshold0:
         Mat hslThresholdInput = source0;
         double[] hslThresholdHue = { 69.31654676258991, 93.63636363636363 };
@@ -68,6 +70,11 @@ public class VisionTargetPipeline implements VisionPipeline
         ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
         convexHulls(convexHullsContours, convexHullsOutput);
 
+    }
+
+    public Mat getInput()
+    {
+        return input;
     }
 
     /**
