@@ -1,7 +1,9 @@
 package raspivision;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import edu.wpi.first.vision.VisionPipeline;
 import org.opencv.core.*;
@@ -24,6 +26,8 @@ public class VisionTargetPipeline implements VisionPipeline
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> convexHullsOutput = new ArrayList<>();
+    private List<TargetData> detectedTargets = new ArrayList<>();
+    private TargetData selectedTarget = null;
 
     static
     {
@@ -35,76 +39,111 @@ public class VisionTargetPipeline implements VisionPipeline
      */
     public void process(Mat source0)
     {
-        input = source0;
-        // Step HSL_Threshold0:
-        Mat hslThresholdInput = source0;
-        double[] hslThresholdHue = { 69.31654676258991, 93.63636363636363 };
-        double[] hslThresholdSaturation = { 90.52158273381295, 255.0 };
-        double[] hslThresholdLuminance = { 112.36510791366906, 255.0 };
-        hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
-            hslThresholdOutput);
+        long start = System.currentTimeMillis();
 
-        // Step Find_Contours0:
-        Mat findContoursInput = hslThresholdOutput;
-        findContours(findContoursInput, true, findContoursOutput);
+        try
+        {
+            // Clear the detected targets
+            detectedTargets.clear();
+            selectedTarget = null;
 
-        // Step Filter_Contours0:
-        ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-        double filterContoursMinArea = 50000.0;
-        double filterContoursMinPerimeter = 0.0;
-        double filterContoursMinWidth = 0.0;
-        double filterContoursMaxWidth = 100000.0;
-        double filterContoursMinHeight = 0.0;
-        double filterContoursMaxHeight = 100000.0;
-        double[] filterContoursSolidity = { 0, 100 };
-        double filterContoursMaxVertices = 1000000.0;
-        double filterContoursMinVertices = 0.0;
-        double filterContoursMinRatio = 0.0;
-        double filterContoursMaxRatio = 1000.0;
-        filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter,
-            filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
-            filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
-            filterContoursMaxRatio, filterContoursOutput);
+            input = source0;
+            // Step HSL_Threshold0:
+            Mat hslThresholdInput = source0;
+            double[] hslThresholdHue = { 69.31654676258991, 93.63636363636363 };
+            double[] hslThresholdSaturation = { 90.52158273381295, 255.0 };
+            double[] hslThresholdLuminance = { 112.36510791366906, 255.0 };
+            hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
+                hslThresholdOutput);
 
-        // Step Convex_Hulls0:
-        ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
-        convexHulls(convexHullsContours, convexHullsOutput);
+            // Step Find_Contours0:
+            Mat findContoursInput = hslThresholdOutput;
+            findContours(findContoursInput, true, findContoursOutput);
 
+            // Step Filter_Contours0:
+            ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
+            double filterContoursMinArea = 50000.0;
+            double filterContoursMinPerimeter = 0.0;
+            double filterContoursMinWidth = 0.0;
+            double filterContoursMaxWidth = 100000.0;
+            double filterContoursMinHeight = 0.0;
+            double filterContoursMaxHeight = 100000.0;
+            double[] filterContoursSolidity = { 0, 100 };
+            double filterContoursMaxVertices = 1000000.0;
+            double filterContoursMinVertices = 0.0;
+            double filterContoursMinRatio = 0.0;
+            double filterContoursMaxRatio = 1000.0;
+            filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter,
+                filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
+                filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
+                filterContoursMaxRatio, filterContoursOutput);
+
+            // Step Convex_Hulls0:
+            ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
+            convexHulls(convexHullsContours, convexHullsOutput);
+
+            if (convexHullsOutput.isEmpty())
+            {
+                return;
+            }
+
+            // Convert contours to vision targets
+            ArrayList<VisionTarget> visionTargets = convexHullsOutput.stream().map(this::mapContourToVisionTarget)
+                .sorted(this::compareVisionTargets).collect(Collectors.toCollection(ArrayList::new));
+
+            // Trim mismatched targets
+            while (!visionTargets.get(0).isLeftTarget)
+            {
+                visionTargets.remove(0);
+                if (visionTargets.isEmpty())
+                {
+                    return;
+                }
+            }
+            while (visionTargets.get(visionTargets.size() - 1).isLeftTarget)
+            {
+                visionTargets.remove(visionTargets.size() - 1);
+                if (visionTargets.isEmpty())
+                {
+                    return;
+                }
+            }
+
+            if (isValid(visionTargets))
+            {
+                detectedTargets = detectTargets(visionTargets);
+                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x)))
+                    .orElseThrow(IllegalStateException::new);
+            }
+            else
+            {
+                detectedTargets.clear();
+                selectedTarget = null;
+            }
+        }
+        finally
+        {
+            long elapsed = System.currentTimeMillis() - start;
+            if (elapsed >= 100)
+            {
+                System.err.println("Vision pipeline took too long!");
+            }
+        }
+    }
+
+    public TargetData getSelectedTarget()
+    {
+        return selectedTarget;
+    }
+
+    public List<TargetData> getDetectedTargets()
+    {
+        return detectedTargets;
     }
 
     public Mat getInput()
     {
         return input;
-    }
-
-    /**
-     * This method is a generated getter for the output of a HSL_Threshold.
-     *
-     * @return Mat output from HSL_Threshold.
-     */
-    public Mat hslThresholdOutput()
-    {
-        return hslThresholdOutput;
-    }
-
-    /**
-     * This method is a generated getter for the output of a Find_Contours.
-     *
-     * @return ArrayList<MatOfPoint> output from Find_Contours.
-     */
-    public ArrayList<MatOfPoint> findContoursOutput()
-    {
-        return findContoursOutput;
-    }
-
-    /**
-     * This method is a generated getter for the output of a Filter_Contours.
-     *
-     * @return ArrayList<MatOfPoint> output from Filter_Contours.
-     */
-    public ArrayList<MatOfPoint> filterContoursOutput()
-    {
-        return filterContoursOutput;
     }
 
     /**
@@ -234,17 +273,103 @@ public class VisionTargetPipeline implements VisionPipeline
     }
 
     /**
-     * Filter out an area of an image using a binary mask.
+     * Checks if the list of targets is valid.
      *
-     * @param input  The image on which the mask filters.
-     * @param mask   The binary image that is used to filter.
-     * @param output The image in which to store the output.
+     * @param targets The targets to validate.
+     * @return True if valid, false otherwise.
      */
-    private void mask(Mat input, Mat mask, Mat output)
+    private boolean isValid(List<VisionTarget> targets)
     {
-        mask.convertTo(mask, CvType.CV_8UC1);
-        Core.bitwise_xor(output, output, output);
-        input.copyTo(output, mask);
+        // Invalid if no targets or odd number of targets.
+        if (targets.size() == 0 || targets.size() % 2 == 1)
+        {
+            return false;
+        }
+        // Verify that there are alternating pairs of targets. (Left right left right)
+        for (int i = 0; i < targets.size(); i += 2)
+        {
+            VisionTarget left = targets.get(i);
+            VisionTarget right = targets.get(i + 1);
+            if (!left.isLeftTarget || right.isLeftTarget)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private double getCorrectedAngle(RotatedRect calculatedRect)
+    {
+        if (calculatedRect.size.width < calculatedRect.size.height)
+        {
+            return calculatedRect.angle + 180;
+        }
+        else
+        {
+            return calculatedRect.angle + 90;
+        }
+    }
+
+    private List<TargetData> detectTargets(List<VisionTarget> targets)
+    {
+        List<TargetData> targetDatas = new ArrayList<>(); // Yes I know datas isn't a word.
+        // Pair vision targets and get the enclosing bounding box.
+        for (int i = 0; i < targets.size(); i += 2)
+        {
+            VisionTarget left = targets.get(i);
+            VisionTarget right = targets.get(i + 1);
+            int leftBound = left.x - left.w / 2;
+            int rightBound = right.x + right.w / 2;
+            int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
+            int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
+            TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
+                rightBound - leftBound, Math.abs(bottomBound - topBound));
+            targetDatas.add(data);
+        }
+        return targetDatas;
+    }
+
+    private VisionTarget mapContourToVisionTarget(MatOfPoint m)
+    {
+        MatOfPoint2f contour = new MatOfPoint2f();
+        m.convertTo(contour, CvType.CV_32F);
+        RotatedRect rect = Imgproc.minAreaRect(contour);
+
+        VisionTarget target = new VisionTarget();
+        target.isLeftTarget = getCorrectedAngle(rect) <= 90;
+        target.x = round(rect.center.x);
+        target.y = round(rect.center.y);
+        target.w = round(rect.size.width);
+        target.h = round(rect.size.height);
+        return target;
+    }
+
+    private int round(double d)
+    {
+        return (int) (Math.floor(d + 0.5));
+    }
+
+    private int compareVisionTargets(VisionTarget target1, VisionTarget target2)
+    {
+        return Integer.compare(target1.x, target2.x);
+    }
+
+    /**
+     * Represents a single retroflective tape.
+     */
+    private class VisionTarget
+    {
+        public boolean isLeftTarget;
+        public int x, y, w, h;
+
+        public boolean equals(Object o)
+        {
+            if (!(o instanceof VisionTarget))
+                return false;
+            VisionTarget target = (VisionTarget) o;
+            return target.isLeftTarget == isLeftTarget && target.x == x && target.y == y && target.w == w
+                && target.h == h;
+        }
     }
 }
 
