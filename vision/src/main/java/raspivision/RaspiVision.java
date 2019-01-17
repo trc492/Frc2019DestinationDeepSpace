@@ -18,7 +18,7 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DEBUG_DISPLAY = false;
+    private static final boolean DEBUG_DISPLAY = true;
 
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
@@ -72,6 +72,7 @@ public class RaspiVision
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+        camera.setBrightness(40);
         visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
 
@@ -135,7 +136,7 @@ public class RaspiVision
 
     private void debugDisplay(VisionTargetPipeline pipeline)
     {
-        Mat image = pipeline.getInput().clone();
+        Mat image = pipeline.getHslThresholdOutput().clone();
         for (TargetData data : pipeline.getDetectedTargets())
         {
             if (data != null)

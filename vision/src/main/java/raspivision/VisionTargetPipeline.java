@@ -59,10 +59,11 @@ public class VisionTargetPipeline implements VisionPipeline
             // Step Find_Contours0:
             Mat findContoursInput = hslThresholdOutput;
             findContours(findContoursInput, true, findContoursOutput);
+            System.out.printf("Detected %d vision targets\n", findContoursOutput.size());
 
             // Step Filter_Contours0:
             ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-            double filterContoursMinArea = 50000.0;
+            double filterContoursMinArea = 1000.0;
             double filterContoursMinPerimeter = 0.0;
             double filterContoursMinWidth = 0.0;
             double filterContoursMaxWidth = 100000.0;
@@ -77,6 +78,8 @@ public class VisionTargetPipeline implements VisionPipeline
                 filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
                 filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
                 filterContoursMaxRatio, filterContoursOutput);
+
+            System.out.printf("Detected %d filtered vision targets\n", filterContoursContours.size());
 
             // Step Convex_Hulls0:
             ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
@@ -115,11 +118,6 @@ public class VisionTargetPipeline implements VisionPipeline
                 selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x)))
                     .orElseThrow(IllegalStateException::new);
             }
-            else
-            {
-                detectedTargets.clear();
-                selectedTarget = null;
-            }
         }
         finally
         {
@@ -129,6 +127,11 @@ public class VisionTargetPipeline implements VisionPipeline
                 System.err.println("Vision pipeline took too long!");
             }
         }
+    }
+
+    public Mat getHslThresholdOutput()
+    {
+        return hslThresholdOutput;
     }
 
     public TargetData getSelectedTarget()
