@@ -3,6 +3,7 @@ package raspivision;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import edu.wpi.first.vision.VisionPipeline;
@@ -19,6 +20,9 @@ import org.opencv.imgproc.*;
  */
 public class VisionTargetPipeline implements VisionPipeline
 {
+
+    private static final double ROTATED_RECT_RATIO_MIN = 0.8 * 2 / 5.5; // 80% of the
+    private static final double ROTATED_RECT_RATIO_MAX = 1.2 * 2 / 5.5;
 
     //Outputs
     private Mat input = new Mat();
@@ -54,16 +58,15 @@ public class VisionTargetPipeline implements VisionPipeline
             input = source0;
             // Step HSL_Threshold0:
             Mat hslThresholdInput = source0;
-//            double[] hslThresholdHue = { 39, 108 };
-//            double[] hslThresholdSaturation = { 73, 255.0 };
-//            double[] hslThresholdLuminance = { 147, 255.0 };
+            //            double[] hslThresholdHue = { 39, 108 };
+            //            double[] hslThresholdSaturation = { 73, 255.0 };
+            //            double[] hslThresholdLuminance = { 147, 255.0 };
             hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
                 hslThresholdOutput);
 
             // Step Find_Contours0:
             Mat findContoursInput = hslThresholdOutput;
             findContours(findContoursInput, true, findContoursOutput);
-            System.out.printf("Detected %d vision targets\n", findContoursOutput.size());
 
             // Step Filter_Contours0:
             ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
@@ -83,8 +86,6 @@ public class VisionTargetPipeline implements VisionPipeline
                 filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
                 filterContoursMaxRatio, filterContoursOutput);
 
-            System.out.printf("Detected %d filtered vision targets\n", filterContoursContours.size());
-
             // Step Convex_Hulls0:
             ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
             convexHulls(convexHullsContours, convexHullsOutput);
@@ -96,7 +97,8 @@ public class VisionTargetPipeline implements VisionPipeline
 
             // Convert contours to vision targets
             ArrayList<VisionTarget> visionTargets = convexHullsOutput.stream().map(this::mapContourToVisionTarget)
-                .sorted(this::compareVisionTargets).collect(Collectors.toCollection(ArrayList::new));
+                .filter(Objects::nonNull).sorted(this::compareVisionTargets)
+                .collect(Collectors.toCollection(ArrayList::new));
 
             // Trim mismatched targets
             while (!visionTargets.get(0).isLeftTarget)
@@ -336,18 +338,30 @@ public class VisionTargetPipeline implements VisionPipeline
         return targetDatas;
     }
 
+    private boolean isValidRect(RotatedRect rect)
+    {
+        double ratio = Math.min(rect.size.width, rect.size.height) / Math.max(rect.size.width, rect.size.height);
+        return ROTATED_RECT_RATIO_MIN <= ratio && ratio <= ROTATED_RECT_RATIO_MAX;
+    }
+
     private VisionTarget mapContourToVisionTarget(MatOfPoint m)
     {
         MatOfPoint2f contour = new MatOfPoint2f();
         m.convertTo(contour, CvType.CV_32F);
         RotatedRect rect = Imgproc.minAreaRect(contour);
 
+        if (!isValidRect(rect))
+        {
+            return null;
+        }
+
         VisionTarget target = new VisionTarget();
         target.isLeftTarget = getCorrectedAngle(rect) <= 90;
-        target.x = round(rect.center.x);
-        target.y = round(rect.center.y);
-        target.w = round(rect.size.width);
-        target.h = round(rect.size.height);
+        Rect bounds = rect.boundingRect();
+        target.x = bounds.x + bounds.width / 2;
+        target.y = bounds.y + bounds.height / 2;
+        target.w = bounds.width;
+        target.h = bounds.height;
         return target;
     }
 
