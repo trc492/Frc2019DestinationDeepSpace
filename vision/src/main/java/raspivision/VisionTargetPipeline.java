@@ -29,6 +29,10 @@ public class VisionTargetPipeline implements VisionPipeline
     private List<TargetData> detectedTargets = new ArrayList<>();
     private TargetData selectedTarget = null;
 
+    public double[] hslThresholdHue = { 0, 180 };
+    public double[] hslThresholdSaturation = { 0, 122 };
+    public double[] hslThresholdLuminance = { 65, 234 };
+
     static
     {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -50,9 +54,9 @@ public class VisionTargetPipeline implements VisionPipeline
             input = source0;
             // Step HSL_Threshold0:
             Mat hslThresholdInput = source0;
-            double[] hslThresholdHue = { 69.31654676258991, 93.63636363636363 };
-            double[] hslThresholdSaturation = { 90.52158273381295, 255.0 };
-            double[] hslThresholdLuminance = { 112.36510791366906, 255.0 };
+//            double[] hslThresholdHue = { 39, 108 };
+//            double[] hslThresholdSaturation = { 73, 255.0 };
+//            double[] hslThresholdLuminance = { 147, 255.0 };
             hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
                 hslThresholdOutput);
 
@@ -63,17 +67,17 @@ public class VisionTargetPipeline implements VisionPipeline
 
             // Step Filter_Contours0:
             ArrayList<MatOfPoint> filterContoursContours = findContoursOutput;
-            double filterContoursMinArea = 1000.0;
+            double filterContoursMinArea = 50.0;
             double filterContoursMinPerimeter = 0.0;
             double filterContoursMinWidth = 0.0;
-            double filterContoursMaxWidth = 100000.0;
+            double filterContoursMaxWidth = 300.0;
             double filterContoursMinHeight = 0.0;
-            double filterContoursMaxHeight = 100000.0;
-            double[] filterContoursSolidity = { 0, 100 };
+            double filterContoursMaxHeight = 200;
+            double[] filterContoursSolidity = { 50, 100 };
             double filterContoursMaxVertices = 1000000.0;
             double filterContoursMinVertices = 0.0;
-            double filterContoursMinRatio = 0.0;
-            double filterContoursMaxRatio = 1000.0;
+            double filterContoursMinRatio = 0.55;
+            double filterContoursMaxRatio = 0.85;
             filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter,
                 filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
                 filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,

@@ -37,6 +37,7 @@ public class RaspiVision
     private double startTime = 0;
     private CvSource dashboardDisplay;
     private int width, height;
+    private VisionTargetPipeline pipeline;
 
     public RaspiVision()
     {
@@ -62,6 +63,12 @@ public class RaspiVision
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
         cameraData = table.getEntry("CameraData");
+        NetworkTableEntry hueLow = table.getEntry("HueLow");
+        NetworkTableEntry hueHigh = table.getEntry("HueHigh");
+        NetworkTableEntry satLow = table.getEntry("SatLow");
+        NetworkTableEntry satHigh = table.getEntry("SatHigh");
+        NetworkTableEntry luminanceLow = table.getEntry("LuminanceLow");
+        NetworkTableEntry luminanceHigh = table.getEntry("LuminanceHigh");
 
         cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
 
@@ -72,9 +79,25 @@ public class RaspiVision
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        camera.setBrightness(40);
-        visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
+        visionThread = new VisionThread(camera, pipeline = new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
+
+        int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
+
+        hueHigh.setDouble(pipeline.hslThresholdHue[1]);
+        hueHigh.addListener(event -> pipeline.hslThresholdHue[1] = event.value.getDouble(), flag);
+        hueLow.setDouble(pipeline.hslThresholdHue[0]);
+        hueLow.addListener(event -> pipeline.hslThresholdHue[0] = event.value.getDouble(), flag);
+
+        satHigh.setDouble(pipeline.hslThresholdSaturation[1]);
+        satHigh.addListener(event -> pipeline.hslThresholdSaturation[1] = event.value.getDouble(), flag);
+        satLow.setDouble(pipeline.hslThresholdSaturation[0]);
+        satLow.addListener(event -> pipeline.hslThresholdSaturation[0] = event.value.getDouble(), flag);
+
+        luminanceHigh.setDouble(pipeline.hslThresholdLuminance[1]);
+        luminanceHigh.addListener(event -> pipeline.hslThresholdLuminance[1] = event.value.getDouble(), flag);
+        luminanceLow.setDouble(pipeline.hslThresholdLuminance[0]);
+        luminanceLow.addListener(event -> pipeline.hslThresholdLuminance[0] = event.value.getDouble(), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
@@ -136,7 +159,7 @@ public class RaspiVision
 
     private void debugDisplay(VisionTargetPipeline pipeline)
     {
-        Mat image = pipeline.getHslThresholdOutput().clone();
+        Mat image = pipeline.getInput().clone();
         for (TargetData data : pipeline.getDetectedTargets())
         {
             if (data != null)
@@ -145,7 +168,7 @@ public class RaspiVision
                 int maxX = data.x + data.w / 2;
                 int minY = data.y - data.h / 2;
                 int maxY = data.y + data.h / 2;
-                Imgproc.rectangle(image, new Point(minX, minY), new Point(maxX, maxY), new Scalar(0, 255, 0));
+                Imgproc.rectangle(image, new Point(minX, minY), new Point(maxX, maxY), new Scalar(0, 255, 0), 2);
             }
         }
         dashboardDisplay.putFrame(image);
