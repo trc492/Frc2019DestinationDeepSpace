@@ -33,7 +33,6 @@ import org.opencv.core.*;
 
 import org.opencv.imgproc.*;
 
-
 public class VisionTargetPipeline implements VisionPipeline
 {
     private static final double ROTATED_RECT_RATIO_MIN = 0.8 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
@@ -114,6 +113,11 @@ public class VisionTargetPipeline implements VisionPipeline
             ArrayList<VisionTarget> visionTargets = convexHullsOutput.stream().map(this::mapContourToVisionTarget)
                 .filter(Objects::nonNull).sorted(this::compareVisionTargets)
                 .collect(Collectors.toCollection(ArrayList::new));
+
+            if (visionTargets.isEmpty())
+            {
+                return;
+            }
 
             // Trim mismatched targets
             while (!visionTargets.get(0).isLeftTarget)
