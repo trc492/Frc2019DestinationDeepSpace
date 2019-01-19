@@ -558,6 +558,11 @@ public abstract class TrcSerialBusDevice
         {
             request.buffer = readData(request.address, request.length);
             request.error = request.buffer == null;
+            if (debugEnabled && !request.error)
+            {
+                dbgTrace.traceInfo(funcName, "readData(addr=0x%x,len=%d)=%s",
+                    request.address, request.length, Arrays.toString(request.buffer));
+            }
         }
         else
         {
@@ -642,7 +647,7 @@ public abstract class TrcSerialBusDevice
 
         if (debugEnabled)
         {
-            dbgTrace.traceInfo("SerialBusDevice %s starting...", instanceName);
+            dbgTrace.traceInfo(funcName, "SerialBusDevice %s starting...", instanceName);
         }
 
         while (!Thread.currentThread().isInterrupted())

@@ -181,6 +181,10 @@ public class FrcPixyCam extends TrcPixyCam
         {
             start();
         }
+        else
+        {
+            end();
+        }
 
         if (debugEnabled)
         {

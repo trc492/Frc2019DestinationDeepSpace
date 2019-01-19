@@ -150,6 +150,14 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
     }   //start
 
     /**
+     * This method sets the pixy camera to end state so it will start properly next time.
+     */
+    public void end()
+    {
+        started = false;
+    }   //end
+
+    /**
      * This method writes the data to the device one byte at a time.
      *
      * @param data specifies the buffer containing the data to be written to the device.
@@ -533,6 +541,10 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
                         //
                         // Checksum is correct, add the object block.
                         //
+                        if (debugEnabled)
+                        {
+                            dbgTrace.traceInfo(funcName, "Object(%s)", currBlock);
+                        }
                         objects.add(currBlock);
                         currBlock = null;
                     }
