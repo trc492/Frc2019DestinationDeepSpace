@@ -1,70 +1,43 @@
 <grip:Pipeline>
   <sources>
-    <grip:MultiImageFile>
-      <property name="path[2]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191331.jpg"/>
-      <property name="path[5]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191341.jpg"/>
-      <property name="path[8]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191346.jpg"/>
-      <property name="path[20]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191501.jpg"/>
-      <property name="path[23]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_192235.jpg"/>
-      <property name="path[12]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191417.jpg"/>
-      <property name="path[15]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191447.jpg"/>
-      <property name="index" value="10"/>
-      <property name="path[18]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191459.jpg"/>
-      <property name="path[0]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191238.jpg"/>
-      <property name="path[3]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191334.jpg"/>
-      <property name="path[6]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191342.jpg"/>
-      <property name="path[9]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191400.jpg"/>
-      <property name="path[21]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_192209.jpg"/>
-      <property name="path[24]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_192243.jpg"/>
-      <property name="path[10]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191402.jpg"/>
-      <property name="path[13]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191419.jpg"/>
-      <property name="path[16]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191448.jpg"/>
-      <property name="path[19]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191500.jpg"/>
-      <property name="numImages" value="26"/>
-      <property name="path[1]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191241.jpg"/>
-      <property name="path[4]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191336.jpg"/>
-      <property name="path[7]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191345.jpg"/>
-      <property name="path[22]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_192225.jpg"/>
-      <property name="path[25]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_192259.jpg"/>
-      <property name="path[11]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191403.jpg"/>
-      <property name="path[14]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191420.jpg"/>
-      <property name="path[17]" value="C:\Users\Abhay\Downloads\Retroreflective tape\20190109_191450.jpg"/>
-    </grip:MultiImageFile>
+    <grip:ImageFile>
+      <property name="path" value="C:\Users\Abhay\Downloads\Robotics\img.jpg"/>
+    </grip:ImageFile>
   </sources>
   <steps>
     <grip:Step name="HSL Threshold">
       <grip:Input step="0" socket="0"/>
       <grip:Input step="0" socket="1">
         <value>
-          <double>69.31654676258991</double>
-          <double>93.63636363636363</double>
+          <double>38.84892086330935</double>
+          <double>107.81569965870308</double>
         </value>
       </grip:Input>
       <grip:Input step="0" socket="2">
         <value>
-          <double>90.52158273381295</double>
+          <double>73.38129496402877</double>
           <double>255.0</double>
         </value>
       </grip:Input>
       <grip:Input step="0" socket="3">
         <value>
-          <double>112.36510791366906</double>
+          <double>146.76258992805754</double>
           <double>255.0</double>
         </value>
       </grip:Input>
-      <grip:Output step="0" socket="0" previewed="false"/>
+      <grip:Output step="0" socket="0" previewed="true"/>
     </grip:Step>
     <grip:Step name="Find Contours">
       <grip:Input step="1" socket="0"/>
       <grip:Input step="1" socket="1">
         <value>true</value>
       </grip:Input>
-      <grip:Output step="1" socket="0" previewed="false"/>
+      <grip:Output step="1" socket="0" previewed="true"/>
     </grip:Step>
     <grip:Step name="Filter Contours">
       <grip:Input step="2" socket="0"/>
       <grip:Input step="2" socket="1">
-        <value>50000.0</value>
+        <value>50.0</value>
       </grip:Input>
       <grip:Input step="2" socket="2">
         <value>0.0</value>
@@ -83,8 +56,8 @@
       </grip:Input>
       <grip:Input step="2" socket="7">
         <value>
-          <int>0</int>
-          <int>100</int>
+          <double>50.35971223021583</double>
+          <double>100.0</double>
         </value>
       </grip:Input>
       <grip:Input step="2" socket="8">
@@ -94,10 +67,10 @@
         <value>0.0</value>
       </grip:Input>
       <grip:Input step="2" socket="10">
-        <value>0.0</value>
+        <value>0.55</value>
       </grip:Input>
       <grip:Input step="2" socket="11">
-        <value>1000.0</value>
+        <value>0.85</value>
       </grip:Input>
       <grip:Output step="2" socket="0" previewed="false"/>
     </grip:Step>
@@ -112,7 +85,7 @@
       <grip:Input step="3" socket="0"/>
     </grip:Connection>
     <grip:Connection>
-      <grip:Output step="1" socket="0" previewed="false"/>
+      <grip:Output step="1" socket="0" previewed="true"/>
       <grip:Input step="2" socket="0"/>
     </grip:Connection>
     <grip:Connection>
@@ -120,7 +93,7 @@
       <grip:Input step="0" socket="0"/>
     </grip:Connection>
     <grip:Connection>
-      <grip:Output step="0" socket="0" previewed="false"/>
+      <grip:Output step="0" socket="0" previewed="true"/>
       <grip:Input step="1" socket="0"/>
     </grip:Connection>
   </connections>

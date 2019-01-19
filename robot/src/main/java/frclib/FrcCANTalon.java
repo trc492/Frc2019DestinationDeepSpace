@@ -87,7 +87,7 @@ public class FrcCANTalon extends TrcMotor
             builder.setSmartDashboardType("Quadrature Encoder");
             builder.addDoubleProperty("Speed", FrcCANTalon.this::getVelocity, null);
             builder.addDoubleProperty("Distance", FrcCANTalon.this::getPosition, null);
-            builder.addDoubleProperty("DistancePerCount", ()->1, null);
+            builder.addDoubleProperty("DistancePerCount", () -> 1, null);
         }   //initSendable
 
     }   //class EncoderInfo
@@ -178,7 +178,7 @@ public class FrcCANTalon extends TrcMotor
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
      *
-     * @param maxVelocity specifies the maximum velocity the motor can run, in sensor units per second.
+     * @param maxVelocity     specifies the maximum velocity the motor can run, in sensor units per second.
      * @param pidCoefficients specifies the PIDF coefficients to send to the Talon to use for velocity control.
      */
     @Override
@@ -188,14 +188,14 @@ public class FrcCANTalon extends TrcMotor
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s",
-                maxVelocity, pidCoefficients == null ? "N/A" : pidCoefficients.toString());
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s", maxVelocity,
+                pidCoefficients == null ? "N/A" : pidCoefficients.toString());
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
         this.maxVelocity = maxVelocity;
 
-        if(pidCoefficients != null)
+        if (pidCoefficients != null)
         {
             this.motor.config_kP(0, pidCoefficients.kP);
             this.motor.config_kI(0, pidCoefficients.kI);
@@ -259,10 +259,8 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        recordResponseCode(motor.configForwardLimitSwitchSource(
-            LimitSwitchSource.FeedbackConnector,
-            normalOpen? LimitSwitchNormal.NormallyOpen: LimitSwitchNormal.NormallyClosed,
-            0));
+        recordResponseCode(motor.configForwardLimitSwitchSource(LimitSwitchSource.FeedbackConnector,
+            normalOpen ? LimitSwitchNormal.NormallyOpen : LimitSwitchNormal.NormallyClosed, 0));
         fwdLimitSwitchNormalOpen = normalOpen;
     }   //configFwdLimitSwitchNormallyOpen
 
@@ -281,10 +279,8 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        recordResponseCode(motor.configReverseLimitSwitchSource(
-            LimitSwitchSource.FeedbackConnector,
-            normalOpen? LimitSwitchNormal.NormallyOpen: LimitSwitchNormal.NormallyClosed,
-            0));
+        recordResponseCode(motor.configReverseLimitSwitchSource(LimitSwitchSource.FeedbackConnector,
+            normalOpen ? LimitSwitchNormal.NormallyOpen : LimitSwitchNormal.NormallyClosed, 0));
         revLimitSwitchNormalOpen = normalOpen;
     }   //configRevLimitSwitchNormallyOpen
 
@@ -328,7 +324,15 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        double currPos = motor.getSelectedSensorPosition(0);
+        double currPos;
+        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
+        {
+            currPos = motor.getSensorCollection().getQuadraturePosition();
+        }
+        else
+        {
+            currPos = motor.getSelectedSensorPosition(0);
+        }
 
         if (debugEnabled)
         {
@@ -399,7 +403,15 @@ public class FrcCANTalon extends TrcMotor
     public double getPosition()
     {
         final String funcName = "getPosition";
-        double pos = motor.getSelectedSensorPosition(0);
+        double pos;
+        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
+        {
+            pos = motor.getSensorCollection().getQuadraturePosition();
+        }
+        else
+        {
+            pos = motor.getSelectedSensorPosition(0);
+        }
         recordResponseCode(motor.getLastError());
 
         pos -= zeroPosition;
@@ -443,13 +455,21 @@ public class FrcCANTalon extends TrcMotor
     public double getVelocity()
     {
         final String funcName = "getVelocity";
-//        double speed = motor.getSelectedSensorVelocity(0)/
-//            (motor.getStatusFramePeriod(feedbackDeviceIsPot? StatusFrameEnhanced.Status_2_Feedback0:
-//                StatusFrameEnhanced.Status_3_Quadrature, 0)/1000.0);
+        //        double speed = motor.getSelectedSensorVelocity(0)/
+        //            (motor.getStatusFramePeriod(feedbackDeviceIsPot? StatusFrameEnhanced.Status_2_Feedback0:
+        //                StatusFrameEnhanced.Status_3_Quadrature, 0)/1000.0);
         //
         // The sensor velocity is in the raw sensor unit per 100 msec, adjust it to sensor unit per second.
         //
-        double velocity = motor.getSelectedSensorVelocity(0)/0.1;
+        double velocity;
+        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
+        {
+            velocity = motor.getSensorCollection().getQuadratureVelocity() / 0.1;
+        }
+        else
+        {
+            velocity = motor.getSelectedSensorVelocity(0) / 0.1;
+        }
         recordResponseCode(motor.getLastError());
 
         if (debugEnabled)
@@ -470,7 +490,7 @@ public class FrcCANTalon extends TrcMotor
     public boolean isLowerLimitSwitchActive()
     {
         final String funcName = "isLowerLimitSwitchActive";
-        boolean isActive = limitSwitchesSwapped?
+        boolean isActive = limitSwitchesSwapped ?
             fwdLimitSwitchNormalOpen == motor.getSensorCollection().isFwdLimitSwitchClosed() :
             revLimitSwitchNormalOpen == motor.getSensorCollection().isRevLimitSwitchClosed();
 
@@ -492,7 +512,7 @@ public class FrcCANTalon extends TrcMotor
     public boolean isUpperLimitSwitchActive()
     {
         final String funcName = "isUpperLimitSwitchActive";
-        boolean isActive = limitSwitchesSwapped?
+        boolean isActive = limitSwitchesSwapped ?
             revLimitSwitchNormalOpen == motor.getSensorCollection().isRevLimitSwitchClosed() :
             fwdLimitSwitchNormalOpen == motor.getSensorCollection().isFwdLimitSwitchClosed();
 
@@ -532,10 +552,21 @@ public class FrcCANTalon extends TrcMotor
         }
         else if (hardware)
         {
-            recordResponseCode(motor.setSelectedSensorPosition(0, 0, 0));
-            while (motor.getSelectedSensorPosition(0) != 0)
+            if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
             {
-                Thread.yield();
+                recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 0));
+                while (motor.getSensorCollection().getQuadraturePosition() != 0)
+                {
+                    Thread.yield();
+                }
+            }
+            else
+            {
+                recordResponseCode(motor.setSelectedSensorPosition(0, 0, 0));
+                while (motor.getSelectedSensorPosition(0) != 0)
+                {
+                    Thread.yield();
+                }
             }
             zeroPosition = 0.0;
         }
@@ -571,8 +602,8 @@ public class FrcCANTalon extends TrcMotor
             throw new IllegalArgumentException("Value must be in the range of -1.0 to 1.0.");
         }
 
-        if (softLowerLimitEnabled && value < 0.0 && getPosition() <= softLowerLimit ||
-            softUpperLimitEnabled && value > 0.0 && getPosition() >= softUpperLimit)
+        if (softLowerLimitEnabled && value < 0.0 && getPosition() <= softLowerLimit
+            || softUpperLimitEnabled && value > 0.0 && getPosition() >= softUpperLimit)
         {
             value = 0.0;
         }
@@ -617,7 +648,7 @@ public class FrcCANTalon extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        motor.setNeutralMode(enabled? NeutralMode.Brake: NeutralMode.Coast);
+        motor.setNeutralMode(enabled ? NeutralMode.Brake : NeutralMode.Coast);
         recordResponseCode(motor.getLastError());
     }   //setBrakeModeEnabled
 
@@ -645,7 +676,7 @@ public class FrcCANTalon extends TrcMotor
      * This method inverts the position sensor direction. This may be rare but there are scenarios where the motor
      * encoder may be mounted somewhere in the power train that it rotates opposite to the motor rotation. This will
      * cause the encoder reading to go down when the motor is receiving positive power. This method can correct this
-     *  situation.
+     * situation.
      *
      * @param inverted specifies true to invert position sensor direction, false otherwise.
      */

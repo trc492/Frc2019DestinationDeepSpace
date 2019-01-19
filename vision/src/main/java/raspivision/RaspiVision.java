@@ -1,3 +1,25 @@
+/*
+ * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package raspivision;
 
 import com.google.gson.Gson;
@@ -12,12 +34,6 @@ import edu.wpi.first.vision.VisionThread;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
-import java.lang.annotation.Target;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
-
 public class RaspiVision
 {
     private static final int TEAM_NUMBER = 492;
@@ -28,6 +44,11 @@ public class RaspiVision
 
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
+
+    private static final double TARGET_HEIGHT_IN = 5.75;
+    // From the raspberry pi camera spec sheet:
+    private static final double CAMERA_FOV_X = 62.2;
+    private static final double CAMERA_FOV_Y = 48.8;
 
     public static void main(String[] args)
     {
@@ -43,12 +64,13 @@ public class RaspiVision
     private double startTime = 0;
     private CvSource dashboardDisplay;
     private int width, height;
+    private double focalLength; // In pixels
+    private VisionTargetPipeline pipeline;
 
     public RaspiVision()
     {
         gson = new Gson();
 
-        System.out.println("Starting network tables!");
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
         if (SERVER)
         {
@@ -62,10 +84,19 @@ public class RaspiVision
             instance.startClientTeam(TEAM_NUMBER);
             System.out.println("Done!");
         }
+
+        System.out.print("Initializing vision...");
+
         NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
         cameraData = table.getEntry("CameraData");
+        NetworkTableEntry hueLow = table.getEntry("HueLow");
+        NetworkTableEntry hueHigh = table.getEntry("HueHigh");
+        NetworkTableEntry satLow = table.getEntry("SatLow");
+        NetworkTableEntry satHigh = table.getEntry("SatHigh");
+        NetworkTableEntry luminanceLow = table.getEntry("LuminanceLow");
+        NetworkTableEntry luminanceHigh = table.getEntry("LuminanceHigh");
 
         cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
 
@@ -76,20 +107,43 @@ public class RaspiVision
 
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        visionThread = new VisionThread(camera, new VisionTargetPipeline(), this::processImage);
+        visionThread = new VisionThread(camera, pipeline = new VisionTargetPipeline(), this::processImage);
         visionThread.setDaemon(false);
+
+        int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
+
+        hueHigh.setDouble(pipeline.hslThresholdHue[1]);
+        hueHigh.addListener(event -> pipeline.hslThresholdHue[1] = event.value.getDouble(), flag);
+        hueLow.setDouble(pipeline.hslThresholdHue[0]);
+        hueLow.addListener(event -> pipeline.hslThresholdHue[0] = event.value.getDouble(), flag);
+
+        satHigh.setDouble(pipeline.hslThresholdSaturation[1]);
+        satHigh.addListener(event -> pipeline.hslThresholdSaturation[1] = event.value.getDouble(), flag);
+        satLow.setDouble(pipeline.hslThresholdSaturation[0]);
+        satLow.addListener(event -> pipeline.hslThresholdSaturation[0] = event.value.getDouble(), flag);
+
+        luminanceHigh.setDouble(pipeline.hslThresholdLuminance[1]);
+        luminanceHigh.addListener(event -> pipeline.hslThresholdLuminance[1] = event.value.getDouble(), flag);
+        luminanceLow.setDouble(pipeline.hslThresholdLuminance[0]);
+        luminanceLow.addListener(event -> pipeline.hslThresholdLuminance[0] = event.value.getDouble(), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
-        System.out.println("Initialization complete!");
+        System.out.println("Done!\nInitialization complete!");
     }
 
     private void configCamera(UsbCamera camera, String json)
     {
+        System.out.print("Configuring camera...");
         if (!camera.setConfigJson(json))
         {
+            System.out.println();
             System.err.println("Invalid json configuration file!");
+        }
+        else
+        {
+            System.out.println("Done!");
         }
     }
 
@@ -101,152 +155,68 @@ public class RaspiVision
         System.out.println("Done!");
     }
 
-    private double getCorrectedAngle(RotatedRect calculatedRect)
-    {
-        if (calculatedRect.size.width < calculatedRect.size.height)
-        {
-            return calculatedRect.angle + 180;
-        }
-        else
-        {
-            return calculatedRect.angle + 90;
-        }
-    }
-
     private void processImage(VisionTargetPipeline pipeline)
     {
+        // If the resolution changed, update the camera data network tables entry
+        if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
+        {
+            width = pipeline.getInput().width();
+            height = pipeline.getInput().height();
+            cameraData.setDoubleArray(new double[] { width, height });
+            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
+            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
+            focalLength = (focalLengthX + focalLengthY) / 2.0;
+        }
+        // Get the selected target from the pipeline
+        TargetData data = pipeline.getSelectedTarget();
         String dataString = "";
-        TargetData data = null;
-        try
+        if (data != null)
         {
-            if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
-            {
-                width = pipeline.getInput().width();
-                height = pipeline.getInput().height();
-                cameraData.setDoubleArray(new double[] { width, height });
-            }
+            dataString = gson.toJson(new RelativePose(data));
+        }
+        visionData.setString(dataString);
 
-            List<MatOfPoint> contours = pipeline.convexHullsOutput();
-            if (contours.isEmpty())
-            {
-                return;
-            }
-            List<VisionTarget> targets = contours.stream().map(this::mapContourToVisionTarget)
-                .sorted(this::compareVisionTargets).collect(Collectors.toCollection(ArrayList::new));
-            while (!targets.get(0).isLeftTarget)
-            {
-                targets.remove(0);
-                if (targets.isEmpty())
-                {
-                    return;
-                }
-            }
-            while (targets.get(targets.size() - 1).isLeftTarget)
-            {
-                targets.remove(targets.size() - 1);
-                if (targets.isEmpty())
-                {
-                    return;
-                }
-            }
-            if (isValid(targets))
-            {
-                data = selectTarget(targets);
-                dataString = gson.toJson(data);
-            }
-        }
-        catch (Exception e)
+        // If debug display is enabled, render it
+        if (DEBUG_DISPLAY)
         {
-            e.printStackTrace();
+            debugDisplay(pipeline);
         }
-        finally
+        // If fps counter is enabled, calculate fps
+        if (MEASURE_FPS)
         {
-            visionData.setString(dataString);
-            if (DEBUG_DISPLAY)
-            {
-                Mat image = pipeline.getInput();
-                if (data != null)
-                {
-                    image = pipeline.getInput().clone();
-                    int minX = data.x - data.w / 2;
-                    int maxX = data.x + data.w / 2;
-                    int minY = data.y - data.h / 2;
-                    int maxY = data.y + data.h / 2;
-                    Imgproc.rectangle(image, new Point(minX, minY), new Point(maxX, maxY), new Scalar(0, 255, 0));
-                }
-                dashboardDisplay.putFrame(image);
-            }
-            if (MEASURE_FPS)
-            {
-                numFrames++;
-                double currTime = getTime();
-                double elapsedTime = currTime - startTime;
-                if (elapsedTime >= FPS_AVG_WINDOW)
-                {
-                    double fps = (double) numFrames / elapsedTime;
-                    System.out.printf("Avg fps over %.3fsec: %.3f\n", elapsedTime, fps);
-                    numFrames = 0;
-                    startTime = currTime;
-                }
-            }
+            measureFps();
         }
     }
 
-    /**
-     * Select a target by looking at the pair of vision targets closest to the center.
-     *
-     * @param targets The detected vision targets.
-     * @return The target data selected.
-     */
-    private TargetData selectTarget(List<VisionTarget> targets)
+    private void debugDisplay(VisionTargetPipeline pipeline)
     {
-        List<TargetData> targetDatas = new ArrayList<>(); // Yes I know datas isn't a word.
-        // Pair vision targets and get the enclosing bounding box.
-        for (int i = 0; i < targets.size(); i += 2)
+        Mat image = pipeline.getInput().clone();
+        for (TargetData data : pipeline.getDetectedTargets())
         {
-            VisionTarget left = targets.get(i);
-            VisionTarget right = targets.get(i + 1);
-            int leftBound = left.x - left.w / 2;
-            int rightBound = right.x + right.w / 2;
-            int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
-            int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
-            TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
-                rightBound - leftBound, Math.abs(bottomBound - topBound));
-            targetDatas.add(data);
-        }
-        return targetDatas.stream().min(Comparator.comparingInt(e -> Math.abs(e.x)))
-            .orElseThrow(IllegalStateException::new);
-    }
-
-    /**
-     * Checks if the list of targets is valid.
-     *
-     * @param targets The targets to validate.
-     * @return True if valid, false otherwise.
-     */
-    private boolean isValid(List<VisionTarget> targets)
-    {
-        // Invalid if no targets or odd number of targets.
-        if (targets.size() == 0 || targets.size() % 2 == 1)
-        {
-            return false;
-        }
-        // Verify that there are alternating pairs of targets. (Left right left right)
-        for (int i = 0; i < targets.size(); i += 2)
-        {
-            VisionTarget left = targets.get(i);
-            VisionTarget right = targets.get(i + 1);
-            if (!left.isLeftTarget || right.isLeftTarget)
+            if (data != null)
             {
-                return false;
+                int minX = data.x - data.w / 2;
+                int maxX = data.x + data.w / 2;
+                int minY = data.y - data.h / 2;
+                int maxY = data.y + data.h / 2;
+                Imgproc.rectangle(image, new Point(minX, minY), new Point(maxX, maxY), new Scalar(0, 255, 0), 2);
             }
         }
-        return true;
+        dashboardDisplay.putFrame(image);
     }
 
-    private int compareVisionTargets(VisionTarget target1, VisionTarget target2)
+    private void measureFps()
     {
-        return Integer.compare(target1.x, target2.x);
+        numFrames++;
+        double currTime = getTime();
+        double elapsedTime = currTime - startTime;
+        if (elapsedTime >= FPS_AVG_WINDOW)
+        {
+            double fps = (double) numFrames / elapsedTime;
+            System.out.printf("Avg fps over %.3fsec: %.3f\n", elapsedTime, fps);
+            numFrames = 0;
+            startTime = currTime;
+        }
     }
 
     private double getTime()
@@ -254,41 +224,17 @@ public class RaspiVision
         return (double) System.currentTimeMillis() / 1000;
     }
 
-    private int round(double d)
+    private class RelativePose
     {
-        return (int) (Math.floor(d + 0.5));
-    }
+        public double heading;
+        public double distance;
 
-    private VisionTarget mapContourToVisionTarget(MatOfPoint m)
-    {
-        MatOfPoint2f contour = new MatOfPoint2f();
-        m.convertTo(contour, CvType.CV_32F);
-        RotatedRect rect = Imgproc.minAreaRect(contour);
-
-        VisionTarget target = new VisionTarget();
-        target.isLeftTarget = getCorrectedAngle(rect) <= 90;
-        target.x = round(rect.center.x);
-        target.y = round(rect.center.y);
-        target.w = round(rect.size.width);
-        target.h = round(rect.size.height);
-        return target;
-    }
-
-    /**
-     * Represents a single retroflective tape.
-     */
-    private class VisionTarget
-    {
-        public boolean isLeftTarget;
-        public int x, y, w, h;
-
-        public boolean equals(Object o)
+        public RelativePose(TargetData data)
         {
-            if (!(o instanceof VisionTarget))
-                return false;
-            VisionTarget target = (VisionTarget) o;
-            return target.isLeftTarget == isLeftTarget && target.x == x && target.y == y && target.w == w
-                && target.h == h;
+            // TODO: This is off by like 7 inches, so figure out a better algorithm
+            int targetX = data.x - width / 2;
+            heading = Math.toDegrees(Math.atan2(targetX, focalLength));
+            distance = focalLength * TARGET_HEIGHT_IN / data.h;
         }
     }
 }
