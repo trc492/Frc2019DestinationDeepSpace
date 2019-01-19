@@ -45,6 +45,11 @@ public class RaspiVision
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
+    private static final double TARGET_HEIGHT_IN = 5.75;
+    // From the raspberry pi camera spec sheet:
+    private static final double CAMERA_FOV_X = 62.2;
+    private static final double CAMERA_FOV_Y = 48.8;
+
     public static void main(String[] args)
     {
         RaspiVision vision = new RaspiVision();
@@ -59,6 +64,7 @@ public class RaspiVision
     private double startTime = 0;
     private CvSource dashboardDisplay;
     private int width, height;
+    private double focalLength; // In pixels
     private VisionTargetPipeline pipeline;
 
     public RaspiVision()
@@ -157,13 +163,16 @@ public class RaspiVision
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
+            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
+            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
+            focalLength = (focalLengthX + focalLengthY) / 2.0;
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
         String dataString = "";
         if (data != null)
         {
-            dataString = gson.toJson(data);
+            dataString = gson.toJson(new RelativePose(data));
         }
         visionData.setString(dataString);
 
@@ -213,5 +222,19 @@ public class RaspiVision
     private double getTime()
     {
         return (double) System.currentTimeMillis() / 1000;
+    }
+
+    private class RelativePose
+    {
+        public double heading;
+        public double distance;
+
+        public RelativePose(TargetData data)
+        {
+            // TODO: This is off by like 7 inches, so figure out a better algorithm
+            int targetX = data.x - width / 2;
+            heading = Math.toDegrees(Math.atan2(targetX, focalLength));
+            distance = focalLength * TARGET_HEIGHT_IN / data.h;
+        }
     }
 }
