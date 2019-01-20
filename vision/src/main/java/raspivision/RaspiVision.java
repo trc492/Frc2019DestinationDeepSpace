@@ -44,7 +44,7 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DEBUG_DISPLAY = true;
+    private static final boolean DEBUG_DISPLAY = false;
 
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
@@ -69,6 +69,7 @@ public class RaspiVision
 
     private Gson gson;
     private VisionThread visionThread;
+    private Thread calcThread;
     private NetworkTableEntry visionData;
     private NetworkTableEntry cameraData;
     private int numFrames = 0;
@@ -76,7 +77,8 @@ public class RaspiVision
     private CvSource dashboardDisplay;
     private int width, height;
     private double focalLength; // In pixels
-    private VisionTargetPipeline pipeline;
+    private final Object dataLock = new Object();
+    private TargetData targetData;
 
     public RaspiVision()
     {
@@ -116,9 +118,12 @@ public class RaspiVision
             dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
 
+        calcThread = new Thread(this::calculationThread);
+
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        visionThread = new VisionThread(camera, pipeline = new VisionTargetPipeline(), this::processImage);
+        VisionTargetPipeline pipeline = new VisionTargetPipeline();
+        visionThread = new VisionThread(camera, pipeline, this::processImage);
         visionThread.setDaemon(false);
 
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
@@ -162,8 +167,44 @@ public class RaspiVision
     {
         System.out.print("Starting vision thread...");
         visionThread.start();
+        calcThread.start();
         startTime = getTime();
         System.out.println("Done!");
+    }
+
+    private void calculationThread()
+    {
+        TargetData data = null;
+        try
+        {
+            while (!Thread.interrupted())
+            {
+                synchronized (dataLock)
+                {
+                    while (targetData == data)
+                    {
+                        dataLock.wait();
+                    }
+                    data = targetData;
+                }
+                String dataString = "";
+                if (data != null)
+                {
+                    RelativePose pose = new RelativePose(data);
+                    dataString = gson.toJson(pose);
+                }
+                visionData.setString(dataString);
+                // If fps counter is enabled, calculate fps
+                if (MEASURE_FPS)
+                {
+                    measureFps();
+                }
+            }
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void processImage(VisionTargetPipeline pipeline)
@@ -180,22 +221,16 @@ public class RaspiVision
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
-        String dataString = "";
-        if (data != null)
+        synchronized (dataLock)
         {
-            dataString = gson.toJson(new RelativePose(data));
+            this.targetData = data;
+            dataLock.notify();
         }
-        visionData.setString(dataString);
 
         // If debug display is enabled, render it
         if (DEBUG_DISPLAY)
         {
             debugDisplay(pipeline);
-        }
-        // If fps counter is enabled, calculate fps
-        if (MEASURE_FPS)
-        {
-            measureFps();
         }
     }
 
@@ -242,7 +277,7 @@ public class RaspiVision
 
         /**
          * This calculates the pose relative to the vision target in r, theta. It uses the solvePNP algorithm from
-         * OpenCV. It gets about 11-12 fps.
+         * OpenCV.
          *
          * @param data The target data container to use for the calculations.
          */
