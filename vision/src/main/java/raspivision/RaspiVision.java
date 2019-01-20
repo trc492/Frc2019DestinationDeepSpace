@@ -53,16 +53,13 @@ public class RaspiVision
     private static final double CAMERA_FOV_X = 62.2;
     private static final double CAMERA_FOV_Y = 48.8;
 
-    private static final Point3[] TARGET_WORLD_COORDS = new Point3[]{
-        new Point3(-7.3125, -2.4375, 0),
-        new Point3(-4.0,2.4375,0),
-        new Point3(-5.375,-2.9375,0),
-        new Point3(-5.9375,2.9375,0),
-        new Point3(4.0,2.4375,0),
-        new Point3(7.3125, -2.4375, 0),
-        new Point3(5.375,-2.9375,0),
-        new Point3(5.9375,2.9375,0)
-    };
+    // These were calculated using the game manual specs on vision target
+    // Origin is center of bounding box
+    // Order is leftminx, leftmaxx, leftminy, leftmaxy, rightminx, rightmaxx, rightminy, rightmaxy
+    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, -2.4375, 0),
+        new Point3(-4.0, 2.4375, 0), new Point3(-5.375, -2.9375, 0), new Point3(-5.9375, 2.9375, 0),
+        new Point3(4.0, 2.4375, 0), new Point3(7.3125, -2.4375, 0), new Point3(5.375, -2.9375, 0),
+        new Point3(5.9375, 2.9375, 0) };
 
     public static void main(String[] args)
     {
@@ -243,8 +240,15 @@ public class RaspiVision
         public double heading;
         public double distance;
 
+        /**
+         * This calculates the pose relative to the vision target in r, theta. It uses the solvePNP algorithm from
+         * OpenCV. It gets about 11-12 fps.
+         *
+         * @param data The target data container to use for the calculations.
+         */
         public RelativePose(TargetData data)
         {
+            // Calculate the corners of the left vision target
             List<Point> leftContour = data.leftTarget.contour.toList();
             Point leftMinX = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
@@ -255,6 +259,7 @@ public class RaspiVision
             Point leftMaxY = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
 
+            // Calculate the corners of the right vision target
             List<Point> rightContour = data.rightTarget.contour.toList();
             Point rightMinX = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
@@ -265,20 +270,28 @@ public class RaspiVision
             Point rightMaxY = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
 
+            // Assemble the calculated points into a matrix
             MatOfPoint2f imagePoints = new MatOfPoint2f(leftMinX, leftMaxX, leftMinY, leftMaxY, rightMinX, rightMaxX,
                 rightMinY, rightMaxY);
+            // Get the target world coords in 3d space
             MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
-            Mat cameraMat = new Mat(3,3,CvType.CV_32FC1);
-            cameraMat.put(0,0, focalLength, 0, width/2.0, 0, focalLength, height/2.0, 0,0,1);
-            MatOfDouble dist = new MatOfDouble(0,0,0,0);
+            // Create the camera matrix. This uses the calculated approximate focal length and approximates the optical
+            // center as the image center.
+            Mat cameraMat = new Mat(3, 3, CvType.CV_32FC1);
+            cameraMat.put(0, 0, focalLength, 0, width / 2.0, 0, focalLength, height / 2.0, 0, 0, 1);
+            // Assume no distortion
+            MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
 
+            // Empty matrices which will receive the vectors
             Mat rotationVector = new Mat();
-            Mat translationVector = new Mat();
+            Mat translationVector = new Mat(); // This can later be used to get target rotation
             Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
-            double x = translationVector.get(0,0)[0];
-            double z = translationVector.get(2,0)[0];
-            distance = Math.sqrt(x*x + z*z);
-            heading = Math.toDegrees(Math.atan2(x,z));
+            // Get the distances in the x and z axes. (or in robot space, x and y)
+            double x = translationVector.get(0, 0)[0];
+            double z = translationVector.get(2, 0)[0];
+            // Convert x,y to r,theta
+            distance = Math.sqrt(x * x + z * z);
+            heading = Math.toDegrees(Math.atan2(x, z));
         }
     }
 }
