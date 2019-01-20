@@ -32,7 +32,6 @@ import edu.wpi.first.vision.VisionPipeline;
 import org.opencv.core.*;
 
 import org.opencv.imgproc.*;
-import org.opencv.osgi.OpenCVInterface;
 
 public class VisionTargetPipeline implements VisionPipeline
 {
