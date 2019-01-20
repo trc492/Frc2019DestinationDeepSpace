@@ -188,8 +188,8 @@ public class FrcCANTalon extends TrcMotor
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s", maxVelocity,
-                pidCoefficients == null ? "N/A" : pidCoefficients.toString());
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s",
+                maxVelocity, pidCoefficients == null ? "N/A" : pidCoefficients.toString());
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
@@ -455,9 +455,9 @@ public class FrcCANTalon extends TrcMotor
     public double getVelocity()
     {
         final String funcName = "getVelocity";
-        //        double speed = motor.getSelectedSensorVelocity(0)/
-        //            (motor.getStatusFramePeriod(feedbackDeviceIsPot? StatusFrameEnhanced.Status_2_Feedback0:
-        //                StatusFrameEnhanced.Status_3_Quadrature, 0)/1000.0);
+        // double speed = motor.getSelectedSensorVelocity(0)/
+        //     (motor.getStatusFramePeriod(feedbackDeviceIsPot? StatusFrameEnhanced.Status_2_Feedback0:
+        //         StatusFrameEnhanced.Status_3_Quadrature, 0)/1000.0);
         //
         // The sensor velocity is in the raw sensor unit per 100 msec, adjust it to sensor unit per second.
         //
