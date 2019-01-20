@@ -141,7 +141,8 @@ public class VisionTargetPipeline implements VisionPipeline
             if (isValid(visionTargets))
             {
                 detectedTargets = detectTargets(visionTargets);
-                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x)))
+                int width = source0.width();
+                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
                     .orElseThrow(IllegalStateException::new);
             }
         }
