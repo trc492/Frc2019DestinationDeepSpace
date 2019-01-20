@@ -23,6 +23,7 @@
 package raspivision;
 
 import com.google.gson.Gson;
+import edu.wpi.cscore.CvSink;
 import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
@@ -30,7 +31,6 @@ import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.vision.VisionThread;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
@@ -44,7 +44,7 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DEBUG_DISPLAY = false;
+    private static final boolean DEBUG_DISPLAY = true;
 
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
@@ -68,17 +68,27 @@ public class RaspiVision
     }
 
     private Gson gson;
-    private VisionThread visionThread;
+    private Thread visionThread;
     private Thread calcThread;
+    private Thread cameraThread;
+
     private NetworkTableEntry visionData;
     private NetworkTableEntry cameraData;
+
     private int numFrames = 0;
     private double startTime = 0;
     private CvSource dashboardDisplay;
+
     private int width, height;
     private double focalLength; // In pixels
+
     private final Object dataLock = new Object();
-    private TargetData targetData;
+    private TargetData targetData = null;
+
+    private final Object imageLock = new Object();
+    private VisionTargetPipeline pipeline;
+    private UsbCamera camera;
+    private Mat image;
 
     public RaspiVision()
     {
@@ -118,12 +128,13 @@ public class RaspiVision
             dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
 
+        cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
 
-        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
+        camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        VisionTargetPipeline pipeline = new VisionTargetPipeline();
-        visionThread = new VisionThread(camera, pipeline, this::processImage);
+        pipeline = new VisionTargetPipeline();
+        visionThread = new Thread(this::visionProcessingThread);
         visionThread.setDaemon(false);
 
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
@@ -166,10 +177,61 @@ public class RaspiVision
     public void start()
     {
         System.out.print("Starting vision thread...");
+        image = new Mat();
+        cameraThread.start();
         visionThread.start();
         calcThread.start();
         startTime = getTime();
         System.out.println("Done!");
+    }
+
+    private void cameraCaptureThread()
+    {
+        CvSink sink = new CvSink("RaspiVision");
+        sink.setSource(camera);
+        Mat image = new Mat();
+        while (!Thread.interrupted())
+        {
+            long response = sink.grabFrame(image);
+            if (response != 0L)
+            {
+                Mat frame = image.clone();
+                synchronized (imageLock)
+                {
+                    this.image = frame;
+                    imageLock.notify();
+                }
+            }
+            else
+            {
+                System.err.println(sink.getError());
+            }
+        }
+    }
+
+    private void visionProcessingThread()
+    {
+        try
+        {
+            Mat image = this.image;
+            while (!Thread.interrupted())
+            {
+                synchronized (imageLock)
+                {
+                    while (this.image == image)
+                    {
+                        imageLock.wait();
+                    }
+                    image = this.image;
+                }
+                pipeline.process(image);
+                processImage(pipeline);
+            }
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void calculationThread()
