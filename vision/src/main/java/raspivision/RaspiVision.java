@@ -269,14 +269,16 @@ public class RaspiVision
                 rightMinY, rightMaxY);
             MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
             Mat cameraMat = new Mat(3,3,CvType.CV_32FC1);
-            cameraMat.put(0,0, width, 0, width/2.0, 0, width, height/2.0, 0,0,1);
+            cameraMat.put(0,0, focalLength, 0, width/2.0, 0, focalLength, height/2.0, 0,0,1);
             MatOfDouble dist = new MatOfDouble(0,0,0,0);
 
             Mat rotationVector = new Mat();
             Mat translationVector = new Mat();
             Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
-            System.out.println(translationVector.toString());
-            System.out.println(rotationVector.toString());
+            double x = translationVector.get(0,0)[0];
+            double z = translationVector.get(2,0)[0];
+            distance = Math.sqrt(x*x + z*z);
+            heading = Math.toDegrees(Math.atan2(x,z));
         }
     }
 }
