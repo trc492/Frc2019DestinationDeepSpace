@@ -31,8 +31,12 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionThread;
+import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class RaspiVision
 {
@@ -45,10 +49,20 @@ public class RaspiVision
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
-    private static final double TARGET_HEIGHT_IN = 5.75;
     // From the raspberry pi camera spec sheet:
     private static final double CAMERA_FOV_X = 62.2;
     private static final double CAMERA_FOV_Y = 48.8;
+
+    private static final Point3[] TARGET_WORLD_COORDS = new Point3[]{
+        new Point3(-7.3125, -2.4375, 0),
+        new Point3(-4.0,2.4375,0),
+        new Point3(-5.375,-2.9375,0),
+        new Point3(-5.9375,2.9375,0),
+        new Point3(4.0,2.4375,0),
+        new Point3(7.3125, -2.4375, 0),
+        new Point3(5.375,-2.9375,0),
+        new Point3(5.9375,2.9375,0)
+    };
 
     public static void main(String[] args)
     {
@@ -231,10 +245,38 @@ public class RaspiVision
 
         public RelativePose(TargetData data)
         {
-            // TODO: This is off by like 7 inches, so figure out a better algorithm
-            int targetX = data.x - width / 2;
-            heading = Math.toDegrees(Math.atan2(targetX, focalLength));
-            distance = focalLength * TARGET_HEIGHT_IN / data.h;
+            List<Point> leftContour = data.leftTarget.contour.toList();
+            Point leftMinX = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMaxX = leftContour.stream().max(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMinY = leftContour.stream().min(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMaxY = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+
+            List<Point> rightContour = data.rightTarget.contour.toList();
+            Point rightMinX = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMaxX = rightContour.stream().max(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMinY = rightContour.stream().min(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMaxY = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+
+            MatOfPoint2f imagePoints = new MatOfPoint2f(leftMinX, leftMaxX, leftMinY, leftMaxY, rightMinX, rightMaxX,
+                rightMinY, rightMaxY);
+            MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
+            Mat cameraMat = new Mat(3,3,CvType.CV_32FC1);
+            cameraMat.put(0,0, width, 0, width/2.0, 0, width, height/2.0, 0,0,1);
+            MatOfDouble dist = new MatOfDouble(0,0,0,0);
+
+            Mat rotationVector = new Mat();
+            Mat translationVector = new Mat();
+            Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
+            System.out.println(translationVector.toString());
+            System.out.println(rotationVector.toString());
         }
     }
 }

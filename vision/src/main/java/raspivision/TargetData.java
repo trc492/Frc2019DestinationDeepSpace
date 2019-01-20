@@ -28,6 +28,7 @@ package raspivision;
 class TargetData
 {
     public int x, y, w, h;
+    public VisionTargetPipeline.VisionTarget  leftTarget, rightTarget;
 
     public TargetData(int x, int y, int w, int h)
     {
