@@ -31,8 +31,12 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.vision.VisionThread;
+import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
+
+import java.util.Comparator;
+import java.util.List;
 
 public class RaspiVision
 {
@@ -40,15 +44,22 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DEBUG_DISPLAY = true;
+    private static final boolean DEBUG_DISPLAY = false;
 
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
-    private static final double TARGET_HEIGHT_IN = 5.75;
     // From the raspberry pi camera spec sheet:
     private static final double CAMERA_FOV_X = 62.2;
     private static final double CAMERA_FOV_Y = 48.8;
+
+    // These were calculated using the game manual specs on vision target
+    // Origin is center of bounding box
+    // Order is leftminx, leftmaxx, leftminy, leftmaxy, rightminx, rightmaxx, rightminy, rightmaxy
+    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, -2.4375, 0),
+        new Point3(-4.0, 2.4375, 0), new Point3(-5.375, -2.9375, 0), new Point3(-5.9375, 2.9375, 0),
+        new Point3(4.0, 2.4375, 0), new Point3(7.3125, -2.4375, 0), new Point3(5.375, -2.9375, 0),
+        new Point3(5.9375, 2.9375, 0) };
 
     public static void main(String[] args)
     {
@@ -58,6 +69,7 @@ public class RaspiVision
 
     private Gson gson;
     private VisionThread visionThread;
+    private Thread calcThread;
     private NetworkTableEntry visionData;
     private NetworkTableEntry cameraData;
     private int numFrames = 0;
@@ -65,7 +77,8 @@ public class RaspiVision
     private CvSource dashboardDisplay;
     private int width, height;
     private double focalLength; // In pixels
-    private VisionTargetPipeline pipeline;
+    private final Object dataLock = new Object();
+    private TargetData targetData;
 
     public RaspiVision()
     {
@@ -105,9 +118,12 @@ public class RaspiVision
             dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
 
+        calcThread = new Thread(this::calculationThread);
+
         UsbCamera camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        visionThread = new VisionThread(camera, pipeline = new VisionTargetPipeline(), this::processImage);
+        VisionTargetPipeline pipeline = new VisionTargetPipeline();
+        visionThread = new VisionThread(camera, pipeline, this::processImage);
         visionThread.setDaemon(false);
 
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
@@ -151,8 +167,44 @@ public class RaspiVision
     {
         System.out.print("Starting vision thread...");
         visionThread.start();
+        calcThread.start();
         startTime = getTime();
         System.out.println("Done!");
+    }
+
+    private void calculationThread()
+    {
+        TargetData data = null;
+        try
+        {
+            while (!Thread.interrupted())
+            {
+                synchronized (dataLock)
+                {
+                    while (targetData == data)
+                    {
+                        dataLock.wait();
+                    }
+                    data = targetData;
+                }
+                String dataString = "";
+                if (data != null)
+                {
+                    RelativePose pose = new RelativePose(data);
+                    dataString = gson.toJson(pose);
+                }
+                visionData.setString(dataString);
+                // If fps counter is enabled, calculate fps
+                if (MEASURE_FPS)
+                {
+                    measureFps();
+                }
+            }
+        }
+        catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private void processImage(VisionTargetPipeline pipeline)
@@ -169,22 +221,16 @@ public class RaspiVision
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
-        String dataString = "";
-        if (data != null)
+        synchronized (dataLock)
         {
-            dataString = gson.toJson(new RelativePose(data));
+            this.targetData = data;
+            dataLock.notify();
         }
-        visionData.setString(dataString);
 
         // If debug display is enabled, render it
         if (DEBUG_DISPLAY)
         {
             debugDisplay(pipeline);
-        }
-        // If fps counter is enabled, calculate fps
-        if (MEASURE_FPS)
-        {
-            measureFps();
         }
     }
 
@@ -229,12 +275,58 @@ public class RaspiVision
         public double heading;
         public double distance;
 
+        /**
+         * This calculates the pose relative to the vision target in r, theta. It uses the solvePNP algorithm from
+         * OpenCV.
+         *
+         * @param data The target data container to use for the calculations.
+         */
         public RelativePose(TargetData data)
         {
-            // TODO: This is off by like 7 inches, so figure out a better algorithm
-            int targetX = data.x - width / 2;
-            heading = Math.toDegrees(Math.atan2(targetX, focalLength));
-            distance = focalLength * TARGET_HEIGHT_IN / data.h;
+            // Calculate the corners of the left vision target
+            List<Point> leftContour = data.leftTarget.contour.toList();
+            Point leftMinX = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMaxX = leftContour.stream().max(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMinY = leftContour.stream().min(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+            Point leftMaxY = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+
+            // Calculate the corners of the right vision target
+            List<Point> rightContour = data.rightTarget.contour.toList();
+            Point rightMinX = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMaxX = rightContour.stream().max(Comparator.comparingDouble(c -> c.x))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMinY = rightContour.stream().min(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+            Point rightMaxY = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
+                .orElseThrow(IllegalStateException::new);
+
+            // Assemble the calculated points into a matrix
+            MatOfPoint2f imagePoints = new MatOfPoint2f(leftMinX, leftMaxX, leftMinY, leftMaxY, rightMinX, rightMaxX,
+                rightMinY, rightMaxY);
+            // Get the target world coords in 3d space
+            MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
+            // Create the camera matrix. This uses the calculated approximate focal length and approximates the optical
+            // center as the image center.
+            Mat cameraMat = new Mat(3, 3, CvType.CV_32FC1);
+            cameraMat.put(0, 0, focalLength, 0, width / 2.0, 0, focalLength, height / 2.0, 0, 0, 1);
+            // Assume no distortion
+            MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
+
+            // Empty matrices which will receive the vectors
+            Mat rotationVector = new Mat();
+            Mat translationVector = new Mat(); // This can later be used to get target rotation
+            Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
+            // Get the distances in the x and z axes. (or in robot space, x and y)
+            double x = translationVector.get(0, 0)[0];
+            double z = translationVector.get(2, 0)[0];
+            // Convert x,y to r,theta
+            distance = Math.sqrt(x * x + z * z);
+            heading = Math.toDegrees(Math.atan2(x, z));
         }
     }
 }

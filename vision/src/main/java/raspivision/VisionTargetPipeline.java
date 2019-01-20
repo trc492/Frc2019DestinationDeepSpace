@@ -140,7 +140,8 @@ public class VisionTargetPipeline implements VisionPipeline
             if (isValid(visionTargets))
             {
                 detectedTargets = detectTargets(visionTargets);
-                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x)))
+                int width = source0.width();
+                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
                     .orElseThrow(IllegalStateException::new);
             }
         }
@@ -352,6 +353,8 @@ public class VisionTargetPipeline implements VisionPipeline
             int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
             TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
                 rightBound - leftBound, Math.abs(bottomBound - topBound));
+            data.leftTarget = left;
+            data.rightTarget = right;
             targetDatas.add(data);
         }
         return targetDatas;
@@ -377,16 +380,12 @@ public class VisionTargetPipeline implements VisionPipeline
         VisionTarget target = new VisionTarget();
         target.isLeftTarget = getCorrectedAngle(rect) <= 90;
         Rect bounds = rect.boundingRect();
+        target.contour = contour;
         target.x = bounds.x + bounds.width / 2;
         target.y = bounds.y + bounds.height / 2;
         target.w = bounds.width;
         target.h = bounds.height;
         return target;
-    }
-
-    private int round(double d)
-    {
-        return (int) (Math.floor(d + 0.5));
     }
 
     private int compareVisionTargets(VisionTarget target1, VisionTarget target2)
@@ -397,10 +396,11 @@ public class VisionTargetPipeline implements VisionPipeline
     /**
      * Represents a single retroflective tape.
      */
-    private class VisionTarget
+    class VisionTarget
     {
         public boolean isLeftTarget;
         public int x, y, w, h;
+        public MatOfPoint2f contour;
 
         public boolean equals(Object o)
         {
