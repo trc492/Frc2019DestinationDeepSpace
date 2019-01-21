@@ -133,6 +133,7 @@ public class RaspiVision
 
         camera = CameraServer.getInstance().startAutomaticCapture();
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+        camera.setBrightness(40);
         pipeline = new VisionTargetPipeline();
         visionThread = new Thread(this::visionProcessingThread);
         visionThread.setDaemon(false);
