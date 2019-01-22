@@ -46,10 +46,11 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final boolean DEBUG_DISPLAY = true;
 
+    // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
-    // From the raspberry pi camera spec sheet:
+    // From the raspberry pi camera spec sheet, in degrees:
     private static final double CAMERA_FOV_X = 62.2;
     private static final double CAMERA_FOV_Y = 48.8;
 
@@ -79,7 +80,7 @@ public class RaspiVision
     private double startTime = 0;
     private CvSource dashboardDisplay;
 
-    private int width, height;
+    private int width, height; // in pixels
     private double focalLength; // In pixels
 
     private final Object dataLock = new Object();
@@ -258,6 +259,7 @@ public class RaspiVision
                 }
                 visionData.setString(dataString);
                 // If fps counter is enabled, calculate fps
+                // TODO: Measure fps even if data is null, since null data isn't fresh, so the fps seems to drop.
                 if (MEASURE_FPS)
                 {
                     measureFps();
