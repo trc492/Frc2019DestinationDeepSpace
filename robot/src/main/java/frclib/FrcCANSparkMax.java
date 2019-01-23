@@ -43,7 +43,7 @@ import trclib.TrcUtil;
  */
 public class FrcCANSparkMax extends TrcMotor
 {
-    private CANSparkMax motor;
+    public CANSparkMax motor;
     private boolean brushless;
     private CANEncoder encoder;
     private CANDigitalInput fwdLimitSwitch, revLimitSwitch;

@@ -56,6 +56,7 @@ public class RobotInfo
     public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
     public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
     public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
+    public static final int CANID_ELEVATOR                      = 7;
 
     public static final int CANID_PDP                           = 16;
     public static final int CANID_PCM1                          = 17;
@@ -143,5 +144,24 @@ public class RobotInfo
     public static final double GYRO_TURN_KD                     = 0.00175;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
+
+    //
+    // Elevator subsystem
+    //
+    // TODO: Tune all of this
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0;
+    public static final double ELEVATOR_KP                      = 0.0;
+    public static final double ELEVATOR_KI                      = 0.0;
+    public static final double ELEVATOR_KD                      = 0.0;
+    public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
+    public static final double ELEVATOR_CALIBRATE_POWER         = 0.0;
+    public static final double ELEVATOR_MIN_POS                 = 6.0;
+    public static final double ELEVATOR_MAX_POS                 = 60.0;
+    public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
+    public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
+    public static final double ELEVATOR_GRAVITY_COMP            = 0.0;
+    public static final double ELEVATOR_STALL_MIN_POWER         = 0.3;
+    public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
+    public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
 
 }   // class RobotInfo
