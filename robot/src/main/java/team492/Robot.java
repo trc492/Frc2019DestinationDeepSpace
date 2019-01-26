@@ -22,7 +22,6 @@
 
 package team492;
 
-import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -33,7 +32,7 @@ import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import frclib.FrcAHRSGyro;
-import frclib.FrcCANTalon;
+import frclib.FrcCANSparkMax;
 import frclib.FrcEmic2TextToSpeech;
 import frclib.FrcI2cLEDPanel;
 import frclib.FrcJoystick;
@@ -129,10 +128,10 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
-    public FrcCANTalon leftFrontWheel;
-    public FrcCANTalon leftRearWheel;
-    public FrcCANTalon rightFrontWheel;
-    public FrcCANTalon rightRearWheel;
+    public FrcCANSparkMax leftFrontWheel;
+    public FrcCANSparkMax leftRearWheel;
+    public FrcCANSparkMax rightFrontWheel;
+    public FrcCANSparkMax rightRearWheel;
     public TrcMecanumDriveBase driveBase;
 
     public TrcPidController encoderXPidCtrl;
@@ -209,10 +208,10 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
-        leftFrontWheel = new FrcCANTalon("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL);
-        leftRearWheel = new FrcCANTalon("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL);
-        rightFrontWheel = new FrcCANTalon("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL);
-        rightRearWheel = new FrcCANTalon("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL);
+        leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
+        leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
+        rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
+        rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
@@ -226,20 +225,10 @@ public class Robot extends FrcRobotBase
         rightFrontWheel.setInverted(true);
         rightRearWheel.setInverted(true);
 
-        leftFrontWheel.motor.overrideLimitSwitchesEnable(false);
-        leftRearWheel.motor.overrideLimitSwitchesEnable(false);
-        rightFrontWheel.motor.overrideLimitSwitchesEnable(false);
-        rightRearWheel.motor.overrideLimitSwitchesEnable(false);
-
         leftFrontWheel.setPositionSensorInverted(false);
         leftRearWheel.setPositionSensorInverted(false);
         rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
-
-        leftFrontWheel.setFeedbackDevice(FeedbackDevice.QuadEncoder);
-        leftRearWheel.setFeedbackDevice(FeedbackDevice.QuadEncoder);
-        rightFrontWheel.setFeedbackDevice(FeedbackDevice.QuadEncoder);
-        rightRearWheel.setFeedbackDevice(FeedbackDevice.QuadEncoder);
 
         //
         // Initialize DriveBase subsystem.
@@ -482,10 +471,6 @@ public class Robot extends FrcRobotBase
                 HalDashboard.putNumber("DriveBase/xPos", xPos);
                 HalDashboard.putNumber("DriveBase/yPos", yPos);
                 HalDashboard.putData("DriveBase/heading", gyro.getGyroSendable());
-                HalDashboard.putData("DriveBase/lf_wheel", leftFrontWheel.getEncoderSendable());
-                HalDashboard.putData("DriveBase/rf_wheel", rightFrontWheel.getEncoderSendable());
-                HalDashboard.putData("DriveBase/lr_wheel", leftRearWheel.getEncoderSendable());
-                HalDashboard.putData("DriveBase/rr_wheel", rightRearWheel.getEncoderSendable());
 
                 HalDashboard.putData("DriveBase/Mecanum_Drive", createMecanumDriveInfo());
 
