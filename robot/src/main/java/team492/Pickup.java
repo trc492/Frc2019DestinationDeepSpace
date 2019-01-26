@@ -35,7 +35,7 @@ public class Pickup
     private TrcPidActuator pitchController;
     private FrcCANTalon pitchMotor;
 
-    public Pickup(Robot robot)
+    public Pickup()
     {
         masterMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP_MASTER);
         slaveMotor = new FrcCANTalon("PickupSlave", RobotInfo.CANID_PICKUP_SLAVE);
