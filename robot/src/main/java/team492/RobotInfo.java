@@ -57,6 +57,9 @@ public class RobotInfo
     public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
     public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
     public static final int CANID_ELEVATOR                      = 7;
+    public static final int CANID_PICKUP_MASTER                 = 8;
+    public static final int CANID_PICKUP_SLAVE                  = 9;
+    public static final int CANID_PICKUP_PITCH                  = 10;
 
     public static final int CANID_PDP                           = 16;
     public static final int CANID_PCM1                          = 17;
@@ -146,10 +149,29 @@ public class RobotInfo
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
     //
+    // Pickup subsystem
+    //
+    // TODO: Tune all of this
+    public static final double PICKUP_DEGREES_PER_COUNT         = 1.0;
+    public static final double PICKUP_KP                        = 0.0;
+    public static final double PICKUP_KI                        = 0.0;
+    public static final double PICKUP_KD                        = 0.0;
+    public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
+    public static final double PICKUP_CALIBRATE_POWER           = 0.0;
+    public static final double PICKUP_MIN_POS                   = 0.0; // Parallel to ground
+    public static final double PICKUP_MAX_POS                   = 90.0; // Perpendicular to ground
+    public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
+    public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 2.0;
+    public static final double PICKUP_GRAVITY_COMP              = 0.0;
+    public static final double PICKUP_STALL_MIN_POWER           = 0.3;
+    public static final double PICKUP_STALL_TIMEOUT             = 0.5;
+    public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
+
+    //
     // Elevator subsystem
     //
     // TODO: Tune all of this
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0;
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 1.0;
     public static final double ELEVATOR_KP                      = 0.0;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;

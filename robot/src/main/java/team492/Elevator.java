@@ -22,7 +22,7 @@
 
 package team492;
 
-import frclib.FrcCANSparkMax;
+import frclib.FrcCANTalon;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
 import trclib.TrcUtil;
@@ -33,8 +33,8 @@ public class Elevator
 
     public Elevator()
     {
-        // TODO: Make sure we're actually using a spark max. Also, check the elevator can id.
-        FrcCANSparkMax motor = new FrcCANSparkMax("ElevatorMotor", RobotInfo.CANID_ELEVATOR, true);
+        FrcCANTalon motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
+        // TODO: Is this actually supposed to be normalOpen? Confirm this.
         motor.configFwdLimitSwitchNormallyOpen(false);
         motor.configRevLimitSwitchNormallyOpen(false);
         motor.setInverted(true);
@@ -52,6 +52,16 @@ public class Elevator
             RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
     }
 
+    public void setManualOverrideEnabled(boolean enabled)
+    {
+        elevator.setManualOverride(enabled);
+    }
+
+    public void zeroCalibrate()
+    {
+        elevator.zeroCalibrate();
+    }
+
     public void setPosition(double position)
     {
         position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
@@ -65,6 +75,11 @@ public class Elevator
 
     public void setPower(double power)
     {
-        elevator.setPower(power, true);
+        setPower(power, true);
+    }
+
+    public void setPower(double power, boolean hold)
+    {
+        elevator.setPower(power, hold);
     }
 }
