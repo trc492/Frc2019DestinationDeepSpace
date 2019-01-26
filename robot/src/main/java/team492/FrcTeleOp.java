@@ -73,6 +73,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
+        double elevatorPower = robot.operatorStick.getYWithDeadband(true);
+        robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
+
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
@@ -236,12 +239,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -251,9 +256,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
+                robot.pickup.setPitchPower(pressed ? -0.3 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
+                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:

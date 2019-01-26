@@ -115,6 +115,13 @@ public class Robot extends FrcRobotBase
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
     public AnalogInput pressureSensor = null;
+
+    //
+    // Primary robot subystems
+    //
+    public Pickup pickup;
+    public Elevator elevator;
+
     //
     // VisionTargetPipeline subsystem.
     //
@@ -269,6 +276,8 @@ public class Robot extends FrcRobotBase
         //
         // Create other hardware subsystems.
         //
+        elevator = new Elevator();
+        pickup = new Pickup();
 
         //
         // AutoAssist commands.
