@@ -34,11 +34,11 @@ public class Elevator
     public Elevator()
     {
         FrcCANTalon motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
-        // TODO: Is this actually supposed to be normalOpen? Confirm this.
         motor.configFwdLimitSwitchNormallyOpen(false);
         motor.configRevLimitSwitchNormallyOpen(false);
         motor.setInverted(true);
         motor.setBrakeModeEnabled(true);
+        motor.motor.overrideLimitSwitchesEnable(false); // debugging only
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,
