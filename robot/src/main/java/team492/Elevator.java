@@ -30,10 +30,11 @@ import trclib.TrcUtil;
 public class Elevator
 {
     private TrcPidActuator elevator;
+    private FrcCANTalon motor;
 
     public Elevator()
     {
-        FrcCANTalon motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
+        motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
         motor.configFwdLimitSwitchNormallyOpen(false);
         motor.configRevLimitSwitchNormallyOpen(false);
         motor.setInverted(true);
@@ -80,6 +81,7 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
-        elevator.setPower(power, hold);
+        motor.set(power);
+        //elevator.setPower(power, hold);
     }
 }
