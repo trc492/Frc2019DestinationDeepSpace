@@ -57,8 +57,7 @@ public class RobotInfo
     public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
     public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
     public static final int CANID_ELEVATOR                      = 9;
-    public static final int CANID_PICKUP_MASTER                 = 7;
-    public static final int CANID_PICKUP_SLAVE                  = 8;
+    public static final int CANID_PICKUP                        = 7;
     public static final int CANID_PICKUP_PITCH                  = 10;
 
     public static final int CANID_PDP                           = 16;

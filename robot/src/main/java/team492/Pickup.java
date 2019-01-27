@@ -22,6 +22,7 @@
 
 package team492;
 
+import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
@@ -29,31 +30,25 @@ import trclib.TrcUtil;
 
 public class Pickup
 {
-    private static final boolean MASTER_INVERTED = false;
 
-    private FrcCANTalon masterMotor, slaveMotor;
+    private FrcCANSparkMax pickupMotor;
     private TrcPidActuator pitchController;
     private FrcCANTalon pitchMotor;
 
     public Pickup()
     {
-        masterMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP_MASTER);
-        slaveMotor = new FrcCANTalon("PickupSlave", RobotInfo.CANID_PICKUP_SLAVE);
+        pickupMotor = new FrcCANSparkMax("PickupMaster", RobotInfo.CANID_PICKUP, false);
 
         // Set opposite directions
-        masterMotor.setInverted(MASTER_INVERTED);
-        slaveMotor.setInverted(!MASTER_INVERTED);
+        pickupMotor.setInverted(false);
 
         // We don't really need brakes
-        masterMotor.setBrakeModeEnabled(false);
-        slaveMotor.setBrakeModeEnabled(false);
-
-        slaveMotor.motor.follow(masterMotor.motor);
+        pickupMotor.setBrakeModeEnabled(false);
 
         pitchMotor = new FrcCANTalon("PickupPitchMotor", RobotInfo.CANID_PICKUP_PITCH);
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setInverted(false);
-        // TODO: Is this actually supposed to be normalOpen? Confirm this.
+        pitchMotor.motor.overrideLimitSwitchesEnable(false); // for debugging only
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
 
@@ -97,13 +92,14 @@ public class Pickup
 
     public void setPitchPower(double power, boolean hold)
     {
-        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        pitchController.setPower(power, hold);
+        pitchMotor.set(power);
+//        power = TrcUtil.clipRange(power, -1.0, 1.0);
+//        pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)
     {
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-        masterMotor.set(power);
+        pickupMotor.set(power);
     }
 }
