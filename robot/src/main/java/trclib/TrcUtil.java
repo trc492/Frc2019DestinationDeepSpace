@@ -394,6 +394,32 @@ public class TrcUtil
     }   //applyDeadband
 
     /**
+     * This method returns the indexed byte of an integer.
+     *
+     * @param data specifies the integer value.
+     * @param index specifies the byte index.
+     * @return indexed byte of the integer.
+     */
+    public static byte intToByte(int data, int index)
+    {
+        return (byte) (data >> (8 * index));
+    }   //intToByte
+
+    /**
+     * This method combines two bytes into an integer.
+     *
+     * @param data1 specifies the lowest byte.
+     * @param data2 specifies the next lowest byte.
+     * @param data3 specifies the next byte.
+     * @param data4 specifies the highest byte.
+     * @return the converted integer.
+     */
+    public static int bytesToInt(byte data1, byte data2, byte data3, byte data4)
+    {
+        return (((int) data4) << 24) | (((int) data3) << 16) | (((int) data2) << 8 | ((int) data1));
+    }   //bytesToInt
+
+    /**
      * This method combines two bytes into an integer.
      *
      * @param low  specifies the low byte.
@@ -402,7 +428,7 @@ public class TrcUtil
      */
     public static int bytesToInt(byte low, byte high)
     {
-        return ((int) low & 0xff) | (((int) high & 0xff) << 8);
+        return bytesToInt(low, high, (byte) 0, (byte) 0);
     }   //bytesToInt
 
     /**
@@ -413,7 +439,7 @@ public class TrcUtil
      */
     public static int bytesToInt(byte data)
     {
-        return bytesToInt(data, (byte) 0);
+        return (int) data;
     }   //bytesToInt
 
     /**
