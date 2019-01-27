@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2018 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,6 +70,7 @@ public class PixyVision
     }   //enum Orientation
 
     private static final double PIXY_DISTANCE_SCALE = 2300.0;   //DistanceInInches*targetWidthdInPixels
+    //CodeReview: why diagonal???
     private static final double TARGET_WIDTH_INCHES = 13.0 * Math.sqrt(2.0);// 13x13 square, diagonal is 13*sqrt(2) inches
 
     private FrcPixyCam pixyCamera;
@@ -276,6 +277,26 @@ public class PixyVision
                 robot.globalTracer.traceInfo(
                     funcName, "###TargetInfo###: xDist=%.1f, yDist=%.1f, angle=%.1f",
                     targetXDistance, targetYDistance, targetAngle);
+            }
+        }
+
+        if (robot.ledIndicator != null)
+        {
+            if (targetInfo != null)
+            {
+                if(Math.abs(targetInfo.xDistance) <= 2.0)
+                {
+                    robot.ledIndicator.indicateAlignedToCube();
+                }
+                else
+                {
+                    robot.ledIndicator.indicateSeesCube();
+                }
+            }
+            else
+            {
+                robot.ledIndicator.indicateSeesNoCube();
+                robot.ledIndicator.indicateNotAlignedToCube();
             }
         }
 

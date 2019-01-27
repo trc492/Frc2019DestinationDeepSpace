@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2018 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,8 @@ import trclib.TrcRobot.RunMode;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
+    private static final String moduleName = "FrcTeleOp";
+
     private enum DriveMode
     {
         MECANUM_MODE, ARCADE_MODE, TANK_MODE
@@ -39,6 +41,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
+    private int winchDirection = 0;
 
     public FrcTeleOp(Robot robot)
     {
@@ -73,12 +76,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        double elevatorPower = robot.operatorStick.getYWithDeadband(true);
-        robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
-
+        final String funcName = moduleName + ".runPeriodic";
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
+        double rightDriveX = robot.rightDriveStick.getXWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
+
         //
         // DriveBase operation.
         //
@@ -116,23 +119,39 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     y /= RobotInfo.DRIVE_SLOW_YSCALE;
                     rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 }
+//                    double xForceOz = x * RobotInfo.MAX_WHEEL_FORCE_OZ;
+//                    double yForceOz = y * RobotInfo.MAX_WHEEL_FORCE_OZ;
                 robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+//                    HalDashboard.putNumber("xForceOz", xForceOz);
+//                    HalDashboard.putNumber("yForceOz", yForceOz);
                 break;
         }
 
+        double elevatorPower = robot.operatorStick.getYWithDeadband(true);
+        robot.elevator.setPower(elevatorPower); // Pull joystick back -> move elevator up
+
+        double winchPower = winchDirection*(1.0 - robot.operatorStick.getZ())/2.0;
+        robot.winch.setPower(winchPower);
+
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
-
-        if (robot.pixy != null && robot.pixy.isEnabled())
-        {
-            // Force update of LEDs
-            robot.pixy.getTargetInfo();
-        }
     } // runPeriodic
 
     @Override
     public void runContinuous(double elapsedTime)
     {
+        final String funcName = moduleName + ".runContinuous";
+
+        if (robot.elevator.elevator.isActive())
+        {
+            robot.elevator.elevatorPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
+            robot.globalTracer.traceInfo(
+                funcName, "elevatorLimitSwitches=%b/%b, talonCurrent=%.3f, pdpElevatorCurrent=%.3f",
+                robot.elevator.elevatorMotor.isLowerLimitSwitchActive(),
+                robot.elevator.elevatorMotor.isUpperLimitSwitchActive(),
+                robot.elevator.elevatorMotor.motor.getOutputCurrent(),
+                robot.pdp.getCurrent(RobotInfo.PDP_CHANNEL_ELEVATOR));
+        }
     } // runContinuous
 
     //
@@ -197,9 +216,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
+                if(pressed)
+                {
+                    robot.leftFlipper.timedExtend(RobotInfo.FLIPPER_EXTEND_PERIOD);
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
+                if(pressed)
+                {
+                    robot.rightFlipper.timedExtend(RobotInfo.FLIPPER_EXTEND_PERIOD);
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON5:
@@ -210,10 +237,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.driveBase.enableGyroAssist(
                             RobotInfo.DRIVE_MAX_ROTATION_RATE, RobotInfo.DRIVE_GYRO_ASSIST_KP);
+                        robot.ledIndicator.indicateGyroAssistOn();
                     }
                     else
                     {
                         robot.driveBase.disableGyroAssist();
+                        robot.ledIndicator.indicateGyroAssistOff();
                     }
                 }
                 break;
@@ -239,40 +268,107 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
+                if (pressed)
+                {
+                    robot.cubePickup.grabCube(RobotInfo.PICKUP_TELEOP_POWER, null);
+                }
+                else
+                {
+                    robot.cubePickup.stopPickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                robot.elevator.setManualOverride(pressed);
+//                if (pressed)
+//                {
+//                    robot.cubePickup.grabCube(0.5);
+//                }
+//                else
+//                {
+//                    robot.cubePickup.grabCube(0.0);
+//                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
+                if (pressed)
+                {
+                    robot.cubePickup.dropCube(RobotInfo.PICKUP_TELEOP_POWER);
+                }
+                else
+                {
+                    robot.cubePickup.stopPickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
+                //
+                // Cube Claw open.
+                //
+                if (pressed)
+                {
+                    robot.cubePickup.openClaw();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
+                //
+                // Cube Claw close.
+                //
+                if (pressed)
+                {
+                    robot.cubePickup.closeClaw();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? -0.3 : 0.0);
+                //
+                // Cube Deployer down.
+                //
+                if (pressed)
+                {
+                    robot.cubePickup.raisePickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
+                //
+                // Cube Deployer up.
+                //
+                if (pressed)
+                {
+                    robot.cubePickup.deployPickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                if(pressed)
+                {
+                    robot.cubePickup.turtle();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
+                if(pressed)
+                {
+                    robot.cubePickup.prepareForPickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
+                winchDirection = pressed? -1: 0;
+                if(pressed)
+                {
+                    robot.cubePickup.turtle();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON11:
+                winchDirection = pressed? 1: 0;
+                if(pressed)
+                {
+                    robot.cubePickup.turtle();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON12:
