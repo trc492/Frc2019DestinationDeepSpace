@@ -150,7 +150,7 @@ public class VisionTargetPipeline implements VisionPipeline
             long elapsed = System.currentTimeMillis() - start;
             if (elapsed >= 100)
             {
-                System.err.println("Vision pipeline took too long!");
+                //System.err.println("Vision pipeline took too long!");
             }
         }
     }

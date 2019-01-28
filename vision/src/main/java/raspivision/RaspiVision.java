@@ -35,6 +35,7 @@ import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -45,6 +46,7 @@ public class RaspiVision
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final boolean DEBUG_DISPLAY = true;
+    private static final boolean DISPLAY_MASK = false;
 
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
@@ -301,7 +303,15 @@ public class RaspiVision
 
     private void debugDisplay(VisionTargetPipeline pipeline)
     {
-        Mat image = pipeline.getInput().clone();
+        Mat image;
+        if (DISPLAY_MASK)
+        {
+            image = pipeline.getHslThresholdOutput().clone();
+        }
+        else
+        {
+            image = pipeline.getInput().clone();
+        }
         for (TargetData data : pipeline.getDetectedTargets())
         {
             if (data != null)
@@ -392,6 +402,15 @@ public class RaspiVision
             // Convert x,y to r,theta
             distance = Math.sqrt(x * x + z * z);
             heading = Math.toDegrees(Math.atan2(x, z));
+            Mat rotationMatrix = Mat.zeros(3, 3, CvType.CV_32F);
+            Calib3d.Rodrigues(rotationVector, rotationMatrix);
+            Mat projectionMatrix = Mat.zeros(3, 4, CvType.CV_32F);
+            Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
+            Mat eulerAngles = new Mat();
+            Calib3d.decomposeProjectionMatrix(projectionMatrix, new Mat(), new Mat(), new Mat(), new Mat(), new Mat(),
+                new Mat(), eulerAngles);
+            double yaw = eulerAngles.get(1, 0)[0];
+            System.out.printf("Probably Yaw?: %.3f\n", yaw);
         }
     }
 }
