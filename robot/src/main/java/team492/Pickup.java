@@ -22,7 +22,6 @@
 
 package team492;
 
-import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
@@ -30,24 +29,20 @@ import trclib.TrcUtil;
 
 public class Pickup
 {
-
-    private FrcCANSparkMax pickupMotor;
-    private TrcPidActuator pitchController;
+    private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
-
+   private TrcPidActuator pitchController;
+ 
     public Pickup()
     {
-        pickupMotor = new FrcCANSparkMax("PickupMaster", RobotInfo.CANID_PICKUP, false);
-
-        // Set opposite directions
-        pickupMotor.setInverted(false);
-
-        // We don't really need brakes
-        pickupMotor.setBrakeModeEnabled(false);
+        pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
+        pickupMotor.setInverted(false);                         // Set opposite directions.
+        pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
+        pickupMotor.motor.overrideLimitSwitchesEnable(false);   // No limit switches, make sure they are disabled.
 
         pitchMotor = new FrcCANTalon("PickupPitchMotor", RobotInfo.CANID_PICKUP_PITCH);
-        pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.setInverted(false);
+        pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.motor.overrideLimitSwitchesEnable(false); // for debugging only
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
@@ -59,7 +54,7 @@ public class Pickup
             RobotInfo.PICKUP_TOLERANCE, this::getPickupAngle);
         pitchController = new TrcPidActuator("PICKUPActuator", pitchMotor, pidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
-            () -> RobotInfo.PICKUP_GRAVITY_COMP);
+            () -> RobotInfo.PICKUP_GRAVITY_COMP);   // CodeReview: TODO: This should not be a constant.
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
         pitchController.setStallProtection(RobotInfo.PICKUP_STALL_MIN_POWER, RobotInfo.PICKUP_STALL_TIMEOUT,
             RobotInfo.PICKUP_STALL_RESET_TIMEOUT);
