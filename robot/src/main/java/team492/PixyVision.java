@@ -28,8 +28,8 @@ import org.opencv.core.Rect;
 
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
-import frclib.FrcPixyCam;
-import trclib.TrcPixyCam.ObjectBlock;
+import frclib.FrcPixyCam1;
+import trclib.TrcPixyCam1.ObjectBlock;
 import trclib.TrcUtil;
 
 public class PixyVision
@@ -72,7 +72,7 @@ public class PixyVision
     private static final double PIXY_DISTANCE_SCALE = 2300.0;   //DistanceInInches*targetWidthdInPixels
     private static final double TARGET_WIDTH_INCHES = 13.0 * Math.sqrt(2.0);// 13x13 square, diagonal is 13*sqrt(2) inches
 
-    private FrcPixyCam pixyCamera;
+    private FrcPixyCam1 pixyCamera;
     private Robot robot;
     private int signature;
     private Orientation orientation;
@@ -91,7 +91,7 @@ public class PixyVision
         final String instanceName, Robot robot, int signature, int brightness, Orientation orientation,
         SPI.Port port)
     {
-        pixyCamera = new FrcPixyCam(instanceName, port);
+        pixyCamera = new FrcPixyCam1(instanceName, port);
         commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 
@@ -99,7 +99,7 @@ public class PixyVision
         final String instanceName, Robot robot, int signature, int brightness, Orientation orientation,
         I2C.Port port, int i2cAddress)
     {
-        pixyCamera = new FrcPixyCam(instanceName, port, i2cAddress);
+        pixyCamera = new FrcPixyCam1(instanceName, port, i2cAddress);
         commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 

@@ -22,7 +22,7 @@
 
 package team492;
 
-import frclib.FrcPixyCam;
+import frclib.FrcPixyCam1;
 
 public class RobotInfo
 {
@@ -103,7 +103,7 @@ public class RobotInfo
     public static final int PIXY_BRIGHTNESS                     = 80;
     public static final double PIXY_CAM_OFFSET                  = 8.0;
     public static final PixyVision.Orientation PIXY_ORIENTATION = PixyVision.Orientation.NORMAL_LANDSCAPE;
-    public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam.DEF_I2C_ADDRESS;
+    public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam1.DEF_I2C_ADDRESS;
     public static final int PIXY_TARGET_SIGNATURE               = 1;
 
     //

@@ -26,14 +26,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * This class implements a platform independent pixy camera. This class is intended to be extended by a platform
+ * This class implements a platform independent pixy camera 1. This class is intended to be extended by a platform
  * dependent pixy class which provides the abstract methods required by this class. This class provides the parser
- * to read and parse the object block from the pixy camera. It also provides access to the last detected objects
+ * to read and parse the object block from the pixy camera 1. It also provides access to the last detected objects
  * reported by the pixy camera asynchronously.
  */
-public abstract class TrcPixyCam implements TrcNotifier.Receiver
+public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
 {
-    protected static final String moduleName = "TrcPixyCam";
+    protected static final String moduleName = "TrcPixyCam1";
     protected static final boolean debugEnabled = false;
     protected static final boolean tracingEnabled = false;
     protected static final boolean useGlobalTracer = false;
@@ -114,7 +114,7 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
      * @param instanceName specifies the instance name.
      * @param msbFirst specifies true if a word has MSB first.
      */
-    public TrcPixyCam(final String instanceName, boolean msbFirst)
+    public TrcPixyCam1(final String instanceName, boolean msbFirst)
     {
         if (debugEnabled)
         {
@@ -125,7 +125,7 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
 
         this.instanceName = instanceName;
         this.msbFirst = msbFirst;
-    }   //TrcPixyCam
+    }   //TrcPixyCam1
 
     /**
      * This method returns the instance name.
@@ -616,4 +616,4 @@ public abstract class TrcPixyCam implements TrcNotifier.Receiver
         }
     }   //notify
 
-}   //class FrcPixyCam
+}   //class TrcPixyCam1

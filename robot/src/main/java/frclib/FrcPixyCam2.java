@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,13 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SerialPort;
 import trclib.TrcDbgTrace;
 import trclib.TrcSerialBusDevice;
-import trclib.TrcPixyCam;
+import trclib.TrcPixyCam2;
 
 /**
  * This class implements a platform dependent pixy camera that is either connected to an I2C bus, SPI or a Serial Port.
  * It provides access to the last detected objects reported by the pixy camera asynchronously.
  */
-public class FrcPixyCam extends TrcPixyCam
+public class FrcPixyCam2 extends TrcPixyCam2
 {
     public static final I2C.Port DEF_I2C_PORT = I2C.Port.kOnboard;
     public static final int DEF_I2C_ADDRESS = 0x54;
@@ -54,17 +54,17 @@ public class FrcPixyCam extends TrcPixyCam
      * @param instanceName specifies the instance name.
      * @param port specifies the SPI port on the RoboRIO.
      */
-    public FrcPixyCam(final String instanceName, SPI.Port port)
+    public FrcPixyCam2(final String instanceName, SPI.Port port)
     {
-        super(instanceName, true);
+        super(instanceName);
         SPI spi = new SPI(port);
         spi.setMSBFirst();
         spi.setClockActiveHigh();
-        spi.setSampleDataOnRising();
+        // spi.setSampleDataOnRising();
         spi.setChipSelectActiveLow();
 
         pixyCam = new FrcSpiDevice(instanceName, spi);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * Constructor: Create an instance of the object.
@@ -73,9 +73,9 @@ public class FrcPixyCam extends TrcPixyCam
      * @param port specifies the I2C port on the RoboRIO.
      * @param devAddress specifies the I2C address of the device.
      */
-    public FrcPixyCam(final String instanceName, I2C.Port port, int devAddress)
+    public FrcPixyCam2(final String instanceName, I2C.Port port, int devAddress)
     {
-        super(instanceName, false);
+        super(instanceName);
 
         if (debugEnabled)
         {
@@ -83,7 +83,7 @@ public class FrcPixyCam extends TrcPixyCam
         }
 
         pixyCam = new FrcI2cDevice(instanceName, port, devAddress);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * Constructor: Create an instance of the object.
@@ -91,10 +91,10 @@ public class FrcPixyCam extends TrcPixyCam
      * @param instanceName specifies the instance name.
      * @param port specifies the I2C port on the RoboRIO.
      */
-    public FrcPixyCam(final String instanceName, I2C.Port port)
+    public FrcPixyCam2(final String instanceName, I2C.Port port)
     {
         this(instanceName, port, DEF_I2C_ADDRESS);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * Constructor: Create an instance of the object.
@@ -106,11 +106,11 @@ public class FrcPixyCam extends TrcPixyCam
      * @param parity specifies the parity type.
      * @param stopBits specifies the number of stop bits.
      */
-    public FrcPixyCam(
+    public FrcPixyCam2(
         final String instanceName, SerialPort.Port port, int baudRate, int dataBits, SerialPort.Parity parity,
         SerialPort.StopBits stopBits)
     {
-        super(instanceName, false);
+        super(instanceName);
 
         if (debugEnabled)
         {
@@ -118,7 +118,7 @@ public class FrcPixyCam extends TrcPixyCam
         }
 
         pixyCam = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * Constructor: Create an instance of the object.
@@ -127,10 +127,10 @@ public class FrcPixyCam extends TrcPixyCam
      * @param port specifies the serial port on the RoboRIO.
      * @param baudRate specifies the baud rate.
      */
-    public FrcPixyCam(final String instanceName, SerialPort.Port port, int baudRate)
+    public FrcPixyCam2(final String instanceName, SerialPort.Port port, int baudRate)
     {
         this(instanceName, port, baudRate, DEF_DATA_BITS, DEF_PARITY, DEF_STOP_BITS);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * Constructor: Create an instance of the object.
@@ -138,10 +138,10 @@ public class FrcPixyCam extends TrcPixyCam
      * @param instanceName specifies the instance name.
      * @param port specifies the serial port on the RoboRIO.
      */
-    public FrcPixyCam(final String instanceName, SerialPort.Port port)
+    public FrcPixyCam2(final String instanceName, SerialPort.Port port)
     {
         this(instanceName, port, DEF_BAUD_RATE, DEF_DATA_BITS, DEF_PARITY, DEF_STOP_BITS);
-    }   //FrcPixyCam
+    }   //FrcPixyCam2
 
     /**
      * This method checks if the pixy camera is enabled.
@@ -177,14 +177,6 @@ public class FrcPixyCam extends TrcPixyCam
         }
 
         pixyCam.setEnabled(enabled);
-        if (enabled)
-        {
-            start();
-        }
-        else
-        {
-            end();
-        }
 
         if (debugEnabled)
         {
@@ -193,57 +185,66 @@ public class FrcPixyCam extends TrcPixyCam
     }   //setEnabled
 
     //
-    // Implements TrcPixyCam abstract methods.
+    // Implements TrcPixyCam2 abstract methods.
     //
 
     /**
      * This method issues an asynchronous read of the specified number of bytes from the device.
-     *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
-     * @param length specifies the number of bytes to read.
      */
     @Override
-    public void asyncReadData(RequestTag requestTag, int length)
+    public byte[] syncReadResponse()
     {
-        final String funcName = "asyncReadData";
+        final String funcName = "syncReadResponse";
+        byte[] response = null;
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "tag=%s,length=%d",
-                requestTag != null? requestTag: "null", length);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        pixyCam.asyncRead(requestTag, length, null, this);
+        byte[] recvHeader = pixyCam.syncRead(-1, 6);
+        byte[] recvData = recvHeader[3] > 0 ? pixyCam.syncRead(-1, recvHeader[3]) : null;
+
+        if (recvData != null)
+        {
+            response = new byte[recvHeader.length + recvData.length];
+            System.arraycopy(recvHeader, 0, response, 0, recvHeader.length);
+            System.arraycopy(recvData, 0, response, recvHeader.length, recvData.length);
+        }
+        else
+        {
+            response = recvHeader;
+        }
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Arrays.toString(response));
         }
-    }   //asyncReadData
+
+        return response;
+    }   //syncReadResponse
 
     /**
      * This method writes the data buffer to the device asynchronously.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
      * @param data specifies the data buffer.
      */
     @Override
-    public void asyncWriteData(RequestTag requestTag, byte[] data)
+    public void syncWriteRequest(byte[] data)
     {
-        final String funcName = "asyncWriteData";
+        final String funcName = "syncWriteRequest";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "tag=%s,data=%s,length=%d",
-                requestTag != null? requestTag: "null", Arrays.toString(data), data.length);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "data=%s", Arrays.toString(data));
         }
 
-        pixyCam.asyncWrite(requestTag, data, data.length, null, null);
+        pixyCam.syncWrite(-1, data, data.length);
 
         if (debugEnabled)
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
-    }   //asyncWriteData
+    }   //syncWriteRequest
 
-}   //class FrcPixyCam
+}   //class FrcPixyCam2
