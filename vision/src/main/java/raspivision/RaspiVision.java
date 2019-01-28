@@ -405,12 +405,13 @@ public class RaspiVision
             Mat rotationMatrix = Mat.zeros(3, 3, CvType.CV_32F);
             Calib3d.Rodrigues(rotationVector, rotationMatrix);
             Mat projectionMatrix = Mat.zeros(3, 4, CvType.CV_32F);
-            Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
+            Core.hconcat(Arrays.asList(rotationMatrix, Mat.zeros(3,1, CvType.CV_32F)), projectionMatrix);
             Mat eulerAngles = new Mat();
             Calib3d.decomposeProjectionMatrix(projectionMatrix, new Mat(), new Mat(), new Mat(), new Mat(), new Mat(),
                 new Mat(), eulerAngles);
             double yaw = eulerAngles.get(1, 0)[0];
-            System.out.printf("Probably Yaw?: %.3f\n", yaw);
+            System.out.println(rotationVector.dump().replaceAll(";\\s+", ", "));
+            //System.out.printf("Probably Yaw?: %.3f\n", yaw);
         }
     }
 }
