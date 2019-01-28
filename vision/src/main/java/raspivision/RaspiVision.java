@@ -58,7 +58,7 @@ public class RaspiVision
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
-    // Order is leftminx, leftmaxx, leftminy, leftmaxy, rightminx, rightmaxx, rightminy, rightmaxy
+    // Order is leftleftcorner, leftrightcorner, leftbottomcorner, lefttopcorner, rightleftcorner, rightrightcorner, rightbottomcorner, righttopcorner
     private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, -2.4375, 0),
         new Point3(-4.0, 2.4375, 0), new Point3(-5.375, -2.9375, 0), new Point3(-5.9375, 2.9375, 0),
         new Point3(4.0, 2.4375, 0), new Point3(7.3125, -2.4375, 0), new Point3(5.375, -2.9375, 0),
@@ -297,7 +297,7 @@ public class RaspiVision
         // If debug display is enabled, render it
         if (DEBUG_DISPLAY)
         {
-            debugDisplay(pipeline);
+            //debugDisplay(pipeline);
         }
     }
 
@@ -360,29 +360,29 @@ public class RaspiVision
         {
             // Calculate the corners of the left vision target
             List<Point> leftContour = data.leftTarget.contour.toList();
-            Point leftMinX = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
+            Point leftLeftCorner = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
-            Point leftMaxX = leftContour.stream().max(Comparator.comparingDouble(c -> c.x))
+            Point leftRightCorner = leftContour.stream().max(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
-            Point leftMinY = leftContour.stream().min(Comparator.comparingDouble(c -> c.y))
+            Point leftBottomCorner = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
-            Point leftMaxY = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
+            Point leftTopCorner = leftContour.stream().min(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
 
             // Calculate the corners of the right vision target
             List<Point> rightContour = data.rightTarget.contour.toList();
-            Point rightMinX = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
+            Point rightLeftCorner = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
-            Point rightMaxX = rightContour.stream().max(Comparator.comparingDouble(c -> c.x))
+            Point rightRightCorner = rightContour.stream().max(Comparator.comparingDouble(c -> c.x))
                 .orElseThrow(IllegalStateException::new);
-            Point rightMinY = rightContour.stream().min(Comparator.comparingDouble(c -> c.y))
+            Point rightBottomCorner = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
-            Point rightMaxY = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
+            Point rightTopCorner = rightContour.stream().min(Comparator.comparingDouble(c -> c.y))
                 .orElseThrow(IllegalStateException::new);
 
             // Assemble the calculated points into a matrix
-            MatOfPoint2f imagePoints = new MatOfPoint2f(leftMinX, leftMaxX, leftMinY, leftMaxY, rightMinX, rightMaxX,
-                rightMinY, rightMaxY);
+            MatOfPoint2f imagePoints = new MatOfPoint2f(leftLeftCorner, leftRightCorner, leftBottomCorner,
+                leftTopCorner, rightLeftCorner, rightRightCorner, rightBottomCorner, rightTopCorner);
             // Get the target world coords in 3d space
             MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
             // Create the camera matrix. This uses the calculated approximate focal length and approximates the optical
@@ -402,16 +402,29 @@ public class RaspiVision
             // Convert x,y to r,theta
             distance = Math.sqrt(x * x + z * z);
             heading = Math.toDegrees(Math.atan2(x, z));
+
             Mat rotationMatrix = Mat.zeros(3, 3, CvType.CV_32F);
             Calib3d.Rodrigues(rotationVector, rotationMatrix);
             Mat projectionMatrix = Mat.zeros(3, 4, CvType.CV_32F);
-            Core.hconcat(Arrays.asList(rotationMatrix, Mat.zeros(3,1, CvType.CV_32F)), projectionMatrix);
+            Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
             Mat eulerAngles = new Mat();
             Calib3d.decomposeProjectionMatrix(projectionMatrix, new Mat(), new Mat(), new Mat(), new Mat(), new Mat(),
                 new Mat(), eulerAngles);
-            double yaw = eulerAngles.get(1, 0)[0];
-            System.out.println(rotationVector.dump().replaceAll(";\\s+", ", "));
-            //System.out.printf("Probably Yaw?: %.3f\n", yaw);
+            Mat rotationDegrees = new Mat();
+            Core.multiply(rotationVector, new Scalar(180.0 / Math.PI), rotationDegrees);
+            System.out.println(rotationDegrees.dump().replaceAll(";\\s+", ", "));
+
+            Mat image = pipeline.getInput().clone();
+            Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, leftBottomCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 0, 255), -1);
+
+            Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, rightBottomCorner, 1, new Scalar(0, 0, 255), -1);
+            Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 0, 255), -1);
+            dashboardDisplay.putFrame(image);
         }
     }
 }
