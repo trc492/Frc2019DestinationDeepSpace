@@ -45,7 +45,7 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DEBUG_DISPLAY = true;
+    private static final boolean DEBUG_DISPLAY = false;
     private static final boolean DISPLAY_MASK = false;
 
     // Default image resolution, in pixels
@@ -59,10 +59,10 @@ public class RaspiVision
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
     // Order is leftleftcorner, leftrightcorner, leftbottomcorner, lefttopcorner, rightleftcorner, rightrightcorner, rightbottomcorner, righttopcorner
-    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, -2.4375, 0),
-        new Point3(-4.0, 2.4375, 0), new Point3(-5.375, -2.9375, 0), new Point3(-5.9375, 2.9375, 0),
-        new Point3(4.0, 2.4375, 0), new Point3(7.3125, -2.4375, 0), new Point3(5.375, -2.9375, 0),
-        new Point3(5.9375, 2.9375, 0) };
+    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, 2.4375, 0),
+        new Point3(-4.0, -2.4375, 0), new Point3(-5.375, 2.9375, 0), new Point3(-5.9375, -2.9375, 0),
+        new Point3(4.0, -2.4375, 0), new Point3(7.3125, 2.4375, 0), new Point3(5.375, 2.9375, 0),
+        new Point3(5.9375, -2.9375, 0) };
 
     public static void main(String[] args)
     {
@@ -359,25 +359,27 @@ public class RaspiVision
         public RelativePose(TargetData data)
         {
             // Calculate the corners of the left vision target
-            List<Point> leftContour = data.leftTarget.contour.toList();
-            Point leftLeftCorner = leftContour.stream().min(Comparator.comparingDouble(c -> c.x))
+            Point[] leftPoints = new Point[4];
+            data.leftTarget.rotatedRect.points(leftPoints);
+            Point leftLeftCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.x))
                 .orElseThrow(IllegalStateException::new);
-            Point leftRightCorner = leftContour.stream().max(Comparator.comparingDouble(c -> c.x))
+            Point leftRightCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.x))
                 .orElseThrow(IllegalStateException::new);
-            Point leftBottomCorner = leftContour.stream().max(Comparator.comparingDouble(c -> c.y))
+            Point leftBottomCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.y))
                 .orElseThrow(IllegalStateException::new);
-            Point leftTopCorner = leftContour.stream().min(Comparator.comparingDouble(c -> c.y))
+            Point leftTopCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.y))
                 .orElseThrow(IllegalStateException::new);
 
             // Calculate the corners of the right vision target
-            List<Point> rightContour = data.rightTarget.contour.toList();
-            Point rightLeftCorner = rightContour.stream().min(Comparator.comparingDouble(c -> c.x))
+            Point[] rightPoints = new Point[4];
+            data.rightTarget.rotatedRect.points(rightPoints);
+            Point rightLeftCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.x))
                 .orElseThrow(IllegalStateException::new);
-            Point rightRightCorner = rightContour.stream().max(Comparator.comparingDouble(c -> c.x))
+            Point rightRightCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.x))
                 .orElseThrow(IllegalStateException::new);
-            Point rightBottomCorner = rightContour.stream().max(Comparator.comparingDouble(c -> c.y))
+            Point rightBottomCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.y))
                 .orElseThrow(IllegalStateException::new);
-            Point rightTopCorner = rightContour.stream().min(Comparator.comparingDouble(c -> c.y))
+            Point rightTopCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.y))
                 .orElseThrow(IllegalStateException::new);
 
             // Assemble the calculated points into a matrix
@@ -402,29 +404,49 @@ public class RaspiVision
             // Convert x,y to r,theta
             distance = Math.sqrt(x * x + z * z);
             heading = Math.toDegrees(Math.atan2(x, z));
-
-            Mat rotationMatrix = Mat.zeros(3, 3, CvType.CV_32F);
-            Calib3d.Rodrigues(rotationVector, rotationMatrix);
-            Mat projectionMatrix = Mat.zeros(3, 4, CvType.CV_32F);
-            Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
-            Mat eulerAngles = new Mat();
-            Calib3d.decomposeProjectionMatrix(projectionMatrix, new Mat(), new Mat(), new Mat(), new Mat(), new Mat(),
-                new Mat(), eulerAngles);
             Mat rotationDegrees = new Mat();
             Core.multiply(rotationVector, new Scalar(180.0 / Math.PI), rotationDegrees);
-            System.out.println(rotationDegrees.dump().replaceAll(";\\s+", ", "));
+            // System.out.println(rotationDegrees.dump().replaceAll(";\\s+", ", "));
 
-            Mat image = pipeline.getInput().clone();
-            Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, leftBottomCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 0, 255), -1);
+            Mat rotationMatrix = new Mat();
+            // Rotation vector is in axis-angle form
+            Calib3d.Rodrigues(rotationVector, rotationMatrix); // TODO: convert this rotation matrix into extrinsic euler angles
+            double[] angles = rotMatrixtoEulerAngles(rotationMatrix);
+            angles = Arrays.stream(angles).map(Math::toDegrees).toArray();
+            System.out.println(Arrays.toString(angles) + " - " + rotationDegrees.dump().replaceAll(";\\s+", ", "));
 
-            Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, rightBottomCorner, 1, new Scalar(0, 0, 255), -1);
-            Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 0, 255), -1);
-            dashboardDisplay.putFrame(image);
+            //  Mat image = pipeline.getInput().clone();
+            //  Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), 2);
+            //  Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 255, 0), 2);
+            //  Imgproc.circle(image, leftBottomCorner, 1, new Scalar(255, 0, 0), 2);
+            //  Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 255, 255), 2);
+            //
+            //  Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), 2);
+            //  Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 255, 0), 2);
+            //  Imgproc.circle(image, rightBottomCorner, 1, new Scalar(255, 0, 0), 2);
+            //  Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 255, 255), 2);
+            //  dashboardDisplay.putFrame(image);
+        }
+
+        private double[] rotMatrixtoEulerAngles(Mat rotationMatrix)
+        {
+            double r00 = rotationMatrix.get(0, 0)[0];
+            double r10 = rotationMatrix.get(1, 0)[0];
+            double sy = Math.sqrt(r00 * r00 + r10 * r10);
+            double x, y, z;
+            if (sy >= 1e-6)
+            {
+                x = Math.atan2(rotationMatrix.get(2, 1)[0], rotationMatrix.get(2, 2)[0]);
+                y = Math.atan2(-rotationMatrix.get(2, 0)[0], sy);
+                z = Math.atan2(r10, r00);
+            }
+            else
+            {
+                x = Math.atan2(-rotationMatrix.get(1, 2)[0], rotationMatrix.get(1, 1)[0]);
+                y = Math.atan2(-rotationMatrix.get(2, 0)[0], sy);
+                z = 0;
+            }
+            return new double[] { x, y, z };
         }
     }
 }

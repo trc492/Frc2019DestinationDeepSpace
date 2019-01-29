@@ -378,6 +378,7 @@ public class VisionTargetPipeline implements VisionPipeline
         }
 
         VisionTarget target = new VisionTarget();
+        target.rotatedRect = rect;
         target.isLeftTarget = getCorrectedAngle(rect) <= 90;
         Rect bounds = rect.boundingRect();
         target.contour = contour;
@@ -401,6 +402,7 @@ public class VisionTargetPipeline implements VisionPipeline
         public boolean isLeftTarget;
         public int x, y, w, h;
         public MatOfPoint2f contour;
+        public RotatedRect rotatedRect;
 
         public boolean equals(Object o)
         {
