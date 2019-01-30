@@ -35,8 +35,8 @@ import org.opencv.imgproc.*;
 
 public class VisionTargetPipeline implements VisionPipeline
 {
-    private static final double ROTATED_RECT_RATIO_MIN = 0.8 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
-    private static final double ROTATED_RECT_RATIO_MAX = 1.2 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
+    private static final double ROTATED_RECT_RATIO_MIN = 0.7 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
+    private static final double ROTATED_RECT_RATIO_MAX = 1.3 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
 
     //Outputs
     private Mat input = new Mat();
