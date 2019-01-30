@@ -37,8 +37,6 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class RaspiVision
 {
@@ -51,7 +49,7 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.FULL_PNP;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.NONE;
 
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
@@ -71,6 +69,9 @@ public class RaspiVision
 
     public static void main(String[] args)
     {
+        // Load the C++ native code
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
         RaspiVision vision = new RaspiVision();
         vision.start();
     }
@@ -96,7 +97,27 @@ public class RaspiVision
     private final Object imageLock = new Object();
     private VisionTargetPipeline pipeline;
     private UsbCamera camera;
-    private Mat image;
+    private Mat image = null;
+
+    // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
+    private Mat dummyCameraMatrix = new Mat();
+    private Mat dummyRotMatrix = new Mat();
+    private Mat dummyTransVect = new Mat();
+    private Mat dummyRotMatX = new Mat();
+    private Mat dummyRotMatY = new Mat();
+    private Mat dummyRotMatZ = new Mat();
+    private MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
+    private MatOfPoint2f imagePoints = new MatOfPoint2f();
+    private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
+    private volatile Mat cameraMat = null; // This is being updated by one thread and consumed by another, so volatile.
+    private Mat rotationVector = new Mat();
+    private Mat translationVector = new Mat();
+    private Mat rotationMatrix = new Mat();
+    private Mat projectionMatrix = new Mat();
+    private MatOfPoint2f projectedPoints = new MatOfPoint2f();
+    private MatOfPoint3f pointToProject = new MatOfPoint3f();
+    private MatOfPoint contourPoints = new MatOfPoint();
+    private Mat eulerAngles = new Mat();
 
     public RaspiVision()
     {
@@ -186,7 +207,6 @@ public class RaspiVision
     public void start()
     {
         System.out.print("Starting vision thread...");
-        image = new Mat();
         cameraThread.start();
         visionThread.start();
         calcThread.start();
@@ -222,7 +242,7 @@ public class RaspiVision
     {
         try
         {
-            Mat image = this.image;
+            Mat image = null;
             while (!Thread.interrupted())
             {
                 synchronized (imageLock)
@@ -235,6 +255,8 @@ public class RaspiVision
                 }
                 pipeline.process(image);
                 processImage(pipeline);
+                // I don't need the image anymore, so release the memory
+                image.release();
             }
         }
         catch (InterruptedException e)
@@ -261,7 +283,7 @@ public class RaspiVision
                 String dataString = "";
                 if (data != null)
                 {
-                    RelativePose pose = new RelativePose(data);
+                    RelativePose pose = calculateRelativePose(data);
                     dataString = gson.toJson(pose);
                 }
                 visionData.setString(dataString);
@@ -290,6 +312,12 @@ public class RaspiVision
             double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
             double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
             focalLength = (focalLengthX + focalLengthY) / 2.0;
+            if (cameraMat == null)
+            {
+                cameraMat = new Mat(3, 3, CvType.CV_32FC1);
+            }
+            // TODO: Should this be separate x and y focal lengths, or the average? test.
+            cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
@@ -357,131 +385,119 @@ public class RaspiVision
         return (double) System.currentTimeMillis() / 1000;
     }
 
+    private RelativePose calculateRelativePose(TargetData data)
+    {
+        // Calculate the corners of the left vision target
+        Point[] leftPoints = new Point[4];
+        data.leftTarget.rotatedRect.points(leftPoints);
+        Point leftLeftCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.x))
+            .orElseThrow(IllegalStateException::new);
+        Point leftRightCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.x))
+            .orElseThrow(IllegalStateException::new);
+        Point leftBottomCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.y))
+            .orElseThrow(IllegalStateException::new);
+        Point leftTopCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.y))
+            .orElseThrow(IllegalStateException::new);
+
+        // Calculate the corners of the right vision target
+        Point[] rightPoints = new Point[4];
+        data.rightTarget.rotatedRect.points(rightPoints);
+        Point rightLeftCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.x))
+            .orElseThrow(IllegalStateException::new);
+        Point rightRightCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.x))
+            .orElseThrow(IllegalStateException::new);
+        Point rightBottomCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.y))
+            .orElseThrow(IllegalStateException::new);
+        Point rightTopCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.y))
+            .orElseThrow(IllegalStateException::new);
+
+        // Assemble the calculated points into a matrix
+        imagePoints.fromArray(leftLeftCorner, leftRightCorner, leftBottomCorner, leftTopCorner, rightLeftCorner,
+            rightRightCorner, rightBottomCorner, rightTopCorner);
+
+        // Use the black magic of the Ancient Ones to get the rotation and translation vectors
+        Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
+        // Get the distances in the x and z axes. (or in robot space, x and y)
+        double x = translationVector.get(0, 0)[0];
+        double z = translationVector.get(2, 0)[0];
+        // Convert x,y to r,theta
+        double distance = Math.sqrt(x * x + z * z);
+        double heading = Math.toDegrees(Math.atan2(x, z));
+
+        // Convert the axis-angle rotation vector into a rotation matrix
+        Calib3d.Rodrigues(rotationVector, rotationMatrix);
+
+        // Create the projection matrix
+        Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
+
+        // Decompose the projection matrix to get the euler angles of rotation
+        Calib3d.decomposeProjectionMatrix(projectionMatrix, dummyCameraMatrix, dummyRotMatrix, dummyTransVect,
+            dummyRotMatX, dummyRotMatY, dummyRotMatZ, eulerAngles);
+        double objectYaw = eulerAngles.get(1, 0)[0];
+
+        // Write to the debug display, if necessary
+        if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
+        {
+            Mat image = pipeline.getInput().clone();
+
+            // Draw the contours first, so the corners get put on top
+            if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
+            {
+                contourPoints.fromArray(data.leftTarget.contour.toArray());
+                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                contourPoints.fromArray(data.rightTarget.contour.toArray());
+                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+            }
+
+            // Draw the left and right target corners
+            Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), 2);
+            Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 255, 0), 2);
+            Imgproc.circle(image, leftBottomCorner, 1, new Scalar(255, 0, 0), 2);
+            Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 255, 255), 2);
+
+            Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), 2);
+            Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 255, 0), 2);
+            Imgproc.circle(image, rightBottomCorner, 1, new Scalar(255, 0, 0), 2);
+            Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 255, 255), 2);
+
+            if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
+            {
+                // Project the XYZ axes out and draw the lines to show orientation
+                Point origin = new Point(data.x, data.y);
+                projectAndDrawAxes(image, origin, new Point3(10, 0, 0), rotationVector, translationVector, cameraMat,
+                    dist, new Scalar(0, 0, 255));
+                projectAndDrawAxes(image, origin, new Point3(0, 10, 0), rotationVector, translationVector, cameraMat,
+                    dist, new Scalar(0, 255, 0));
+                projectAndDrawAxes(image, origin, new Point3(0, 0, 10), rotationVector, translationVector, cameraMat,
+                    dist, new Scalar(255, 0, 0));
+            }
+
+            dashboardDisplay.putFrame(image);
+            image.release();
+        }
+
+        return new RelativePose(heading, distance, objectYaw);
+    }
+
+    private void projectAndDrawAxes(Mat image, Point origin, Point3 point, Mat rotationVector, Mat translationVector,
+        Mat cameraMat, MatOfDouble dist, Scalar color)
+    {
+        pointToProject.fromArray(point);
+        Calib3d.projectPoints(pointToProject, rotationVector, translationVector, cameraMat, dist, projectedPoints);
+        Imgproc.line(image, origin, projectedPoints.toArray()[0], color, 2);
+    }
+
     private class RelativePose
     {
         public double heading;
         public double distance;
         public double objectYaw;
 
-        /**
-         * This calculates the pose relative to the vision target in r, theta. It uses the solvePNP algorithm from
-         * OpenCV.
-         *
-         * @param data The target data container to use for the calculations.
-         */
-        public RelativePose(TargetData data)
+        public RelativePose(double heading, double distance, double objectYaw)
         {
-            // Calculate the corners of the left vision target
-            Point[] leftPoints = new Point[4];
-            data.leftTarget.rotatedRect.points(leftPoints);
-            Point leftLeftCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.x))
-                .orElseThrow(IllegalStateException::new);
-            Point leftRightCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.x))
-                .orElseThrow(IllegalStateException::new);
-            Point leftBottomCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.y))
-                .orElseThrow(IllegalStateException::new);
-            Point leftTopCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.y))
-                .orElseThrow(IllegalStateException::new);
-
-            // Calculate the corners of the right vision target
-            Point[] rightPoints = new Point[4];
-            data.rightTarget.rotatedRect.points(rightPoints);
-            Point rightLeftCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.x))
-                .orElseThrow(IllegalStateException::new);
-            Point rightRightCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.x))
-                .orElseThrow(IllegalStateException::new);
-            Point rightBottomCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.y))
-                .orElseThrow(IllegalStateException::new);
-            Point rightTopCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.y))
-                .orElseThrow(IllegalStateException::new);
-
-            // Assemble the calculated points into a matrix
-            MatOfPoint2f imagePoints = new MatOfPoint2f(leftLeftCorner, leftRightCorner, leftBottomCorner,
-                leftTopCorner, rightLeftCorner, rightRightCorner, rightBottomCorner, rightTopCorner);
-            // Get the target world coords in 3d space
-            MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
-            // Create the camera matrix. This uses the calculated approximate focal length and approximates the optical
-            // center as the image center.
-            Mat cameraMat = new Mat(3, 3, CvType.CV_32FC1);
-            cameraMat.put(0, 0, focalLength, 0, width / 2.0, 0, focalLength, height / 2.0, 0, 0, 1);
-            // Assume no distortion
-            MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
-
-            // Empty matrices which will receive the vectors
-            Mat rotationVector = new Mat();
-            Mat translationVector = new Mat(); // This can later be used to get target rotation
-            Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
-            // Get the distances in the x and z axes. (or in robot space, x and y)
-            double x = translationVector.get(0, 0)[0];
-            double z = translationVector.get(2, 0)[0];
-            // Convert x,y to r,theta
-            this.distance = Math.sqrt(x * x + z * z);
-            this.heading = Math.toDegrees(Math.atan2(x, z));
-            Mat rotationDegrees = new Mat();
-            Core.multiply(rotationVector, new Scalar(180.0 / Math.PI), rotationDegrees);
-
-            // Convert the axis-angle rotation vector into a rotation matrix
-            Mat rotationMatrix = new Mat();
-            Calib3d.Rodrigues(rotationVector, rotationMatrix);
-
-            // Create the projection matrix
-            Mat projectionMatrix = new Mat();
-            Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
-
-            // Decompose the projection matrix to get the euler angles of rotation
-            Mat eulerAngles = new Mat();
-            Mat newRotationMatrix = new Mat();
-            Calib3d.decomposeProjectionMatrix(projectionMatrix, new Mat(), newRotationMatrix, new Mat(), new Mat(),
-                new Mat(), new Mat(), eulerAngles);
-            this.objectYaw = eulerAngles.get(1, 0)[0];
-
-            // Write to the debug display, if necessary
-            if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
-            {
-                Mat image = pipeline.getInput().clone();
-
-                // Draw the contours first, so the corners get put on top
-                if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
-                {
-                    Imgproc.drawContours(image,
-                        Stream.of(data.leftTarget, data.rightTarget).map(e -> new MatOfPoint(e.contour.toArray()))
-                            .collect(Collectors.toList()), -1, new Scalar(255, 0, 255), 2);
-                }
-
-                // Draw the left and right target corners
-                Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), 2);
-                Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 255, 0), 2);
-                Imgproc.circle(image, leftBottomCorner, 1, new Scalar(255, 0, 0), 2);
-                Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 255, 255), 2);
-
-                Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), 2);
-                Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 255, 0), 2);
-                Imgproc.circle(image, rightBottomCorner, 1, new Scalar(255, 0, 0), 2);
-                Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 255, 255), 2);
-
-                if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
-                {
-                    // Project the XYZ axes out and draw the lines to show orientation
-                    Point origin = new Point(data.x, data.y);
-                    projectAndDrawAxes(image, origin, new Point3(10, 0, 0), rotationVector, translationVector,
-                        cameraMat, dist, new Scalar(0, 0, 255));
-                    projectAndDrawAxes(image, origin, new Point3(0, 10, 0), rotationVector, translationVector,
-                        cameraMat, dist, new Scalar(0, 255, 0));
-                    projectAndDrawAxes(image, origin, new Point3(0, 0, 10), rotationVector, translationVector,
-                        cameraMat, dist, new Scalar(255, 0, 0));
-                }
-
-                dashboardDisplay.putFrame(image);
-            }
-        }
-
-        private void projectAndDrawAxes(Mat image, Point origin, Point3 point, Mat rotationVector,
-            Mat translationVector, Mat cameraMat, MatOfDouble dist, Scalar color)
-        {
-            MatOfPoint2f projected = new MatOfPoint2f();
-            Calib3d
-                .projectPoints(new MatOfPoint3f(point), rotationVector, translationVector, cameraMat, dist, projected);
-            Imgproc.line(image, origin, projected.toArray()[0], color, 2);
+            this.heading = heading;
+            this.distance = distance;
+            this.objectYaw = objectYaw;
         }
     }
 }

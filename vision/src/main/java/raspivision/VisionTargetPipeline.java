@@ -48,13 +48,8 @@ public class VisionTargetPipeline implements VisionPipeline
     private TargetData selectedTarget = null;
 
     public double[] hslThresholdHue = { 0, 180 };
-    public double[] hslThresholdSaturation = { 15, 255 };
+    public double[] hslThresholdSaturation = { 12, 255 };
     public double[] hslThresholdLuminance = { 160, 255 };
-
-    static
-    {
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-    }
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
@@ -69,12 +64,9 @@ public class VisionTargetPipeline implements VisionPipeline
             detectedTargets.clear();
             selectedTarget = null;
 
-            input = source0;
+            source0.copyTo(input);
             // Step HSL_Threshold0:
             Mat hslThresholdInput = source0;
-            //            double[] hslThresholdHue = { 39, 108 };
-            //            double[] hslThresholdSaturation = { 73, 255.0 };
-            //            double[] hslThresholdLuminance = { 147, 255.0 };
             hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
                 hslThresholdOutput);
 
