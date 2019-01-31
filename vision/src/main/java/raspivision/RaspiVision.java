@@ -89,7 +89,6 @@ public class RaspiVision
     private CvSource dashboardDisplay;
 
     private int width, height; // in pixels
-    private double focalLength; // In pixels
 
     private final Object dataLock = new Object();
     private TargetData targetData = null;
@@ -100,12 +99,6 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private Mat dummyCameraMatrix = new Mat();
-    private Mat dummyRotMatrix = new Mat();
-    private Mat dummyTransVect = new Mat();
-    private Mat dummyRotMatX = new Mat();
-    private Mat dummyRotMatY = new Mat();
-    private Mat dummyRotMatZ = new Mat();
     private MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
     private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
@@ -113,11 +106,9 @@ public class RaspiVision
     private Mat rotationVector = new Mat();
     private Mat translationVector = new Mat();
     private Mat rotationMatrix = new Mat();
-    private Mat projectionMatrix = new Mat();
     private MatOfPoint2f projectedPoints = new MatOfPoint2f();
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
-    private Mat eulerAngles = new Mat();
 
     public RaspiVision()
     {
@@ -311,7 +302,6 @@ public class RaspiVision
             cameraData.setDoubleArray(new double[] { width, height });
             double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
             double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
-            focalLength = (focalLengthX + focalLengthY) / 2.0;
             if (cameraMat == null)
             {
                 cameraMat = new Mat(3, 3, CvType.CV_32FC1);
@@ -427,13 +417,9 @@ public class RaspiVision
         // Convert the axis-angle rotation vector into a rotation matrix
         Calib3d.Rodrigues(rotationVector, rotationMatrix);
 
-        // Create the projection matrix
-        Core.hconcat(Arrays.asList(rotationMatrix, translationVector), projectionMatrix);
-
-        // Decompose the projection matrix to get the euler angles of rotation
-        Calib3d.decomposeProjectionMatrix(projectionMatrix, dummyCameraMatrix, dummyRotMatrix, dummyTransVect,
-            dummyRotMatX, dummyRotMatY, dummyRotMatZ, eulerAngles);
-        double objectYaw = eulerAngles.get(1, 0)[0];
+        // Method 1 of getting euler angles:
+        double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
+        double objectYaw = angles[1];
 
         // Write to the debug display, if necessary
         if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
@@ -477,6 +463,27 @@ public class RaspiVision
         }
 
         return new RelativePose(heading, distance, objectYaw);
+    }
+
+    private double[] convertRotMatrixToEulerAngles(Mat rotationMatrix)
+    {
+        double r00 = rotationMatrix.get(0, 0)[0];
+        double r10 = rotationMatrix.get(1, 0)[0];
+        double sy = Math.sqrt(r00 * r00 + r10 * r10);
+        double x, y, z;
+        if (sy >= 1e-6)
+        {
+            x = Math.atan2(rotationMatrix.get(2, 1)[0], rotationMatrix.get(2, 2)[0]);
+            y = Math.atan2(-rotationMatrix.get(2, 0)[0], sy);
+            z = Math.atan2(r10, r00);
+        }
+        else
+        {
+            x = Math.atan2(-rotationMatrix.get(1, 2)[0], rotationMatrix.get(1, 1)[0]);
+            y = Math.atan2(-rotationMatrix.get(2, 0)[0], sy);
+            z = 0;
+        }
+        return new double[] { Math.toDegrees(x), Math.toDegrees(y), Math.toDegrees(z) };
     }
 
     private void projectAndDrawAxes(Mat image, Point origin, Point3 point, Mat rotationVector, Mat translationVector,
