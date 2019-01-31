@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2017 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -8,8 +8,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -22,36 +22,34 @@
 
 package team492;
 
-import common.CmdPidDrive;
-import common.CmdTimedDrive;
+import java.util.Date;
+
 import frclib.FrcChoiceMenu;
 import hallib.HalDashboard;
 import trclib.TrcRobot;
-import trclib.TrcRobot.RunMode;
-import trclib.TrcTaskMgr;
 
 public class FrcAuto implements TrcRobot.RobotMode
 {
-    private static final String moduleName = "FrcAuto";
-    private static final boolean DO_UPDATES = false;
-
     public static enum AutoStrategy
     {
-        // Different choices for autonomous
+        LEFT_GEAR_LIFT,
+        RIGHT_GEAR_LIFT,
+        MIDDLE_GEAR_LIFT,
         X_TIMED_DRIVE,
         Y_TIMED_DRIVE,
         X_DISTANCE_DRIVE,
         Y_DISTANCE_DRIVE,
         TURN_DEGREES,
         DO_NOTHING
-    } // enum AutoStrategy
+    }   //enum AutoStrategy
 
     private Robot robot;
+    private boolean useVision = false;
 
     //
     // Menus.
     //
-    private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
+    private FrcChoiceMenu<FrcAuto.AutoStrategy> autoStrategyMenu;
 
     private AutoStrategy autoStrategy;
     private double delay;
@@ -64,41 +62,58 @@ public class FrcAuto implements TrcRobot.RobotMode
         //
         // Create Autonomous Mode specific menus.
         //
-        autoStrategyMenu = new FrcChoiceMenu<>("Auto/AutoStrategies");
-
+        autoStrategyMenu = new FrcChoiceMenu<>("Autonomous Strategies");
         //
         // Populate Autonomous Mode menus.
         //
-        autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE, false, false);
-        autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE, false, false);
-        autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE, false, false);
-        autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE, false, false);
-        autoStrategyMenu.addChoice("Turn Degrees", AutoStrategy.TURN_DEGREES, false, false);
-        autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
-    } // FrcAuto
+        autoStrategyMenu.addChoice("Middle Gear Lift", FrcAuto.AutoStrategy.MIDDLE_GEAR_LIFT, true);
+        autoStrategyMenu.addChoice("Left Gear Lift", FrcAuto.AutoStrategy.LEFT_GEAR_LIFT, false);
+        autoStrategyMenu.addChoice("Right Gear Lift", FrcAuto.AutoStrategy.RIGHT_GEAR_LIFT, false);
+        autoStrategyMenu.addChoice("X Timed Drive", FrcAuto.AutoStrategy.X_TIMED_DRIVE, false);
+        autoStrategyMenu.addChoice("Y Timed Drive", FrcAuto.AutoStrategy.Y_TIMED_DRIVE, false);
+        autoStrategyMenu.addChoice("X Distance Drive", FrcAuto.AutoStrategy.X_DISTANCE_DRIVE, false);
+        autoStrategyMenu.addChoice("Y Distance Drive", FrcAuto.AutoStrategy.Y_DISTANCE_DRIVE, false);
+        autoStrategyMenu.addChoice("Turn Degrees", FrcAuto.AutoStrategy.TURN_DEGREES, false);
+        autoStrategyMenu.addChoice("Do Nothing", FrcAuto.AutoStrategy.DO_NOTHING, false);
+    }   //FrcAuto
 
     //
     // Implements TrcRobot.RunMode.
     //
 
     @Override
-    public void startMode(RunMode prevMode, RunMode nextMode)
+    public void startMode()
     {
-        final String funcName = moduleName + ".startMode";
+        HalDashboard.getInstance().clearDisplay();
 
-        robot.getGameInfo();
-        robot.globalTracer.traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s",
-            robot.eventName, robot.matchType, robot.matchNumber, robot.alliance.toString(), robot.location,
-            robot.ds.isFMSAttached(), robot.gameSpecificMessage);
+        if (Robot.USE_TRACELOG) robot.startTraceLog(null);
+
+        Date now = new Date();
+        robot.tracer.traceInfo(Robot.programName, "%s: ***** Starting autonomous *****", now.toString());
 
         //
         // Retrieve menu choice values.
         //
         autoStrategy = autoStrategyMenu.getCurrentChoiceObject();
-        delay = HalDashboard.getNumber("Auto/Delay", 0.0);
+        delay = HalDashboard.getNumber("Delay", 0.0);
 
         switch (autoStrategy)
         {
+            case LEFT_GEAR_LIFT:
+                useVision = true;
+                autoCommand = new CmdSideGearLift(robot, delay, false);
+                break;
+
+            case RIGHT_GEAR_LIFT:
+                useVision = true;
+                autoCommand = new CmdSideGearLift(robot, delay, true);
+                break;
+
+            case MIDDLE_GEAR_LIFT:
+                useVision = true;
+                autoCommand = new CmdMidGearLift(robot, delay);
+                break;
+
             case X_TIMED_DRIVE:
                 autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
                 break;
@@ -109,65 +124,79 @@ public class FrcAuto implements TrcRobot.RobotMode
 
             case X_DISTANCE_DRIVE:
                 autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, false);
+                    robot, delay, robot.driveDistance, 0.0, 0.0, robot.drivePowerLimit, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
                 autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, false);
+                    robot, delay, 0.0, robot.driveDistance, 0.0, robot.drivePowerLimit, false);
                 break;
 
             case TURN_DEGREES:
                 autoCommand = new CmdPidDrive(
-                    robot, robot.pidDrive,  delay, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, false);
+                    robot, delay, 0.0, 0.0, robot.turnDegrees, robot.drivePowerLimit, false);
                 break;
 
+            default:
             case DO_NOTHING:
                 autoCommand = null;
                 break;
         }
-    } // startMode
+        //
+        // Start vision thread if necessary.
+        //
+        if (useVision)
+        {
+            robot.setVisionEnabled(true);
+        }
+
+        robot.driveBase.resetPosition();
+        robot.targetHeading = 0.0;
+
+        robot.encoderXPidCtrl.setOutputRange(-0.5, 0.5);
+        robot.encoderYPidCtrl.setOutputRange(-0.5, 0.5);
+        robot.gyroTurnPidCtrl.setOutputRange(-0.5, 0.5);
+        robot.sonarDrivePidCtrl.setOutputRange(-0.5, 0.5);
+        robot.visionTurnPidCtrl.setOutputRange(-0.5, 0.5);
+    }   //startMode
 
     @Override
-    public void stopMode(RunMode prevMode, RunMode nextMode)
+    public void stopMode()
     {
-        TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
-    } // stopMode
+        if (useVision)
+        {
+            robot.setVisionEnabled(false);
+        }
+
+        if (Robot.USE_TRACELOG) robot.stopTraceLog();
+    }   //stopMode
 
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        if (DO_UPDATES)
-        {
-            robot.updateDashboard(RunMode.AUTO_MODE);
-            robot.announceSafety();
-        }
-    } // runPeriodic
+    }   //runPeriodic
 
     @Override
     public void runContinuous(double elapsedTime)
     {
-        final String funcName = moduleName + ".runContinuous";
-
         if (autoCommand != null)
         {
             autoCommand.cmdPeriodic(elapsedTime);
 
             if (robot.pidDrive.isActive())
             {
-                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
+                robot.encoderXPidCtrl.printPidInfo(robot.tracer, robot.battery);
+                robot.encoderYPidCtrl.printPidInfo(robot.tracer, robot.battery);
+                robot.gyroTurnPidCtrl.printPidInfo(robot.tracer, robot.battery);
             }
-
-            if (robot.elevator.elevator.isActive())
+            else if (robot.visionPidDrive.isActive())
             {
-                robot.elevator.elevatorPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-                robot.globalTracer.traceInfo(funcName, "Elevator limit switch: %b/%b",
-                    robot.elevator.elevatorMotor.isLowerLimitSwitchActive(),
-                    robot.elevator.elevatorMotor.isUpperLimitSwitchActive());
+                robot.sonarDrivePidCtrl.printPidInfo(robot.tracer, robot.battery);
+                robot.visionTurnPidCtrl.printPidInfo(robot.tracer, robot.battery);
             }
-        }
-    } // runContinuous
 
-} // class FrcAuto
+            robot.updateDashboard();
+        }
+    }   //runContinuous
+
+}   //class FrcAuto
