@@ -109,6 +109,7 @@ public class RaspiVision
     private MatOfPoint2f projectedPoints = new MatOfPoint2f();
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
+    private volatile Mat mask = null;
 
     public RaspiVision()
     {
@@ -308,6 +309,12 @@ public class RaspiVision
             }
             // TODO: Should this be separate x and y focal lengths, or the average? test.
             cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
+
+            if (mask != null)
+            {
+                mask.release();
+            }
+            mask = Mat.zeros(height, width, CvType.CV_8U);
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
@@ -375,7 +382,7 @@ public class RaspiVision
         return (double) System.currentTimeMillis() / 1000;
     }
 
-    private RelativePose calculateRelativePose(TargetData data)
+    private Point[] getImagePoints(TargetData data, MatOfPoint2f imagePoints)
     {
         // Calculate the corners of the left vision target
         Point[] leftPoints = new Point[4];
@@ -401,9 +408,33 @@ public class RaspiVision
         Point rightTopCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.y))
             .orElseThrow(IllegalStateException::new);
 
-        // Assemble the calculated points into a matrix
-        imagePoints.fromArray(leftLeftCorner, leftRightCorner, leftBottomCorner, leftTopCorner, rightLeftCorner,
-            rightRightCorner, rightBottomCorner, rightTopCorner);
+        Point[] points = new Point[] { leftLeftCorner, leftRightCorner, leftBottomCorner, leftTopCorner,
+            rightLeftCorner, rightRightCorner, rightBottomCorner, rightTopCorner };
+
+        imagePoints.fromArray(points);
+
+        mask.setTo(new Scalar(0));
+        contourPoints.fromArray(data.leftTarget.contour.toArray());
+        Imgproc.drawContours(mask, Arrays.asList(contourPoints), 0, new Scalar(255, 255, 255), -1);
+        contourPoints.fromArray(data.rightTarget.contour.toArray());
+        Imgproc.drawContours(mask, Arrays.asList(contourPoints), 0, new Scalar(255, 255, 255), -1);
+
+        Imgproc.cornerSubPix(mask, imagePoints, new Size(3, 3), new Size(-1, -1),
+            new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 30, 0.001));
+
+        return points;
+    }
+
+    private RelativePose calculateRelativePose(TargetData data)
+    {
+        // Get the image points
+        Point[] points = getImagePoints(data, imagePoints);
+
+        // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
+        for (int i = 0; i < points.length; i++)
+        {
+            points[i].y = height - points[i].y;
+        }
 
         // Use the black magic of the Ancient Ones to get the rotation and translation vectors
         Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
@@ -417,7 +448,7 @@ public class RaspiVision
         // Convert the axis-angle rotation vector into a rotation matrix
         Calib3d.Rodrigues(rotationVector, rotationMatrix);
 
-        // Method 1 of getting euler angles:
+        // Convert the rotation matrix to euler angles
         double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
         double objectYaw = angles[1];
 
@@ -436,15 +467,10 @@ public class RaspiVision
             }
 
             // Draw the left and right target corners
-            Imgproc.circle(image, leftLeftCorner, 1, new Scalar(0, 0, 255), 2);
-            Imgproc.circle(image, leftRightCorner, 1, new Scalar(0, 255, 0), 2);
-            Imgproc.circle(image, leftBottomCorner, 1, new Scalar(255, 0, 0), 2);
-            Imgproc.circle(image, leftTopCorner, 1, new Scalar(0, 255, 255), 2);
-
-            Imgproc.circle(image, rightLeftCorner, 1, new Scalar(0, 0, 255), 2);
-            Imgproc.circle(image, rightRightCorner, 1, new Scalar(0, 255, 0), 2);
-            Imgproc.circle(image, rightBottomCorner, 1, new Scalar(255, 0, 0), 2);
-            Imgproc.circle(image, rightTopCorner, 1, new Scalar(0, 255, 255), 2);
+            for (Point point : points)
+            {
+                Imgproc.circle(image, point, 1, new Scalar(0, 255, 255), 2);
+            }
 
             if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
             {
