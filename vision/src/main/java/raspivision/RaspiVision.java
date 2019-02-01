@@ -32,7 +32,16 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.*;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfDouble;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.MatOfPoint3f;
+import org.opencv.core.Point;
+import org.opencv.core.Point3;
+import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.Arrays;
@@ -411,16 +420,13 @@ public class RaspiVision
         Point[] points = new Point[] { leftLeftCorner, leftRightCorner, leftBottomCorner, leftTopCorner,
             rightLeftCorner, rightRightCorner, rightBottomCorner, rightTopCorner };
 
+        // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
+        for (int i = 0; i < points.length; i++)
+        {
+            points[i].y = height - points[i].y;
+        }
+
         imagePoints.fromArray(points);
-
-        mask.setTo(new Scalar(0));
-        contourPoints.fromArray(data.leftTarget.contour.toArray());
-        Imgproc.drawContours(mask, Arrays.asList(contourPoints), 0, new Scalar(255, 255, 255), -1);
-        contourPoints.fromArray(data.rightTarget.contour.toArray());
-        Imgproc.drawContours(mask, Arrays.asList(contourPoints), 0, new Scalar(255, 255, 255), -1);
-
-        Imgproc.cornerSubPix(mask, imagePoints, new Size(3, 3), new Size(-1, -1),
-            new TermCriteria(TermCriteria.EPS + TermCriteria.MAX_ITER, 30, 0.001));
 
         return points;
     }
@@ -429,12 +435,6 @@ public class RaspiVision
     {
         // Get the image points
         Point[] points = getImagePoints(data, imagePoints);
-
-        // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
-        for (int i = 0; i < points.length; i++)
-        {
-            points[i].y = height - points[i].y;
-        }
 
         // Use the black magic of the Ancient Ones to get the rotation and translation vectors
         Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
@@ -466,9 +466,10 @@ public class RaspiVision
                 Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
             }
 
-            // Draw the left and right target corners
+            // Draw the left and right target corners. First you have to re-flip the y coordinate
             for (Point point : points)
             {
+                point.y = height - point.y;
                 Imgproc.circle(image, point, 1, new Scalar(0, 255, 255), 2);
             }
 
@@ -517,7 +518,10 @@ public class RaspiVision
     {
         pointToProject.fromArray(point);
         Calib3d.projectPoints(pointToProject, rotationVector, translationVector, cameraMat, dist, projectedPoints);
-        Imgproc.line(image, origin, projectedPoints.toArray()[0], color, 2);
+        Point toDraw = projectedPoints.toArray()[0];
+        // Re-flip the y axis
+        toDraw.y = height - toDraw.y;
+        Imgproc.line(image, origin, toDraw, color, 2);
     }
 
     private class RelativePose
