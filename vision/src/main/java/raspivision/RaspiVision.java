@@ -70,11 +70,9 @@ public class RaspiVision
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
-    // Order is leftleftcorner, leftrightcorner, leftbottomcorner, lefttopcorner, rightleftcorner, rightrightcorner, rightbottomcorner, righttopcorner
-    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-7.3125, -2.4375, 0),
-        new Point3(-4.0, 2.4375, 0), new Point3(-5.375, -2.9375, 0), new Point3(-5.9375, 2.9375, 0),
-        new Point3(4.0, 2.4375, 0), new Point3(7.3125, -2.4375, 0), new Point3(5.375, -2.9375, 0),
-        new Point3(5.9375, 2.9375, 0) };
+    // Order is leftbottomcorner, lefttopcorner, rightbottomcorner, righttopcorner
+    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-5.375, -2.9375, 0),
+        new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
 
     public static void main(String[] args)
     {
@@ -396,10 +394,6 @@ public class RaspiVision
         // Calculate the corners of the left vision target
         Point[] leftPoints = new Point[4];
         data.leftTarget.rotatedRect.points(leftPoints);
-        Point leftLeftCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.x))
-            .orElseThrow(IllegalStateException::new);
-        Point leftRightCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.x))
-            .orElseThrow(IllegalStateException::new);
         Point leftBottomCorner = Arrays.stream(leftPoints).max(Comparator.comparing(point -> point.y))
             .orElseThrow(IllegalStateException::new);
         Point leftTopCorner = Arrays.stream(leftPoints).min(Comparator.comparing(point -> point.y))
@@ -408,17 +402,12 @@ public class RaspiVision
         // Calculate the corners of the right vision target
         Point[] rightPoints = new Point[4];
         data.rightTarget.rotatedRect.points(rightPoints);
-        Point rightLeftCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.x))
-            .orElseThrow(IllegalStateException::new);
-        Point rightRightCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.x))
-            .orElseThrow(IllegalStateException::new);
         Point rightBottomCorner = Arrays.stream(rightPoints).max(Comparator.comparing(point -> point.y))
             .orElseThrow(IllegalStateException::new);
         Point rightTopCorner = Arrays.stream(rightPoints).min(Comparator.comparing(point -> point.y))
             .orElseThrow(IllegalStateException::new);
 
-        Point[] points = new Point[] { leftLeftCorner, leftRightCorner, leftBottomCorner, leftTopCorner,
-            rightLeftCorner, rightRightCorner, rightBottomCorner, rightTopCorner };
+        Point[] points = new Point[] { leftBottomCorner, leftTopCorner, rightBottomCorner, rightTopCorner };
 
         // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
         for (int i = 0; i < points.length; i++)
