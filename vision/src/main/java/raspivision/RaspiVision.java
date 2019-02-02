@@ -46,6 +46,7 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.function.DoubleUnaryOperator;
 
 public class RaspiVision
 {
@@ -58,21 +59,25 @@ public class RaspiVision
     private static final boolean SERVER = true; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.NONE;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
-
-    // From the raspberry pi camera spec sheet, in degrees:
-    private static final double CAMERA_FOV_X = 62.2;
-    private static final double CAMERA_FOV_Y = 48.8;
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
     // Order is leftbottomcorner, lefttopcorner, rightbottomcorner, righttopcorner
     private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-5.375, -2.9375, 0),
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
+
+    // Calculated by calibrating the camera
+    private static double[] CAMERA_MATRIX = new double[] { 250.22788401, 0.0, 177.6591477, 0.0, 249.78546762,
+        119.9751127, 0.0, 0.0, 0.5 };
+
+    // Calculated by calibrating the camera
+    private static double[] DISTORTION_MATRIX = new double[] { 0.21809204, -0.76028143, -0.00155715, 0.02590141,
+        0.21755087 };
 
     public static void main(String[] args)
     {
@@ -106,17 +111,20 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private MatOfDouble dist = new MatOfDouble(0, 0, 0, 0);
+    private MatOfDouble dist = new MatOfDouble(DISTORTION_MATRIX);
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
     private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
-    private volatile Mat cameraMat = null; // This is being updated by one thread and consumed by another, so volatile.
+    private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
     private Mat rotationVector = new Mat();
     private Mat translationVector = new Mat();
     private Mat rotationMatrix = new Mat();
     private MatOfPoint2f projectedPoints = new MatOfPoint2f();
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
-    private volatile Mat mask = null;
+
+    // Screw it the yaw is off by a pretty linear amount to just map it using a best line fit.
+    // This was calculated using measurements and comparing to solvePNP output.
+    private DoubleUnaryOperator yawMapper = yaw -> yaw * 1.6677 + 2.95847;
 
     public RaspiVision()
     {
@@ -155,6 +163,8 @@ public class RaspiVision
         {
             dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
+
+        cameraMat.put(0, 0, CAMERA_MATRIX);
 
         cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
@@ -308,20 +318,6 @@ public class RaspiVision
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
-            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
-            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
-            if (cameraMat == null)
-            {
-                cameraMat = new Mat(3, 3, CvType.CV_32FC1);
-            }
-            // TODO: Should this be separate x and y focal lengths, or the average? test.
-            cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
-
-            if (mask != null)
-            {
-                mask.release();
-            }
-            mask = Mat.zeros(height, width, CvType.CV_8U);
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
@@ -439,7 +435,8 @@ public class RaspiVision
 
         // Convert the rotation matrix to euler angles
         double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
-        double objectYaw = angles[1];
+        // Convert the yaw to actual yaw with my fuckit (tm) method.
+        double objectYaw = yawMapper.applyAsDouble(angles[1]);
 
         // Write to the debug display, if necessary
         if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
