@@ -70,8 +70,6 @@ public class FrcTest extends FrcTeleOp
         //
         super(robot);
 
-        sparkTest = new SparkMaxFollowTest();
-
         event = new TrcEvent(moduleName);
         timer = new TrcTimer(moduleName);
         sm = new TrcStateMachine<>(moduleName);
