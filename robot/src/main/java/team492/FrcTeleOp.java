@@ -239,7 +239,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
+                robot.pickup.setPickupPower(pressed ? 1.0 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
@@ -256,7 +256,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? -0.3 : 0.0, false);
+                robot.pickup.setPitchPower(pressed ? -0.25 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
