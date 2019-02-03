@@ -44,10 +44,11 @@ public class FrcI2cDevice extends TrcSerialBusDevice
      * @param instanceName specifies the instance name.
      * @param port specifies the I2C port the device is connected to.
      * @param devAddress specifies the address of the device on the I2C bus.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
-    public FrcI2cDevice(final String instanceName, Port port, int devAddress)
+    public FrcI2cDevice(final String instanceName, Port port, int devAddress, boolean useRequestQueue)
     {
-        super(instanceName);
+        super(instanceName, useRequestQueue);
         device = new I2C(port, devAddress);
     }   //FrcI2cDevice
 
@@ -56,10 +57,11 @@ public class FrcI2cDevice extends TrcSerialBusDevice
      *
      * @param instanceName specifies the instance name.
      * @param devAddress specifies the address of the device on the I2C bus.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
-    public FrcI2cDevice(final String instanceName, int devAddress)
+    public FrcI2cDevice(final String instanceName, int devAddress, boolean useRequestQueue)
     {
-        this(instanceName, Port.kOnboard, devAddress);
+        this(instanceName, Port.kOnboard, devAddress, useRequestQueue);
     }   //FrcI2cDevice
 
     //

@@ -29,7 +29,7 @@ import java.io.UnsupportedEncodingException;
  * This class should be extended by a platform dependent Emic2 device class that provides the asynchronous access
  * to the serial port the device is connected to.
  */
-public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
+public abstract class TrcEmic2TextToSpeech
 {
     protected static final String moduleName = "TrcEmic2TextToSpeech";
     protected static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
@@ -107,9 +107,9 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
     /**
      * This method issues an asynchronous read of a text string from the device.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request. Can be null if none was provided.
      */
-    public abstract void asyncReadString(RequestTag requestTag);
+    public abstract void asyncReadString(RequestId requestId);
 
     /**
      * This method writes the string to the device asynchronously.
@@ -122,13 +122,13 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
     /**
      * This is used identify the request type.
      */
-    public static enum RequestTag
+    public static enum RequestId
     {
         PROMPT,
         CONFIG_MSG,
         VERSION_MSG,
         HELP_MSG
-    }   //enum RequestTag
+    }   //enum RequestId
 
     private final String instanceName;
     private volatile String configMsg = null;
@@ -166,7 +166,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
      */
     public void start()
     {
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
     }   //start
 
     /**
@@ -185,7 +185,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString("S" + msg + "\n", false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
     }   //speak
 
     /**
@@ -204,7 +204,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString(String.format("D%d\n", msg.value), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
     }   //playDemoMessage
 
     /**
@@ -255,7 +255,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString(String.format("N%d\n", voice.value), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //selectVoice
 
@@ -280,7 +280,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
             vol = MAX_VOLUME;
 
         asyncWriteString(String.format("V%d\n", vol), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setVolume
 
@@ -316,7 +316,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString(String.format("W%d\n", rate), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setSpeakingRate
 
@@ -336,7 +336,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString(String.format("L%d\n", lang.value), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setLanguage
 
@@ -356,7 +356,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString(String.format("P%d\n", parser.value), false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //selectParser
 
@@ -374,7 +374,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         }
 
         asyncWriteString("R\n", false);
-        asyncReadString(RequestTag.PROMPT);
+        asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //revertDefaultConfig
 
@@ -389,8 +389,8 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         if (configMsg == null)
         {
             asyncWriteString("C\n", false);
-            asyncReadString(RequestTag.CONFIG_MSG);
-            asyncReadString(RequestTag.PROMPT);
+            asyncReadString(RequestId.CONFIG_MSG);
+            asyncReadString(RequestId.PROMPT);
         }
 
         if (wait)
@@ -415,8 +415,8 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         if (versionMsg == null)
         {
             asyncWriteString("V\n", false);
-            asyncReadString(RequestTag.VERSION_MSG);
-            asyncReadString(RequestTag.PROMPT);
+            asyncReadString(RequestId.VERSION_MSG);
+            asyncReadString(RequestId.PROMPT);
         }
 
         if (wait)
@@ -441,8 +441,8 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         if (helpMsg == null)
         {
             asyncWriteString("H\n", false);
-            asyncReadString(RequestTag.HELP_MSG);
-            asyncReadString(RequestTag.PROMPT);
+            asyncReadString(RequestId.HELP_MSG);
+            asyncReadString(RequestId.PROMPT);
         }
 
         if (wait)
@@ -456,16 +456,11 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
         return helpMsg;
     }   //getHelpMessage
 
-    //
-    // Implements TrcNotifier.Receiver interface.
-    //
-
     /**
      * This method is called when the read request is completed.
      *
      * @param context specifies the read request.
      */
-    @Override
     public void notify(Object context)
     {
         final String funcName = "notify";
@@ -477,7 +472,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.CALLBK, "request=%s", request);
         }
 
-        if (request.readRequest && !request.error && !request.canceled && request.buffer != null)
+        if (request.readRequest && request.buffer != null)
         {
             try
             {
@@ -496,7 +491,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
 
         if (reply != null)
         {
-            switch ((RequestTag)request.requestCtxt)
+            switch ((RequestId)request.requestId)
             {
                 case PROMPT:
                     if (reply.equals("."))
@@ -504,7 +499,7 @@ public abstract class TrcEmic2TextToSpeech implements TrcNotifier.Receiver
                         //
                         // There was a pause/unpause command, retry the prompt request.
                         //
-                        asyncReadString(RequestTag.PROMPT);
+                        asyncReadString(RequestId.PROMPT);
                     }
                     break;
 

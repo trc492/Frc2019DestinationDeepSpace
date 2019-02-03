@@ -75,6 +75,7 @@ public class PixyVision
     private FrcPixyCam1 pixyCamera;
     private Robot robot;
     private int signature;
+    private int brightness;
     private Orientation orientation;
     private Rect lastTargetRect = null;
     private double lastTargetRectExpireTime = TrcUtil.getCurrentTime();
@@ -83,8 +84,8 @@ public class PixyVision
     {
         this.robot = robot;
         this.signature = signature;
+        this.brightness = brightness;
         this.orientation = orientation;
-        pixyCamera.setBrightness((byte)brightness);
     }   //commonInit
 
     public PixyVision(
@@ -106,6 +107,10 @@ public class PixyVision
     public void setEnabled(boolean enabled)
     {
         pixyCamera.setEnabled(enabled);
+        if (enabled)
+        {
+            pixyCamera.setBrightness((byte)brightness);
+        }
     }   //setEnabled
 
     public boolean isEnabled()

@@ -46,11 +46,13 @@ public class FrcSerialPortDevice extends TrcSerialBusDevice
      * @param dataBits specifies the number of data bits.
      * @param parity specifies the parity type.
      * @param stopBits specifies the number of stop bits.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
     public FrcSerialPortDevice(
-        final String instanceName, Port port, int baudRate, int dataBits, Parity parity, StopBits stopBits)
+        final String instanceName, Port port, int baudRate, int dataBits, Parity parity, StopBits stopBits,
+        boolean useRequestQueue)
     {
-        super(instanceName);
+        super(instanceName, useRequestQueue);
         device = new SerialPort(baudRate, port, dataBits, parity, stopBits);
     }   //FrcSerialPortDevice
 
@@ -62,10 +64,13 @@ public class FrcSerialPortDevice extends TrcSerialBusDevice
      * @param dataBits specifies the number of data bits.
      * @param parity specifies the parity type.
      * @param stopBits specifies the number of stop bits.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
-    public FrcSerialPortDevice(final String instanceName, int baudRate, int dataBits, Parity parity, StopBits stopBits)
+    public FrcSerialPortDevice(
+        final String instanceName, int baudRate, int dataBits, Parity parity, StopBits stopBits,
+        boolean useRequestQueue)
     {
-        this(instanceName, Port.kOnboard, baudRate, dataBits, parity, stopBits);
+        this(instanceName, Port.kOnboard, baudRate, dataBits, parity, stopBits, useRequestQueue);
     }   //FrcSerialPort
 
     /**
@@ -74,10 +79,11 @@ public class FrcSerialPortDevice extends TrcSerialBusDevice
      * @param instanceName specifies the instance name.
      * @param port specifies the serial port (on-board or on the MXP).
      * @param baudRate specifies the serial baud rate.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
-    public FrcSerialPortDevice(final String instanceName, Port port, int baudRate)
+    public FrcSerialPortDevice(final String instanceName, Port port, int baudRate, boolean useRequestQueue)
     {
-        this(instanceName, port, baudRate, 8, Parity.kNone, StopBits.kOne);
+        this(instanceName, port, baudRate, 8, Parity.kNone, StopBits.kOne, useRequestQueue);
     }   //FrcSerialPort
 
     //

@@ -63,7 +63,7 @@ public class FrcPixyCam2 extends TrcPixyCam2
         // spi.setSampleDataOnRising();
         spi.setChipSelectActiveLow();
 
-        pixyCam = new FrcSpiDevice(instanceName, spi);
+        pixyCam = new FrcSpiDevice(instanceName, spi, false);
     }   //FrcPixyCam2
 
     /**
@@ -82,7 +82,7 @@ public class FrcPixyCam2 extends TrcPixyCam2
             dbgTrace = new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        pixyCam = new FrcI2cDevice(instanceName, port, devAddress);
+        pixyCam = new FrcI2cDevice(instanceName, port, devAddress, false);
     }   //FrcPixyCam2
 
     /**
@@ -117,7 +117,7 @@ public class FrcPixyCam2 extends TrcPixyCam2
             dbgTrace = new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        pixyCam = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits);
+        pixyCam = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits, false);
     }   //FrcPixyCam2
 
     /**

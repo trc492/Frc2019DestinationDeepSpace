@@ -57,7 +57,7 @@ public class FrcEmic2TextToSpeech extends TrcEmic2TextToSpeech
     {
         super(instanceName);
 
-        tts = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits);
+        tts = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits, true);
     }   //FrcEmic2TextToSpeech
 
     /**
@@ -135,10 +135,10 @@ public class FrcEmic2TextToSpeech extends TrcEmic2TextToSpeech
     /**
      * This method issues an asynchronous read of a string from the device.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request. Can be null if none was provided.
      */
     @Override
-    public void asyncReadString(RequestTag requestTag)
+    public void asyncReadString(RequestId requestId)
     {
         final String funcName = "asyncReadString";
 
@@ -147,7 +147,7 @@ public class FrcEmic2TextToSpeech extends TrcEmic2TextToSpeech
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        tts.asyncRead(requestTag, 0, null, this);
+        tts.asyncRead(requestId, 0, null, this::notify);
 
         if (debugEnabled)
         {

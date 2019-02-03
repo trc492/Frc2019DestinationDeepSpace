@@ -31,7 +31,7 @@ import java.util.Arrays;
  * to read and parse the object block from the pixy camera 1. It also provides access to the last detected objects
  * reported by the pixy camera asynchronously.
  */
-public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
+public abstract class TrcPixyCam1
 {
     protected static final String moduleName = "TrcPixyCam1";
     protected static final boolean debugEnabled = false;
@@ -53,18 +53,20 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
     /**
      * This method issues an asynchronous read of the specified number of bytes from the device.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request for the request handler. Can be null if none was
+     *                  provided.
      * @param length specifies the number of bytes to read.
      */
-    public abstract void asyncReadData(RequestTag requestTag, int length);
+    public abstract void asyncReadData(RequestId requestId, int length);
 
     /**
      * This method writes the data buffer to the device asynchronously.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request for the request handler. Can be null if none was
+     *                  provided.
      * @param data specifies the data buffer.
      */
-    public abstract void asyncWriteData(RequestTag requestTag, byte[] data);
+    public abstract void asyncWriteData(RequestId requestId, byte[] data);
 
     /**
      * This class implements the pixy camera object block communication protocol. 
@@ -91,14 +93,14 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
     /**
      * This is used identify the request type.
      */
-    public static enum RequestTag
+    public static enum RequestId
     {
         SYNC,
         ALIGN,
         CHECKSUM,
         NORMAL_BLOCK,
         COLOR_CODE_BLOCK
-    }   //enum RequestTag
+    }   //enum RequestId
 
     private final String instanceName;
     private final boolean msbFirst;
@@ -145,7 +147,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
         if (!started)
         {
             started = true;
-            asyncReadData(RequestTag.SYNC, 2);
+            asyncReadData(RequestId.SYNC, 2);
         }
     }   //start
 
@@ -299,21 +301,21 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
     /**
      * This method processes the data from the read completion handler.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request. Can be null if none was provided.
      * @param data specifies the data read.
      * @param length specifies the number of bytes read.
      */
-    private void processData(RequestTag requestTag, byte[] data, int length)
+    private void processData(RequestId requestId, byte[] data, int length)
     {
         final String funcName = "processData";
         int word;
 
         if (debugEnabled)
         {
-            dbgTrace.traceVerbose(funcName, "tag=%s,data=%s,len=%d", requestTag, Arrays.toString(data), length);
+            dbgTrace.traceVerbose(funcName, "Id=%s,data=%s,len=%d", requestId, Arrays.toString(data), length);
         }
 
-        switch (requestTag)
+        switch (requestId)
         {
             case SYNC:
                 //
@@ -330,10 +332,10 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     // We should never get here. But if we do, probably due to device read failure, we will initiate
                     // another read for SYNC.
                     //
-                    asyncReadData(RequestTag.SYNC, 2);
+                    asyncReadData(RequestId.SYNC, 2);
                     if (debugEnabled)
                     {
-                        dbgTrace.traceWarn(funcName, "Unexpected data length %d in %s", length, requestTag);
+                        dbgTrace.traceWarn(funcName, "Unexpected data length %d in %s", length, requestId);
                     }
                 }
                 else
@@ -345,7 +347,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                         // Found a sync word, initiate the read for CHECKSUM.
                         //
                         currBlock.sync = word;
-                        asyncReadData(RequestTag.CHECKSUM, 2);
+                        asyncReadData(RequestId.CHECKSUM, 2);
                     }
                     else if (word == PIXY_START_WORDX)
                     {
@@ -354,7 +356,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                         // sync byte.
                         //
                         currBlock.sync = PIXY_START_WORD;
-                        asyncReadData(RequestTag.ALIGN, 1);
+                        asyncReadData(RequestId.ALIGN, 1);
                         if (debugEnabled)
                         {
                             dbgTrace.traceInfo(funcName, "Word misaligned, realigning...");
@@ -365,12 +367,12 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                         //
                         // We don't find the sync word, throw it away and initiate another read for SYNC.
                         //
-                        asyncReadData(RequestTag.SYNC, 2);
+                        asyncReadData(RequestId.SYNC, 2);
                         if (debugEnabled)
                         {
                             if (word != 0)
                             {
-                                dbgTrace.traceWarn(funcName, "Unexpected word 0x%04x read in %s", word, requestTag);
+                                dbgTrace.traceWarn(funcName, "Unexpected word 0x%04x read in %s", word, requestId);
                             }
                         }
                     }
@@ -384,14 +386,14 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     // We should never come here. Let's throw an exception to catch this unlikely scenario.
                     //
                     throw new IllegalStateException(String.format("Unexpected data length %d in %s.",
-                        length, requestTag));
+                        length, requestId));
                 }
                 else if (data[0] == PIXY_SYNC_HIGH)
                 {
                     //
                     // Found the expected upper sync byte, so initiate the read for CHECKSUM.
                     //
-                    asyncReadData(RequestTag.CHECKSUM, 2);
+                    asyncReadData(RequestId.CHECKSUM, 2);
                 }
                 else
                 {
@@ -399,10 +401,10 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     // Don't see the expected upper sync byte, let's initiate another read for SYNC assuming we are
                     // now word aligned again.
                     //
-                    asyncReadData(RequestTag.SYNC, 2);
+                    asyncReadData(RequestId.SYNC, 2);
                     if (debugEnabled)
                     {
-                        dbgTrace.traceWarn(funcName, "Unexpected data byte 0x%02x in %s", data[0], requestTag);
+                        dbgTrace.traceWarn(funcName, "Unexpected data byte 0x%02x in %s", data[0], requestId);
                     }
                 }
                 break;
@@ -414,7 +416,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     // We should never come here. Let's throw an exception to catch this unlikely scenario.
                     //
                     throw new IllegalStateException(String.format("Unexpected data length %d in %s.",
-                        length, requestTag));
+                        length, requestId));
                 }
                 else
                 {
@@ -426,7 +428,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                         // Save away the sync word for the next frame and initiate the next read for CHECKSUM.
                         //
                         currBlock.sync = word;
-                        asyncReadData(RequestTag.CHECKSUM, 2);
+                        asyncReadData(RequestId.CHECKSUM, 2);
                         //
                         // Detected end-of-frame, convert the array list of objects into detected object array.
                         //
@@ -457,11 +459,11 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                         currBlock.checksum = word;
                         if (currBlock.sync == PIXY_START_WORD)
                         {
-                            asyncReadData(RequestTag.NORMAL_BLOCK, 10);
+                            asyncReadData(RequestId.NORMAL_BLOCK, 10);
                         }
                         else if (currBlock.sync == PIXY_START_WORD_CC)
                         {
-                            asyncReadData(RequestTag.COLOR_CODE_BLOCK, 12);
+                            asyncReadData(RequestId.COLOR_CODE_BLOCK, 12);
                         }
                         else
                         {
@@ -469,7 +471,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                             // We should never come here. Let's throw an exception to catch this unlikely scenario.
                             //
                             throw new IllegalStateException(String.format("Unexpected sync word 0x%04x in %s.",
-                                currBlock.sync, requestTag));
+                                currBlock.sync, requestId));
                         }
                     }
                 }
@@ -477,14 +479,14 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
 
             case NORMAL_BLOCK:
             case COLOR_CODE_BLOCK:
-                if (requestTag == RequestTag.NORMAL_BLOCK && length != 10 ||
-                    requestTag == RequestTag.COLOR_CODE_BLOCK && length != 12)
+                if (requestId == RequestId.NORMAL_BLOCK && length != 10 ||
+                    requestId == RequestId.COLOR_CODE_BLOCK && length != 12)
                 {
                     //
                     // We should never come here. Let's throw an exception to catch this unlikely scenario.
                     //
                     throw new IllegalStateException(String.format("Unexpected data length %d in %s.",
-                        length, requestTag));
+                        length, requestId));
                 }
                 else
                 {
@@ -528,7 +530,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     //
                     // If it is a COLOR_CODE_BLOCK, save away the object angle and accumulate checksum.
                     //
-                    if (requestTag == RequestTag.COLOR_CODE_BLOCK)
+                    if (requestId == RequestId.COLOR_CODE_BLOCK)
                     {
                         index += 2;
                         word = getWord(data[index], data[index + 1], msbFirst);
@@ -556,7 +558,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                     //
                     // Initiate the read for the SYNC word of the next block.
                     //
-                    asyncReadData(RequestTag.SYNC, 2);
+                    asyncReadData(RequestId.SYNC, 2);
                 }
                 break;
 
@@ -564,7 +566,7 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
                 //
                 // We should never come here. Let's throw an exception to catch this unlikely scenario.
                 //
-                throw new IllegalStateException(String.format("Unexpected request tag %s.", requestTag));
+                throw new IllegalStateException(String.format("Unexpected request ID %s.", requestId));
         }
     }   //processData
 
@@ -581,19 +583,14 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
         return msbFirst? TrcUtil.bytesToInt(secondByte, firstByte): TrcUtil.bytesToInt(firstByte, secondByte);
     }   //getWord
 
-    //
-    // Implements TrcNotifier.Receiver interface.
-    //
-
     /**
      * This method is called when the read request is completed.
      *
      * @param context specifies the read request.
      */
-    @Override
-    public void notify(Object context)
+    public void requestHandler(Object context)
     {
-        final String funcName = "notify";
+        final String funcName = "requestHandler";
         TrcSerialBusDevice.Request request = (TrcSerialBusDevice.Request) context;
 
         if (debugEnabled)
@@ -601,12 +598,11 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.CALLBK, "request=%s", request);
         }
 
-        if (request.readRequest)
+        if (request.readRequest && request.address == -1 && request.buffer != null)
         {
-            if (request.readRequest && request.address == -1 &&
-                !request.error && !request.canceled && request.buffer != null)
+            if (!request.canceled)
             {
-                processData((RequestTag)request.requestCtxt, request.buffer, request.buffer.length);
+                processData((RequestId)request.requestId, request.buffer, request.buffer.length);
             }
         }
 
@@ -614,6 +610,6 @@ public abstract class TrcPixyCam1 implements TrcNotifier.Receiver
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.CALLBK);
         }
-    }   //notify
+    }   //requestHanlder
 
 }   //class TrcPixyCam1

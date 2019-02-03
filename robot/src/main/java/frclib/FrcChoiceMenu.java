@@ -96,6 +96,7 @@ public class FrcChoiceMenu<T>
      * @param defChoice specifies true to set it the default choice, false otherwise.
      * @param lastChoice specifies true if this is the last choice added to the choice menu, false otherwise.
      */
+    @SuppressWarnings("deprecation")
     public void addChoice(String choiceText, T choiceObject, boolean defChoice, boolean lastChoice)
     {
         final String funcName = "addChoice";

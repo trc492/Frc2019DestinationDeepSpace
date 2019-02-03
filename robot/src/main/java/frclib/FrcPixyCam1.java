@@ -63,7 +63,7 @@ public class FrcPixyCam1 extends TrcPixyCam1
         // spi.setSampleDataOnRising();
         spi.setChipSelectActiveLow();
 
-        pixyCam = new FrcSpiDevice(instanceName, spi);
+        pixyCam = new FrcSpiDevice(instanceName, spi, true);
     }   //FrcPixyCam1
 
     /**
@@ -82,7 +82,7 @@ public class FrcPixyCam1 extends TrcPixyCam1
             dbgTrace = new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        pixyCam = new FrcI2cDevice(instanceName, port, devAddress);
+        pixyCam = new FrcI2cDevice(instanceName, port, devAddress, true);
     }   //FrcPixyCam1
 
     /**
@@ -117,7 +117,7 @@ public class FrcPixyCam1 extends TrcPixyCam1
             dbgTrace = new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        pixyCam = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits);
+        pixyCam = new FrcSerialPortDevice(instanceName, port, baudRate, dataBits, parity, stopBits, true);
     }   //FrcPixyCam1
 
     /**
@@ -199,21 +199,21 @@ public class FrcPixyCam1 extends TrcPixyCam1
     /**
      * This method issues an asynchronous read of the specified number of bytes from the device.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request. Can be null if none was provided.
      * @param length specifies the number of bytes to read.
      */
     @Override
-    public void asyncReadData(RequestTag requestTag, int length)
+    public void asyncReadData(RequestId requestId, int length)
     {
         final String funcName = "asyncReadData";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "tag=%s,length=%d",
-                requestTag != null? requestTag: "null", length);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "Id=%s,length=%d",
+                requestId != null? requestId: "null", length);
         }
 
-        pixyCam.asyncRead(requestTag, length, null, this);
+        pixyCam.asyncRead(requestId, length, null, this::requestHandler);
 
         if (debugEnabled)
         {
@@ -224,21 +224,21 @@ public class FrcPixyCam1 extends TrcPixyCam1
     /**
      * This method writes the data buffer to the device asynchronously.
      *
-     * @param requestTag specifies the tag to identify the request. Can be null if none was provided.
+     * @param requestId specifies the ID to identify the request. Can be null if none was provided.
      * @param data specifies the data buffer.
      */
     @Override
-    public void asyncWriteData(RequestTag requestTag, byte[] data)
+    public void asyncWriteData(RequestId requestId, byte[] data)
     {
         final String funcName = "asyncWriteData";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "tag=%s,data=%s,length=%d",
-                requestTag != null? requestTag: "null", Arrays.toString(data), data.length);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "Id=%s,data=%s,length=%d",
+                requestId != null? requestId: "null", Arrays.toString(data), data.length);
         }
 
-        pixyCam.asyncWrite(requestTag, data, data.length, null, null);
+        pixyCam.asyncWrite(requestId, data, data.length, null, null);
 
         if (debugEnabled)
         {

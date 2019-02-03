@@ -27,12 +27,13 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This class implements a generic request queue that runs on its own thread. It allows the caller to add requests
- * to the end of the queue. The request thread will perform the request asynchronously from the head of the queue.
- * When the request is completed, an optional event will be signaled.
+ * to the end of the queue. The request thread will call the client to process the request asynchronously from the
+ * head of the queue. When the request is completed, an optional event will be signaled as well as an optional
+ * callback if provided.
  *
- * @param <R> specifies the type of the request context.
+ * @param <R> specifies the type of the request.
  */
-public abstract class TrcRequestQueue<R>
+public class TrcRequestQueue<R>
 {
     protected static final String moduleName = "TrcRequestQueue";
     protected static final boolean debugEnabled = false;
@@ -43,56 +44,46 @@ public abstract class TrcRequestQueue<R>
     protected TrcDbgTrace dbgTrace = null;
 
     /**
-     * This interface is provided by the client to process the request at the head of the request queue. The
-     * TrcRequestQueue class is request type agnostic. It does not understand the type of request nor does it
-     * need to. Therefore, when the request is at the head of the queue and required processing, a client
-     * provided process handler is called to process the request.
-     *
-     * @param <R> specifies the type of the request context.
+     * This class implements a request entry. Typically, an entry will be put into a FIFO request queue so that each
+     * entry will be processed in the order they came in.
      */
-    public interface RequestHandler<R>
+    public class RequestEntry
     {
-        /**
-         * This method is called to process a request.
-         *
-         * @param context specifies the request context.
-         */
-        public void processRequest(R context);
-    }
-
-    /**
-     * This class implements a request. Typically, a request will be put into a FIFO request queue so that each
-     * request will be processed in the order they came in.
-     */
-    public class Request
-    {
-        private R context;
-        private RequestHandler<R> handler;
+        private R request;
+        private TrcNotifier.Receiver requestHandler;
         private boolean repeat;
-        private TrcEvent event;
         private boolean canceled;
 
         /**
          * Constructor: Create an instance of the object.
          *
-         * @param context specifies the request context.
-         * @param handler specifies the request handler to call when the request is up for processing.
+         * @param request specifies the request.
+         * @param requesthandler specifies the request handler to call when the request is up for processing.
          * @param repeat specifies true to re-queue the request when completed.
          * @param event specifies the event to signal when the request is completed, can be null if none specified.
          */
-        public Request(R context, RequestHandler<R> handler, boolean repeat, TrcEvent event)
+        public RequestEntry(R request, TrcNotifier.Receiver requestHandler, boolean repeat)
         {
-            this.context = context;
-            this.handler = handler;
+            this.request = request;
+            this.requestHandler = requestHandler;
             this.repeat = repeat;
-            this.event = event;
             this.canceled = false;
-        }   //Request
+        }   //RequestEntry
 
         /**
-         * This method checks if the request is canceled.
+         * This method retrieves the request object.
          *
-         * @return true if the request is canceled, false otherwise.
+         * @return request object.
+         */
+        public R getRequest()
+        {
+            return request;
+        }   //getRequest
+
+        /**
+         * This method checks if the request entry is canceled.
+         *
+         * @return true if the request entry is canceled, false otherwise.
          */
         public boolean isCanceled()
         {
@@ -106,17 +97,16 @@ public abstract class TrcRequestQueue<R>
          */
         public String toString()
         {
-            return String.format(Locale.US, "context=%s, repeat=%s, event=%s, canceled=%s",
-                context, repeat, event, canceled);
+            return String.format(Locale.US, "request=%s, repeat=%s, canceled=%s", request, repeat, canceled);
         }   //toString
 
-    }   //class Request
+    }   //class RequestEntry
 
     private final String instanceName;
-    private final LinkedBlockingQueue<Request> requestQueue;
+    private final LinkedBlockingQueue<RequestEntry> requestQueue;
     private volatile Thread requestThread = null;
     private boolean enabled = false;
-    private Request priorityRequest = null;
+    private RequestEntry priorityRequest = null;
     private TrcDbgTrace perfTracer = null;
     private double totalNanoTime = 0.0;
     private int totalRequests = 0;
@@ -150,7 +140,9 @@ public abstract class TrcRequestQueue<R>
     }   //toString
 
     /**
-     * This method enables/disables the request queue.
+     * This method enables/disables the request queue. On enable, it creates the request thread to start processing
+     * request entries in the queue. On disable, it shuts down the request thread and cancels all pending requests
+     * still in the queue.
      *
      * @param enabled specifies true to enable request queue, false to disable.
      */
@@ -208,21 +200,19 @@ public abstract class TrcRequestQueue<R>
     /**
      * This method queues a request at the end of the request queue to be processed asynchronously on a thread.
      *
-     * @param context specifies the context of the request to be queued.
-     * @param handler specifies the handler to call when the request is up for processing.
+     * @param request specifies the request to be queued.
+     * @param requestHandler specifies the handler to call when the request is up for processing.
      * @param repeat specifies true to re-queue the request when completed.
-     * @param event specifies the event to signal when the request is completed, can be null if none specified.
      * @return request entry added to the end of the queue. It can be used to cancel the request if it is still in
      *         queue.
      */
-    public Request queueRequest(R context, RequestHandler<R> handler, boolean repeat, TrcEvent event)
+    public RequestEntry add(R request, TrcNotifier.Receiver requestHandler, boolean repeat)
     {
-        final String funcName = "queueRequest";
+        final String funcName = "add";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "context=%s,repeat=%s,event=%s",
-                context, repeat, event);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "request=%s,repeat=%s", request, repeat);
         }
 
         if (!isEnabled())
@@ -230,130 +220,94 @@ public abstract class TrcRequestQueue<R>
             throw new RuntimeException("Request queue is not enabled, must call setEnabled first.");
         }
 
-        Request request = new Request(context, handler, repeat, event);
-        requestQueue.add(request);
+        RequestEntry entry = new RequestEntry(request, requestHandler, repeat);
+        requestQueue.add(entry);
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", request);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", entry);
         }
 
-        return request;
-    }   //queueRequest
-
-    /**
-     * This method executes the request synchronously. It adds the requst to the queue and wait for it to complete.
-     *
-     * @param context specifies the context of the request to be executed.
-     * @param handler specifies the handler to call when the request is up for processing.
-     * @return true if the request has been executed, false if it has been canceled.
-     */
-    public boolean executeRequest(R context, RequestHandler<R> handler)
-    {
-        final String funcName = "executeRequest";
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "context=%s", context);
-        }
-
-        if (!isEnabled())
-        {
-            throw new RuntimeException("Request queue is not enabled, must call setEnabled first.");
-        }
-
-        TrcEvent event = new TrcEvent(instanceName + "." + funcName);
-        Request request = queueRequest(context, handler, false, event);
-
-        while (!event.isSignaled())
-        {
-            Thread.yield();
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", !request.canceled);
-        }
-
-        return !request.canceled;
-    }   //executeRequest
+        return entry;
+    }   //add
 
     /**
      * This method adds the priority request to the head of the queue. It will be processed once the current active
-     * request is done processing.
+     * request is done processing. If there is already an existing priority request pending, this request will not
+     * be added to the queue and null is returned.
      *
-     * @param context specifies the context of the request to be executed.
-     * @param handler specifies the handler to call when the request is up for processing.
+     * @param request specifies the priority request.
+     * @param requestHandler specifies the handler to call when the request is up for processing.
      * @return request entry added to the head of the queue. It can be used to cancel the request if it is still in
-     *         queue.
+     *         queue. It may return null if the priority request failed to be added to the queue.
      */
-    public synchronized Request queuePriorityRequest(R context, RequestHandler<R> handler)
+    public synchronized RequestEntry addPriorityRequest(R request, TrcNotifier.Receiver requestHandler)
     {
-        final String funcName = "queuePriorityRequest";
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "context=%s", context);
-        }
-
-        if (priorityRequest != null)
-        {
-            priorityRequest = new Request(context, handler, false, null);
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "! (request=%s)", priorityRequest);
-        }
-
-        return priorityRequest;
-    }   //queuePriorityRequest
-
-    /**
-     * This method cancels a request.
-     *
-     * @param request specifies the request entry from queueRequest or queuePriorityRequest to be canceled.
-     * @return true if the request is found and canceled, false otherwise.
-     */
-    private synchronized boolean cancelRequest(Request request)
-    {
-        final String funcName = "cancelRequest";
+        final String funcName = "addPriorityRequest";
+        RequestEntry entry = null;
 
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "request=%s", request);
         }
 
-        boolean foundRequest;
-        if (request == priorityRequest)
+        if (priorityRequest == null)
         {
-            priorityRequest = null;
-            foundRequest = true;
-        }
-        else
-        {
-            foundRequest = requestQueue.contains(request);
-        }
-
-        if (foundRequest)
-        {
-            request.canceled = true;
-            if (request.event != null)
-            {
-                request.event.set(true);
-            }
+            entry = new RequestEntry(request, requestHandler, false);
+            priorityRequest = entry;
         }
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", foundRequest);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s",
+                priorityRequest == null ? "null" : entry);
         }
 
-        return foundRequest;
+        return entry;
+    }   //addPriorityRequest
+
+    /**
+     * This method cancels a request.
+     *
+     * @param request specifies the request entry from add or addPriorityRequest to be canceled.
+     * @return true if the request entry is found in the queue and canceled, false otherwise.
+     */
+    public synchronized boolean cancelRequest(RequestEntry entry)
+    {
+        final String funcName = "cancelRequest";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "entry=%s", entry);
+        }
+
+        boolean foundEntry;
+        if (entry == priorityRequest)
+        {
+            priorityRequest = null;
+            foundEntry = true;
+        }
+        else
+        {
+            foundEntry = requestQueue.contains(entry);
+            if (foundEntry) requestQueue.remove(entry);
+        }
+
+        if (foundEntry)
+        {
+            entry.canceled = true;
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", foundEntry);
+        }
+
+        return foundEntry;
     }   //cancelRequest
 
     /**
-     * This method is called when the request queue thread is started. It processes all requests in the request queue
+     * This method is called when the request queue thread is started. It processes all entries in the request queue
      * when they arrive. If the request queue is empty, the thread is blocked until a new request arrives. Therefore,
      * this thread only runs when there are requests in the queue. If this thread is interrupted, it will clean up
      * the request queue before exiting.
@@ -361,7 +315,7 @@ public abstract class TrcRequestQueue<R>
     private void requestTask()
     {
         final String funcName = "requestTask";
-        Request request;
+        RequestEntry entry;
 
         if (debugEnabled)
         {
@@ -374,29 +328,29 @@ public abstract class TrcRequestQueue<R>
             {
                 if (priorityRequest != null)
                 {
-                    request = priorityRequest;
+                    entry = priorityRequest;
                     priorityRequest = null;
                 }
                 else
                 {
-                    request = null;
+                    entry = null;
                 }
             }
 
             try
             {
-                if (request == null)
+                if (entry == null)
                 {
-                    request = requestQueue.take();
+                    entry = requestQueue.take();
                 }
 
                 if (debugEnabled)
                 {
-                    dbgTrace.traceInfo(funcName, "[%.3f] processing request %s", TrcUtil.getCurrentTime(), request);
+                    dbgTrace.traceInfo(funcName, "[%.3f] processing request %s", TrcUtil.getCurrentTime(), entry);
                 }
 
                 long startNanoTime = TrcUtil.getCurrentTimeNanos();
-                request.handler.processRequest(request.context);
+                entry.requestHandler.notify(entry);
                 long elapsedTime = TrcUtil.getCurrentTimeNanos() - startNanoTime;
         
                 totalNanoTime += elapsedTime;
@@ -407,17 +361,12 @@ public abstract class TrcRequestQueue<R>
                     perfTracer.traceInfo(funcName, "Average request process time = %.6f sec", totalNanoTime/totalRequests/1000000000.0);
                 }
         
-                if (request.event != null)
-                {
-                    request.event.set(true);
-                }
-        
-                if (request.repeat)
+                if (entry.repeat)
                 {
                     //
                     // This is a repeat request, add it back to the tail of the queue.
                     //
-                    requestQueue.add(request);
+                    requestQueue.add(entry);
                 }
             }
             catch (InterruptedException e)
@@ -430,23 +379,27 @@ public abstract class TrcRequestQueue<R>
             }
         }
         //
-        // The thread is terminating, empty the queue before exiting.
+        // The thread is terminating, empty the queue before exiting and make sure nobody is trying to start another
+        // thread until this one has exited.
         //
-        while ((request = requestQueue.poll()) != null)
+        synchronized (this)
         {
-            if (debugEnabled)
+            while ((entry = requestQueue.poll()) != null)
             {
-                dbgTrace.traceInfo(funcName, "[%.3f] Canceling request %s", TrcUtil.getCurrentTime(), request);
+                if (debugEnabled)
+                {
+                    dbgTrace.traceInfo(funcName, "[%.3f] Canceling request %s", TrcUtil.getCurrentTime(), entry);
+                }
+                cancelRequest(entry);
             }
-            cancelRequest(request);
+
+            requestThread = null;
         }
 
         if (debugEnabled)
         {
             dbgTrace.traceInfo(funcName, "RequestQueue %s is terminated", instanceName);
         }
-
-        requestThread = null;
     }   //requestTask
 
 }   //class TrcRequestQueue

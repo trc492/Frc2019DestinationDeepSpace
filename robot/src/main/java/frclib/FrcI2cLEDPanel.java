@@ -49,7 +49,7 @@ public class FrcI2cLEDPanel extends TrcI2cLEDPanel
     public FrcI2cLEDPanel(final String instanceName, I2C.Port port, int devAddress)
     {
         super(instanceName);
-        device = new FrcI2cDevice(instanceName, port, devAddress);
+        device = new FrcI2cDevice(instanceName, port, devAddress, true);
     }   //FrcI2cLEDPanel
 
     /**

@@ -416,7 +416,7 @@ public class TrcUtil
      */
     public static int bytesToInt(byte data1, byte data2, byte data3, byte data4)
     {
-        return (((int) data4) << 24) | (((int) data3) << 16) | (((int) data2) << 8 | ((int) data1));
+        return (data4 << 24) & 0xff000000 | (data3 << 16) & 0x00ff0000 | (data2 << 8) & 0x0000ff00 | data1 & 0x000000ff;
     }   //bytesToInt
 
     /**

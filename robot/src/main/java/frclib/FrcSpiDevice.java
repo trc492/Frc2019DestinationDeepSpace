@@ -41,10 +41,11 @@ public class FrcSpiDevice extends TrcSerialBusDevice
      *
      * @param instanceName specifies the instance name.
      * @param spi specifies the SPI port the device is connected to.
+     * @param useRequestQueue specifies true to use a request queue, false otherwise.
      */
-    public FrcSpiDevice(final String instanceName, SPI spi)
+    public FrcSpiDevice(final String instanceName, SPI spi, boolean useRequestQueue)
     {
-        super(instanceName);
+        super(instanceName, useRequestQueue);
         this.spi = spi;
     }   //FrcSpiDevice
 
