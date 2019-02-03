@@ -215,13 +215,12 @@ public class TrcRequestQueue<R>
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "request=%s,repeat=%s", request, repeat);
         }
 
-        if (!isEnabled())
+        RequestEntry entry = null;
+        if (isEnabled())
         {
-            throw new RuntimeException("Request queue is not enabled, must call setEnabled first.");
+            entry = new RequestEntry(request, requestHandler, repeat);
+            requestQueue.add(entry);
         }
-
-        RequestEntry entry = new RequestEntry(request, requestHandler, repeat);
-        requestQueue.add(entry);
 
         if (debugEnabled)
         {
