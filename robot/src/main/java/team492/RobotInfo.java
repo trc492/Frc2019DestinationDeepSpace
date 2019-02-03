@@ -27,10 +27,6 @@ import frclib.FrcPixyCam1;
 public class RobotInfo
 {
     //
-    // Compiler switches
-    //
-
-    //
     // Field dimensions in inches.
     //
     public static final double FIELD_LENGTH                     = 54*12.0;
@@ -63,6 +59,7 @@ public class RobotInfo
     public static final int CANID_RESERVED                      = 11;   // 30A: Yellow
     public static final int CANID_PICKUP                        = 12;   // 30A: Green
 
+    public static final int CANID_PIGEON                        = 15;
     public static final int CANID_PDP                           = 16;
     public static final int CANID_PCM1                          = 17;
     public static final int CANID_PCM2                          = 18;
@@ -70,10 +67,19 @@ public class RobotInfo
     //
     // PDP Channels.
     //
-    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 1;    // TODO: need updating
-    public static final int PDP_CHANNEL_LEFT_REAR_WHEEL         = 2;
-    public static final int PDP_CHANNEL_RIGHT_REAR_WHEEL        = 13;
-    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL       = 14;
+    public static final int PDP_CHANNEL_RIGHT_REAR_WHEEL        = 0;
+    public static final int PDP_CHANNEL_RIGHT_DRIVE_MASTER      = 1;
+    public static final int PDP_CHANNEL_PICKUP_PITCH            = 2;
+    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL       = 3;
+    public static final int PDP_CHANNEL_PICKUP                  = 4;
+    public static final int PDP_CHANNEL_PIGEON                  = 8;
+    public static final int PDP_CHANNEL_BLINKIN                 = 9;
+    public static final int PDP_CHANNEL_RING_LIGHT              = 10;
+    public static final int PDP_CHANNEL_RESERVED                = 11;
+    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 12;
+    public static final int PDP_CHANNEL_ELEVATOR                = 13;
+    public static final int PDP_CHANNEL_LEFT_DRIVE_MASTER       = 14;
+    public static final int PDP_CHANNEL_LEFT_REAR_WHEEL         = 15;
 
     //
     // Analog Input ports.
@@ -92,7 +98,7 @@ public class RobotInfo
     //
     // Relay channels.
     //
-    public static final int RELAY_RINGLIGHT_POWER               = 0;    // 20A: Purple
+    public static final int RELAY_RINGLIGHT_POWER               = 0;    // 20A: Green
 
     //
     // Solenoid channels.
