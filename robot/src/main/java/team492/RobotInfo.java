@@ -194,4 +194,6 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
 
+    public static final double ELEVATOR_DRIVE_POS               = 20.0;
+
 }   // class RobotInfo
