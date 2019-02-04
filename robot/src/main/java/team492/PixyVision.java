@@ -29,8 +29,8 @@ import org.opencv.core.Rect;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import frclib.FrcPixyCam1;
-import trclib.TrcPixyCam1;
 import frclib.FrcPixyCam2;
+import trclib.TrcPixyCam1;
 import trclib.TrcPixyCam2;
 import trclib.TrcUtil;
 
@@ -145,6 +145,24 @@ public class PixyVision
     {
         return pixyCamera1 != null ? pixyCamera1.isEnabled() : pixyCamera2 != null ? pixyCamera2.isEnabled() : false;
     }   //isEnabled
+
+    // public TrcPixyCam2.Vector getTargetVector()
+    // {
+    //     final String funcName = "getTargetVector";
+    //     TrcPixyCam2.Vector vector = null;
+    //     TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(
+    //         TrcPixyCam2.PIXY2_FEATURE_TYPE_MAIN, TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+
+    //     for (int i = 0; i < features.length; i++)
+    //     {
+    //         if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
+    //         {
+    //             int numVectors = features[i].data.length/
+    //         }
+    //     }
+
+    //     return vector;
+    // }   //getTargetVector
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have

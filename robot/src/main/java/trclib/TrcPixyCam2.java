@@ -70,9 +70,31 @@ public abstract class TrcPixyCam2
 
     private static final byte PIXY2_RES_MAIN_FEATURES           = (byte)49;
 
-    private static final byte PIXY2_FEATURE_VECTOR              = (byte)(1 << 0);
-    private static final byte PIXY2_FEATURE_INTERSECTION        = (byte)(1 << 1);
-    private static final byte PIXY2_FEATURE_BARCODE             = (byte)(1 << 2);
+    public static final byte PIXY2_FEATURE_TYPE_MAIN            = (byte) 0x00;
+    public static final byte PIXY2_FEATURE_TYPE_ALL             = (byte) 0x01;
+
+    public static final byte PIXY2_FEATURES_VECTOR              = (byte)(1 << 0);
+    public static final byte PIXY2_FEATURES_INTERSECTION        = (byte)(1 << 1);
+    public static final byte PIXY2_FEATURES_BARCODE             = (byte)(1 << 2);
+    public static final byte PIXY2_FEATURES_ALL                 = (byte)(PIXY2_FEATURES_VECTOR +
+                                                                         PIXY2_FEATURES_INTERSECTION +
+                                                                         PIXY2_FEATURES_BARCODE);
+
+    public static final byte PIXY2_BLOCKS_SIG_1                 = (byte)(1 << 0);
+    public static final byte PIXY2_BLOCKS_SIG_2                 = (byte)(1 << 1);
+    public static final byte PIXY2_BLOCKS_SIG_3                 = (byte)(1 << 2);
+    public static final byte PIXY2_BLOCKS_SIG_4                 = (byte)(1 << 3);
+    public static final byte PIXY2_BLOCKS_SIG_5                 = (byte)(1 << 4);
+    public static final byte PIXY2_BLOCKS_SIG_6                 = (byte)(1 << 5);
+    public static final byte PIXY2_BLOCKS_SIG_7                 = (byte)(1 << 6);
+    public static final byte PIXY2_BLOCKS_SIG_8                 = (byte)(1 << 7);
+    public static final byte PIXY2_BLOCKS_ALL_SIG               = (byte) 255;
+    public static final byte PIXY2_MAX_BLOCKS_ALL               = (byte) 255;
+
+    public static final byte PIXY2_LINE_FLAG_INVALID            = (byte) 0x02;
+    public static final byte PIXY2_LINE_FLAG_INTERSECTION_PRESENT=(byte) 0x04;
+
+    public static final byte PIXY2_SAT_FLAG_SATURATE            = (byte) 0x01;
 
     /**
      * This method writes the request data to the device synchronously.
@@ -144,7 +166,7 @@ public abstract class TrcPixyCam2
 
             switch (type)
             {
-                case PIXY2_FEATURE_VECTOR:
+                case PIXY2_FEATURES_VECTOR:
                     for (int i = 0; i < data.length; i += 6)
                     {
                         Vector vector = new Vector(data, i);
@@ -152,7 +174,7 @@ public abstract class TrcPixyCam2
                     }
                     break;
 
-                case PIXY2_FEATURE_INTERSECTION:
+                case PIXY2_FEATURES_INTERSECTION:
                     for (int i = 0; i < data.length;)
                     {
                         Intersection intersection = new Intersection(data, i);
@@ -161,7 +183,7 @@ public abstract class TrcPixyCam2
                     }
                     break;
 
-                case PIXY2_FEATURE_BARCODE:
+                case PIXY2_FEATURES_BARCODE:
                     for (int i = 0; i < data.length; i += 4)
                     {
                         Barcode barcode = new Barcode(data, i);
@@ -172,6 +194,7 @@ public abstract class TrcPixyCam2
 
             return features;
         }   //toString
+
     }   //class Feature
 
     public class Vector
@@ -664,9 +687,6 @@ public abstract class TrcPixyCam2
         return sendDataRequest(PIXY2_REQ_SET_DEFAULT_TURN, data);
     }   //setDefaultTurn
 
-    /**
-     * 
-     */
     public int setVector(byte index)
     {
         byte[] data = {index};
@@ -679,10 +699,10 @@ public abstract class TrcPixyCam2
         return sendDataRequest(PIXY2_REQ_REVERSE_VECTOR, null);
     }   //reverseVector
 
-    public int getRGB(int x, int y, byte sat)
+    public int getRGB(int x, int y, byte satFlag)
     {
         byte[] data = {TrcUtil.intToByte(x, 0), TrcUtil.intToByte(x, 1),
-                       TrcUtil.intToByte(y, 0), TrcUtil.intToByte(y, 1), sat};
+                       TrcUtil.intToByte(y, 0), TrcUtil.intToByte(y, 1), satFlag};
 
         return sendDataRequest(PIXY2_REQ_GET_RGB, data);
     }   //getRGB
