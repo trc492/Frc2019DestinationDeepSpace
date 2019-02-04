@@ -68,6 +68,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
+    public static final boolean USE_RASPI_VISION = true;
     public static final boolean USE_PIXY_I2C = true;
     public static final boolean USE_PIXY_V2 = true;
 
@@ -127,6 +128,7 @@ public class Robot extends FrcRobotBase
     // VisionTargetPipeline subsystem.
     //
     public PixyVision pixy = null;
+    public RaspiVision vision = null;
     //
     // Miscellaneous subsystem.
     //
@@ -195,6 +197,11 @@ public class Robot extends FrcRobotBase
             pixy = new PixyVision(
                 "PixyCam", this, USE_PIXY_V2, RobotInfo.PIXY_TARGET_SIGNATURE, RobotInfo.PIXY_BRIGHTNESS,
                 RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
+        }
+
+        if (USE_RASPI_VISION)
+        {
+            vision = new RaspiVision();
         }
 
         //
