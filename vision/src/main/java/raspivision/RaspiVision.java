@@ -438,6 +438,15 @@ public class RaspiVision
         // Convert the yaw to actual yaw with my fuckit (tm) method.
         double objectYaw = yawMapper.applyAsDouble(angles[1]);
 
+        // Method 2 of getting the object yaw
+        Mat cameraPose = new Mat();
+        Mat t = new Mat();
+        Core.multiply(translationVector, new Scalar(-1), t);
+        Core.gemm(rotationMatrix, t, 0, new Mat(), 0, cameraPose, Core.GEMM_1_T);
+        double magicYaw = Math.toDegrees(Math.atan2(cameraPose.get(0,0)[0], cameraPose.get(2,0)[0]));
+        // the yaw is some combo of magicYaw and heading. either add or subtract, idk.
+        System.out.printf("Yaw: %.2f, Magic Yaw kinda: %.2f, heading: %.2f\n", objectYaw, magicYaw, heading);
+
         // Write to the debug display, if necessary
         if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
         {
