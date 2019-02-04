@@ -32,8 +32,8 @@ import trclib.TrcSerialBusDevice;
 import trclib.TrcPixyCam1;
 
 /**
- * This class implements a platform dependent pixy camera that is either connected to an I2C bus, SPI or a Serial Port.
- * It provides access to the last detected objects reported by the pixy camera asynchronously.
+ * This class implements a platform dependent pixy camera 1 that is either connected to an I2C bus, SPI or a
+ * Serial Port. It provides access to the last detected objects reported by the pixy camera asynchronously.
  */
 public class FrcPixyCam1 extends TrcPixyCam1
 {

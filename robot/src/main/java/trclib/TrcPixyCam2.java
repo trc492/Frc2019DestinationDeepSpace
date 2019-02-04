@@ -30,7 +30,7 @@ import java.util.ArrayList;
  * to read and parse the response packets from the pixy camera 2. It also implements pixy camera APIs for all the
  * pixy requests.
  */
-public abstract class TrcPixyCam2 //implements TrcNotifier.Receiver
+public abstract class TrcPixyCam2
 {
     protected static final String moduleName = "TrcPixyCam2";
     protected static final boolean debugEnabled = false;
@@ -321,7 +321,7 @@ public abstract class TrcPixyCam2 //implements TrcNotifier.Receiver
 
             for (int i = 6; i < data.length; i++)
             {
-                checksum += data[i];
+                checksum += ((int) data[i]) & 0xff ;
             }
             validChecksum = TrcUtil.bytesToInt(data[4], data[5]) == checksum;
         }
@@ -357,7 +357,7 @@ public abstract class TrcPixyCam2 //implements TrcNotifier.Receiver
 
         byte[] response = syncReadResponse();
 
-        if (TrcUtil.bytesToInt(response[0], response[1]) == PIXY2_RECV_SYNC &&
+        if ((short) TrcUtil.bytesToInt(response[0], response[1]) == PIXY2_RECV_SYNC &&
             response[2] == expectedResponseType && validateChecksum(response))
         {
             return response;
@@ -577,7 +577,7 @@ public abstract class TrcPixyCam2 //implements TrcNotifier.Receiver
             objBlocks = new ObjectBlock[numBlocks];
             for (int i = 0; i < numBlocks; i++)
             {
-                objBlocks[i] = new ObjectBlock(data, 6 + i*14);
+                objBlocks[i] = new ObjectBlock(response, 6 + i*14);
             }
         }
 
@@ -686,40 +686,5 @@ public abstract class TrcPixyCam2 //implements TrcNotifier.Receiver
 
         return sendDataRequest(PIXY2_REQ_GET_RGB, data);
     }   //getRGB
-
-    //
-    // Implements TrcNotifier.Receiver interface.
-    //
-
-    /**
-     * This method is called when the read request is completed.
-     *
-     * @param context specifies the read request.
-     */
-    // @Override
-    // public void notify(Object context)
-    // {
-    //     final String funcName = "notify";
-    //     TrcSerialBusDevice.Request request = (TrcSerialBusDevice.Request) context;
-
-    //     if (debugEnabled)
-    //     {
-    //         dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.CALLBK, "request=%s", request);
-    //     }
-
-    //     if (request.readRequest)
-    //     {
-    //         if (request.readRequest && request.address == -1 &&
-    //             !request.error && !request.canceled && request.buffer != null)
-    //         {
-    //             processData((RequestTag)request.requestCtxt, request.buffer, request.buffer.length);
-    //         }
-    //     }
-
-    //     if (debugEnabled)
-    //     {
-    //         dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.CALLBK);
-    //     }
-    // }   //notify
 
 }   //class TrcPixyCam2

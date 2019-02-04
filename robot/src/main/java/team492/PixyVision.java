@@ -29,7 +29,9 @@ import org.opencv.core.Rect;
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import frclib.FrcPixyCam1;
-import trclib.TrcPixyCam1.ObjectBlock;
+import trclib.TrcPixyCam1;
+import frclib.FrcPixyCam2;
+import trclib.TrcPixyCam2;
 import trclib.TrcUtil;
 
 public class PixyVision
@@ -72,7 +74,8 @@ public class PixyVision
     private static final double PIXY_DISTANCE_SCALE = 2300.0;   //DistanceInInches*targetWidthdInPixels
     private static final double TARGET_WIDTH_INCHES = 13.0 * Math.sqrt(2.0);// 13x13 square, diagonal is 13*sqrt(2) inches
 
-    private FrcPixyCam1 pixyCamera;
+    private FrcPixyCam1 pixyCamera1 = null;
+    private FrcPixyCam2 pixyCamera2 = null;
     private Robot robot;
     private int signature;
     private int brightness;
@@ -89,33 +92,58 @@ public class PixyVision
     }   //commonInit
 
     public PixyVision(
-        final String instanceName, Robot robot, int signature, int brightness, Orientation orientation,
+        final String instanceName, Robot robot, boolean pixyV2, int signature, int brightness, Orientation orientation,
         SPI.Port port)
     {
-        pixyCamera = new FrcPixyCam1(instanceName, port);
+        if (pixyV2)
+        {
+            pixyCamera2 = new FrcPixyCam2(instanceName, port);
+        }
+        else
+        {
+            pixyCamera1 = new FrcPixyCam1(instanceName, port);
+        }
         commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 
     public PixyVision(
-        final String instanceName, Robot robot, int signature, int brightness, Orientation orientation,
+        final String instanceName, Robot robot, boolean pixyV2, int signature, int brightness, Orientation orientation,
         I2C.Port port, int i2cAddress)
     {
-        pixyCamera = new FrcPixyCam1(instanceName, port, i2cAddress);
+        if (pixyV2)
+        {
+            pixyCamera2 = new FrcPixyCam2(instanceName, port, i2cAddress);
+        }
+        else
+        {
+            pixyCamera1 = new FrcPixyCam1(instanceName, port, i2cAddress);
+        }
         commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 
     public void setEnabled(boolean enabled)
     {
-        pixyCamera.setEnabled(enabled);
-        if (enabled)
+        if (pixyCamera1 != null)
         {
-            pixyCamera.setBrightness((byte)brightness);
+            pixyCamera1.setEnabled(enabled);
+            if (enabled)
+            {
+                pixyCamera1.setBrightness((byte)brightness);
+            }
+        }
+        else if (pixyCamera2 != null)
+        {
+            pixyCamera2.setEnabled(enabled);
+            if (enabled)
+            {
+                pixyCamera2.setCameraBrightness((byte)brightness);
+            }
         }
     }   //setEnabled
 
     public boolean isEnabled()
     {
-        return pixyCamera.isEnabled();
+        return pixyCamera1 != null ? pixyCamera1.isEnabled() : pixyCamera2 != null ? pixyCamera2.isEnabled() : false;
     }   //isEnabled
 
     /**
@@ -130,11 +158,11 @@ public class PixyVision
      * @return rectangle of the detected target last received from the camera or last cached target if cached
      *         data has not expired. Null if no object was seen and last cached data has expired.
      */
-    private Rect getTargetRect()
+    private Rect getV1TargetRect()
     {
-        final String funcName = "getTargetRect";
+        final String funcName = "getV1TargetRect";
         Rect targetRect = null;
-        ObjectBlock[] detectedObjects = pixyCamera.getDetectedObjects();
+        TrcPixyCam1.ObjectBlock[] detectedObjects = pixyCamera1.getDetectedObjects();
         double currTime = TrcUtil.getCurrentTime();
 
         if (debugEnabled)
@@ -240,13 +268,125 @@ public class PixyVision
         }
 
         return targetRect;
-    }   //getTargetRect
+    }   //getV1TargetRect
+
+    private Rect getV2TargetRect()
+    {
+        final String funcName = "getV2TargetRect";
+        Rect targetRect = null;
+        TrcPixyCam2.ObjectBlock[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
+        double currTime = TrcUtil.getCurrentTime();
+
+        if (debugEnabled)
+        {
+            robot.globalTracer.traceInfo(
+                funcName, "%s object(s) found", detectedObjects != null? "" + detectedObjects.length: "null");
+        }
+
+        if (detectedObjects != null && detectedObjects.length >= 1)
+        {
+            //
+            // Make sure the camera detected at least one objects.
+            //
+            ArrayList<Rect> objectList = new ArrayList<>();
+            //
+            // Filter out objects that don't have the correct signature.
+            //
+            for (int i = 0; i < detectedObjects.length; i++)
+            {
+                if (signature == detectedObjects[i].signature)
+                {
+                    int temp;
+                    //
+                    // If we have the camera mounted in other orientations, we need to adjust the object rectangles
+                    // accordingly.
+                    //
+                    switch (orientation)
+                    {
+                        case CLOCKWISE_PORTRAIT:
+                            temp = RobotInfo.PIXYCAM_WIDTH - detectedObjects[i].centerX;
+                            detectedObjects[i].centerX = detectedObjects[i].centerY;
+                            detectedObjects[i].centerY = temp;
+                            temp = detectedObjects[i].width;
+                            detectedObjects[i].width = detectedObjects[i].height;
+                            detectedObjects[i].height = temp;
+                            break;
+
+                        case ANTICLOCKWISE_PORTRAIT:
+                            temp = detectedObjects[i].centerX;
+                            detectedObjects[i].centerX = RobotInfo.PIXYCAM_HEIGHT - detectedObjects[i].centerY;
+                            detectedObjects[i].centerY = temp;
+                            temp = detectedObjects[i].width;
+                            detectedObjects[i].width = detectedObjects[i].height;
+                            detectedObjects[i].height = temp;
+                            break;
+
+                        case UPSIDEDOWN_LANDSCAPE:
+                            detectedObjects[i].centerX = RobotInfo.PIXYCAM_WIDTH - detectedObjects[i].centerX;
+                            detectedObjects[i].centerY = RobotInfo.PIXYCAM_HEIGHT - detectedObjects[i].centerY;
+                            break;
+
+                        case NORMAL_LANDSCAPE:
+                            break;
+                    }
+
+                    Rect rect = new Rect(detectedObjects[i].centerX - detectedObjects[i].width/2,
+                                         detectedObjects[i].centerY - detectedObjects[i].height/2,
+                                         detectedObjects[i].width, detectedObjects[i].height);
+                    objectList.add(rect);
+
+                    if (debugEnabled)
+                    {
+                        robot.globalTracer.traceInfo(funcName, "[%d] %s", i, detectedObjects[i].toString());
+                    }
+                }
+            }
+
+            if (objectList.size() >= 1)
+            {
+                //
+                // Find the largest target rect in the list.
+                //
+                Rect maxRect = objectList.get(0);
+                for(Rect rect: objectList)
+                {
+                    double area = rect.width * rect.height;
+                    if (area > maxRect.width * maxRect.height)
+                    {
+                        maxRect = rect;
+                    }
+                }
+
+                targetRect = maxRect;
+
+                if (debugEnabled)
+                {
+                    robot.globalTracer.traceInfo(funcName, "===TargetRect===: x=%d, y=%d, w=%d, h=%d",
+                        targetRect.x, targetRect.y, targetRect.width, targetRect.height);
+                }
+            }
+
+            if (targetRect == null)
+            {
+                robot.globalTracer.traceInfo(funcName, "===TargetRect=== None, is now null");
+            }
+
+            lastTargetRect = targetRect;
+            lastTargetRectExpireTime = currTime + LAST_TARGET_RECT_FRESH_DURATION_SECONDS;
+        }
+        else if (currTime < lastTargetRectExpireTime)
+        {
+            targetRect = lastTargetRect;
+        }
+
+        return targetRect;
+    }   //getV2TargetRect
 
     public TargetInfo getTargetInfo()
     {
         final String funcName = "getTargetInfo";
         TargetInfo targetInfo = null;
-        Rect targetRect = getTargetRect();
+        Rect targetRect = pixyCamera1 != null ? getV1TargetRect() : pixyCamera2 != null ? getV2TargetRect() : null;
 
         if (targetRect != null)
         {

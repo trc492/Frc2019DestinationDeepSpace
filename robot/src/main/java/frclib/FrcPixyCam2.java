@@ -32,8 +32,8 @@ import trclib.TrcSerialBusDevice;
 import trclib.TrcPixyCam2;
 
 /**
- * This class implements a platform dependent pixy camera that is either connected to an I2C bus, SPI or a Serial Port.
- * It provides access to the last detected objects reported by the pixy camera asynchronously.
+ * This class implements a platform dependent pixy camera 2 that is either connected to an I2C bus, SPI or a
+ * Serial Port. It provides access to the last detected objects reported by the pixy camera synchronously.
  */
 public class FrcPixyCam2 extends TrcPixyCam2
 {
@@ -218,6 +218,7 @@ public class FrcPixyCam2 extends TrcPixyCam2
 
         if (debugEnabled)
         {
+            dbgTrace.traceInfo(funcName, "response: %s", Arrays.toString(response));
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Arrays.toString(response));
         }
 

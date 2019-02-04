@@ -68,13 +68,14 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_PIXY_I2C = false;
+    public static final boolean USE_PIXY_I2C = true;
+    public static final boolean USE_PIXY_V2 = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
     private static final boolean DEBUG_PID_DRIVE = false;
     private static final boolean DEBUG_SUBSYSTEMS = false;
-    private static final boolean DEBUG_PIXY = false;
+    private static final boolean DEBUG_PIXY = true;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.
@@ -192,7 +193,7 @@ public class Robot extends FrcRobotBase
         if(USE_PIXY_I2C)
         {
             pixy = new PixyVision(
-                "PixyCam", this, RobotInfo.PIXY_TARGET_SIGNATURE, RobotInfo.PIXY_BRIGHTNESS,
+                "PixyCam", this, USE_PIXY_V2, RobotInfo.PIXY_TARGET_SIGNATURE, RobotInfo.PIXY_BRIGHTNESS,
                 RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
         }
 
