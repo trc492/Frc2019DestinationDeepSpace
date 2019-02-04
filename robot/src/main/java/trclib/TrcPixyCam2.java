@@ -70,8 +70,8 @@ public abstract class TrcPixyCam2
 
     private static final byte PIXY2_RES_MAIN_FEATURES           = (byte)49;
 
-    public static final byte PIXY2_FEATURE_TYPE_MAIN            = (byte) 0x00;
-    public static final byte PIXY2_FEATURE_TYPE_ALL             = (byte) 0x01;
+    public static final byte PIXY2_FEATURE_TYPE_MAIN            = (byte)0x00;
+    public static final byte PIXY2_FEATURE_TYPE_ALL             = (byte)0x01;
 
     public static final byte PIXY2_FEATURES_VECTOR              = (byte)(1 << 0);
     public static final byte PIXY2_FEATURES_INTERSECTION        = (byte)(1 << 1);
@@ -88,13 +88,13 @@ public abstract class TrcPixyCam2
     public static final byte PIXY2_BLOCKS_SIG_6                 = (byte)(1 << 5);
     public static final byte PIXY2_BLOCKS_SIG_7                 = (byte)(1 << 6);
     public static final byte PIXY2_BLOCKS_SIG_8                 = (byte)(1 << 7);
-    public static final byte PIXY2_BLOCKS_ALL_SIG               = (byte) 255;
-    public static final byte PIXY2_MAX_BLOCKS_ALL               = (byte) 255;
+    public static final byte PIXY2_BLOCKS_ALL_SIG               = (byte)255;
+    public static final byte PIXY2_MAX_BLOCKS_ALL               = (byte)255;
 
-    public static final byte PIXY2_LINE_FLAG_INVALID            = (byte) 0x02;
-    public static final byte PIXY2_LINE_FLAG_INTERSECTION_PRESENT=(byte) 0x04;
+    public static final byte PIXY2_LINE_FLAG_INVALID            = (byte)0x02;
+    public static final byte PIXY2_LINE_FLAG_INTERSECTION_PRESENT=(byte)0x04;
 
-    public static final byte PIXY2_SAT_FLAG_SATURATE            = (byte) 0x01;
+    public static final byte PIXY2_SAT_FLAG_SATURATE            = (byte)0x01;
 
     /**
      * This method writes the request data to the device synchronously.
@@ -109,9 +109,9 @@ public abstract class TrcPixyCam2
     public abstract byte[] syncReadResponse();
 
     /**
-     * This class implements the pixy camera object block.
+     * This class implements the detected object block.
      */
-    public class ObjectBlock
+    public class Block
     {
         public int signature;
         public int centerX;
@@ -122,7 +122,7 @@ public abstract class TrcPixyCam2
         public byte trackingIndex;
         public byte age;
 
-        public ObjectBlock(byte[] data, int startIndex)
+        public Block(byte[] data, int startIndex)
         {
             signature = TrcUtil.bytesToInt(data[startIndex], data[startIndex + 1]);
             centerX = TrcUtil.bytesToInt(data[startIndex + 2], data[startIndex + 3]);
@@ -131,7 +131,7 @@ public abstract class TrcPixyCam2
             height = TrcUtil.bytesToInt(data[startIndex + 8], data[startIndex + 9]);
             trackingIndex = data[startIndex + 10];
             age = data[startIndex + 11];
-        }   //ObjectBlock
+        }   //Block
 
         /**
          * This method formats all fields into a string for printing purpose.
@@ -144,58 +144,8 @@ public abstract class TrcPixyCam2
                 "sig=%d, centerX=%3d, centerY=%3d, width=%3d, height=%3d, angle=%3d, index=%d, age=%d",
                 signature, centerX, centerY, width, height, angle, trackingIndex, age);
         }   //toString
-    }   //class ObjectBlock
 
-    /**
-     * This class implements the pixy camera feature. There are thee types of features:
-     * vectors, intersections and barcodes.
-     */
-    public class Feature
-    {
-        public byte type;
-        public byte[] data;
-
-        /**
-         * This method formats all fields into a string for printing purpose.
-         *
-         * @return string containing all the fields.
-         */
-        public String toString()
-        {
-            String features = null;
-
-            switch (type)
-            {
-                case PIXY2_FEATURES_VECTOR:
-                    for (int i = 0; i < data.length; i += 6)
-                    {
-                        Vector vector = new Vector(data, i);
-                        features += vector.toString() + "; ";
-                    }
-                    break;
-
-                case PIXY2_FEATURES_INTERSECTION:
-                    for (int i = 0; i < data.length;)
-                    {
-                        Intersection intersection = new Intersection(data, i);
-                        features += intersection.toString() + "; ";
-                        i += 4 + intersection.n*4;
-                    }
-                    break;
-
-                case PIXY2_FEATURES_BARCODE:
-                    for (int i = 0; i < data.length; i += 4)
-                    {
-                        Barcode barcode = new Barcode(data, i);
-                        features += barcode.toString() + "; ";
-                    }
-                    break;
-            }
-
-            return features;
-        }   //toString
-
-    }   //class Feature
+    }   //class Block
 
     public class Vector
     {
@@ -221,6 +171,7 @@ public abstract class TrcPixyCam2
             return String.format("x0=%d, y0=%d, x1=%d, y1=%d, index=%d, flags=0x%x",
                 x0, y0, x1, y1, index, flags);
         }   //toString
+
     }   //class Vector
 
     public class IntersectionLine
@@ -240,6 +191,7 @@ public abstract class TrcPixyCam2
         {
             return String.format("index=%d, reserved=%d, angle=%d", index, reserved, angle);
         }   //toString
+
     }   //class IntersectionLine
 
     public class Intersection
@@ -271,6 +223,7 @@ public abstract class TrcPixyCam2
             }
             return s;
         }   //toString
+
     }   //class Intersection
 
     public class Barcode
@@ -292,7 +245,109 @@ public abstract class TrcPixyCam2
         {
             return String.format("x=%d, y=%d, flags=0x%x, code=0x%x", x, y, flags, code);
         }   //toString
+
     }   //class Barcode
+
+    public class Feature
+    {
+        public byte type;
+
+        public Feature(byte type)
+        {
+            this.type = type;
+        }   //Feature
+
+    }   //class Feature
+
+    public class FeatureVectors extends Feature
+    {
+        public Vector[] vectors;
+
+        public FeatureVectors(byte[] data, int startIndex)
+        {
+            super(data[startIndex]);
+            vectors = new Vector[data[startIndex + 1]/6];
+            for (int i = 0, index = startIndex + 2; i < vectors.length; i++, index += 6)
+            {
+                vectors[i] = new Vector(data, index);
+            }
+        }   //FeatureVectors
+
+        public String toString()
+        {
+            String feature = "Vectors: ";
+
+            for (int i = 0; i < vectors.length; i++)
+            {
+                feature += vectors[i].toString() + "; ";
+            }
+
+            return feature;
+        }   //toString
+
+    }   //class FeatureVectors
+
+    public class FeatureIntersections extends Feature
+    {
+        public Intersection[] intersections;
+
+        public FeatureIntersections(byte[] data, int startIndex)
+        {
+            super(data[startIndex]);
+            ArrayList<Intersection> list = new ArrayList<>();
+            int endIndex = startIndex + 2 + data[startIndex + 1];
+
+            for (int index = startIndex + 2; index < endIndex;)
+            {
+                Intersection intersection = new Intersection(data, index);
+                list.add(intersection);
+                index += 4 + intersection.n*4;
+            }
+
+            intersections = list.toArray(intersections);
+        }   //FeatureIntersections
+
+        public String toString()
+        {
+            String feature = "Intersections: ";
+
+            for (int i = 0; i < intersections.length; i++)
+            {
+                feature += intersections[i].toString() + "; ";
+            }
+
+            return feature;
+        }   //toString
+
+    }   //class FeatureIntersections
+
+    public class FeatureBarcodes extends Feature
+    {
+        public Barcode[] barcodes;
+
+        public FeatureBarcodes(byte[] data, int startIndex)
+        {
+            super(data[startIndex]);
+            barcodes = new Barcode[data[startIndex + 1]/4];
+            for (int i = 0, index = startIndex + 2; i < barcodes.length; i++, index += 4)
+            {
+                barcodes[i] = new Barcode(data, index);
+            }
+        }   //FeatureBarcodes
+
+        public String toString()
+        {
+            String feature = "Barcodes: ";
+
+            for (int i = 0; i < barcodes.length; i++)
+            {
+                feature += barcodes[i].toString() + "; ";
+            }
+
+            return feature;
+        }   //toString
+
+    }   //class FeatureBarcodes
 
     private final String instanceName;
     private int hardwareVersion = 0;
@@ -371,13 +426,8 @@ public abstract class TrcPixyCam2
         request[2] = requestType;
         request[3] = (byte)dataLen;
 
-        for (int i = 0; i < dataLen; i++)
-        {
-            request[4 + i] = data[i];
-        }
-
+        System.arraycopy(data, 0, request, 4, dataLen);
         syncWriteRequest(request);
-
         byte[] response = syncReadResponse();
 
         if ((short) TrcUtil.bytesToInt(response[0], response[1]) == PIXY2_RECV_SYNC &&
@@ -587,9 +637,9 @@ public abstract class TrcPixyCam2
      * @param maxBlocks specifies the maximum number of blocks to retrieve.
      * @return an array of detected blocks.
      */
-    public ObjectBlock[] getBlocks(byte sigMap, byte maxBlocks)
+    public Block[] getBlocks(byte sigMap, byte maxBlocks)
     {
-        ObjectBlock[] objBlocks = null;
+        Block[] blocks = null;
         byte[] data = {sigMap, maxBlocks};
         byte[] response = sendRequest(PIXY2_REQ_GET_BLOCKS, data, PIXY2_RES_BLOCKS);
 
@@ -597,14 +647,14 @@ public abstract class TrcPixyCam2
         {
             int numBlocks = (response.length - 6)/14;
 
-            objBlocks = new ObjectBlock[numBlocks];
+            blocks = new Block[numBlocks];
             for (int i = 0; i < numBlocks; i++)
             {
-                objBlocks[i] = new ObjectBlock(response, 6 + i*14);
+                blocks[i] = new Block(response, 6 + i*14);
             }
         }
 
-        return objBlocks;
+        return blocks;
     }   //getBlocks
 
     /**
@@ -614,7 +664,7 @@ public abstract class TrcPixyCam2
      * @param featuresMap specifies the features bitmap (i.e. 1 for vectors, 2 for intersections and 4 for barcodes).
      * @return an array of detected features.
      */
-    public Feature[] getMainFeatures(byte requestType, byte featuresMap)
+    public Feature[] getFeatures(byte requestType, byte featuresMap)
     {
         Feature[] features = null;
         byte[] data = {requestType, featuresMap};
@@ -623,30 +673,51 @@ public abstract class TrcPixyCam2
         if (response != null)
         {
             ArrayList<Feature> list = new ArrayList<>();
-            int featureLen = 0;
 
             for (int i = 6; i < response.length;)
             {
                 if (i + 1 < response.length && i + 2 + response[i + 1] < response.length)
                 {
-                    Feature feature = new Feature();
+                    Feature feature = null;
 
-                    featureLen = response[i + 1];
-                    feature.type = response[i];
-                    feature.data = new byte[featureLen];
-                    for (int j = 0; j < feature.data.length; j++)
+                    switch (response[i])
                     {
-                        feature.data[j] = response[i + 2 + j];
+                        case PIXY2_FEATURES_VECTOR:
+                            feature = new FeatureVectors(response, i);
+                            break;
+
+                        case PIXY2_FEATURES_INTERSECTION:
+                            feature = new FeatureIntersections(response, i);
+                            break;
+
+                        case PIXY2_FEATURES_BARCODE:
+                            feature = new FeatureBarcodes(response, i);
+                            break;
                     }
-                    list.add(feature);
+
+                    if (feature != null)
+                    {
+                        list.add(feature);
+                    }
                 }
                 i += 2 + response[i + 1];
             }
+
             features = list.toArray(features);
         }
 
         return features;
+    }   //getFeatures
+
+    public Feature[] getMainFeatures(byte featuresMap)
+    {
+        return getFeatures(PIXY2_FEATURE_TYPE_MAIN, featuresMap);
     }   //getMainFeatures
+
+    public Feature[] getAllFeatures(byte featuresMap)
+    {
+        return getFeatures(PIXY2_FEATURE_TYPE_ALL, featuresMap);
+    }   // getAllFeatures
 
     /**
      * This method sends a request to set the camera mode.

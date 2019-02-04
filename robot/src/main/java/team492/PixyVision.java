@@ -146,23 +146,28 @@ public class PixyVision
         return pixyCamera1 != null ? pixyCamera1.isEnabled() : pixyCamera2 != null ? pixyCamera2.isEnabled() : false;
     }   //isEnabled
 
-    // public TrcPixyCam2.Vector getTargetVector()
-    // {
-    //     final String funcName = "getTargetVector";
-    //     TrcPixyCam2.Vector vector = null;
-    //     TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(
-    //         TrcPixyCam2.PIXY2_FEATURE_TYPE_MAIN, TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+    public TrcPixyCam2.Vector[] getLineVectors()
+    {
+        final String funcName = "getLineVectors";
+        TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+        TrcPixyCam2.Vector[] vectors = null;
 
-    //     for (int i = 0; i < features.length; i++)
-    //     {
-    //         if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
-    //         {
-    //             int numVectors = features[i].data.length/
-    //         }
-    //     }
+        for (int i = 0; i < features.length; i++)
+        {
+            if (debugEnabled)
+            {
+                robot.globalTracer.traceInfo(funcName, "[%d/%d] %s", i, features.length, features[i]);
+            }
 
-    //     return vector;
-    // }   //getTargetVector
+            if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
+            {
+                vectors = ((TrcPixyCam2.FeatureVectors) features[i]).vectors;
+                break;
+            }
+        }
+
+        return vectors;
+    }   //getFeatureVectors
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have
@@ -292,7 +297,7 @@ public class PixyVision
     {
         final String funcName = "getV2TargetRect";
         Rect targetRect = null;
-        TrcPixyCam2.ObjectBlock[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
+        TrcPixyCam2.Block[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
         double currTime = TrcUtil.getCurrentTime();
 
         if (debugEnabled)

@@ -29,6 +29,7 @@ import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
 import team492.PixyVision.TargetInfo;
 import trclib.TrcEvent;
+import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;
@@ -349,16 +350,34 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
-        TargetInfo targetInfo = robot.pixy.getTargetInfo();
-        if (targetInfo == null)
+        if (robot.pixy != null)
         {
-            robot.dashboard.displayPrintf(6, "Pixy: target not found");
-        }
-        else
-        {
-            robot.dashboard
-                .displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
-                    targetInfo.angle);
+            if (Robot.USE_PIXY_LINE_TARGET)
+            {
+                Vector[] vectors = robot.pixy.getLineVectors();
+                if (vectors == null)
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: line not found");
+                }
+                else
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: %s", vectors[0]);
+                }
+            }
+            else
+            {
+                TargetInfo targetInfo = robot.pixy.getTargetInfo();
+                if (targetInfo == null)
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: target not found");
+                }
+                else
+                {
+                    robot.dashboard
+                        .displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
+                            targetInfo.angle);
+                }
+            }
         }
         double lfSpeed = robot.leftFrontWheel.getVelocity();
         double rfSpeed = robot.rightFrontWheel.getVelocity();

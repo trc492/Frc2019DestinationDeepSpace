@@ -71,6 +71,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_RASPI_VISION = true;
     public static final boolean USE_PIXY_I2C = true;
     public static final boolean USE_PIXY_V2 = true;
+    public static final boolean USE_PIXY_LINE_TARGET = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
