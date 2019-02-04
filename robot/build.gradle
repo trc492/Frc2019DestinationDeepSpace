@@ -51,6 +51,7 @@ dependencies {
     compile wpi.deps.vendor.java()
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
     testCompile 'junit:junit:4.12'
 }
 

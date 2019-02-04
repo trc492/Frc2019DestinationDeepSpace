@@ -512,15 +512,20 @@ public class RaspiVision
 
     private class RelativePose
     {
-        public double heading;
-        public double distance;
+        public double r;
+        public double theta;
         public double objectYaw;
+        public double x;
+        public double y;
 
-        public RelativePose(double heading, double distance, double objectYaw)
+        public RelativePose(double xDistance, double zDistance, double objectYaw)
         {
-            this.heading = heading;
-            this.distance = distance;
+            this.x = xDistance;
+            // In robot code, y is forward, not z
+            this.y = zDistance;
             this.objectYaw = objectYaw;
+            this.r = Math.sqrt(xDistance * xDistance + zDistance * zDistance);
+            this.theta = Math.toDegrees(Math.atan2(xDistance, zDistance));
         }
     }
 }
