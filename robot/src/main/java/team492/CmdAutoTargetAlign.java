@@ -83,14 +83,34 @@ public class CmdAutoTargetAlign
      */
     public void cancel()
     {
+        cancel(true);
+    }
+
+    /**
+     * Cancel the auto alignment command, optionally without stopping the motors. This is so if the drivers want to
+     * override it, the robot doesn't stop in the middle. It will allow the robot to switch into manual control faster.
+     *
+     * @param hardStop True to stop the wheels, false otherwise.
+     */
+    public void cancel(boolean hardStop)
+    {
         if (isRunning())
         {
             if (onFinishedEvent != null)
             {
                 onFinishedEvent.set(true);
             }
-            setEnabled(false);
+            stop(hardStop);
         }
+    }
+
+    private void stop(boolean hardStop)
+    {
+        sm.stop();
+        robot.pidDrive.cancel(hardStop);
+        robot.elevator.setPower(0.0);
+        onFinishedEvent = null;
+        setEnabled(false);
     }
 
     private void setEnabled(boolean enabled)
@@ -103,9 +123,6 @@ public class CmdAutoTargetAlign
         else
         {
             alignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
-            sm.stop();
-            robot.pidDrive.cancel();
-            onFinishedEvent = null;
         }
     }
 
@@ -157,7 +174,7 @@ public class CmdAutoTargetAlign
                     {
                         onFinishedEvent.set(true);
                     }
-                    setEnabled(false);
+                    stop(true);
                     break;
             }
         }
