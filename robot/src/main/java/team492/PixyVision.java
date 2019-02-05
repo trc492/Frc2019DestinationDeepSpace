@@ -149,20 +149,26 @@ public class PixyVision
     public TrcPixyCam2.Vector[] getLineVectors()
     {
         final String funcName = "getLineVectors";
-        TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
         TrcPixyCam2.Vector[] vectors = null;
+        double startTime = TrcUtil.getCurrentTime();
+        TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+        double elapsedTime = TrcUtil.getCurrentTime() - startTime;
 
-        for (int i = 0; i < features.length; i++)
+        if (features != null)
         {
-            if (debugEnabled)
+            for (int i = 0; i < features.length; i++)
             {
-                robot.globalTracer.traceInfo(funcName, "[%d/%d] %s", i, features.length, features[i]);
-            }
+                if (debugEnabled)
+                {
+                    robot.globalTracer.traceInfo(funcName, "[%.3f] %d/%d: %s",
+                        elapsedTime, i, features.length, features[i]);
+                }
 
-            if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
-            {
-                vectors = ((TrcPixyCam2.FeatureVectors) features[i]).vectors;
-                break;
+                if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
+                {
+                    vectors = ((TrcPixyCam2.FeatureVectors) features[i]).vectors;
+                    break;
+                }
             }
         }
 
