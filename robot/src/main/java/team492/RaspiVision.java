@@ -78,7 +78,7 @@ public class RaspiVision
     }
 
     /**
-     * Calcluateds the avergae pose of the lsat numFrames frames.
+     * Calculates the average pose of the last numFrames frames.
      *
      * @param numFrames How many frames to average.
      * @return The average pose.
