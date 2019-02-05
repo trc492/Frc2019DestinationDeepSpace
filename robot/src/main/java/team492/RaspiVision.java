@@ -10,14 +10,16 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaspiVision
 {
     private volatile RelativePose relativePose = null;
     private Gson gson;
-    private int consecutiveTargetFrames = 0;
+    private AtomicInteger consecutiveTargetFrames = new AtomicInteger(0);
     private int maxAverageWindow = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
+    private final Object framesLock = new Object();
 
     public RaspiVision()
     {
@@ -33,29 +35,54 @@ public class RaspiVision
         String info = event.value.getString();
         if ("".equals(info))
         {
+            // We have not found a pose, so set to null
             this.relativePose = null;
-            if (!frames.isEmpty())
+            synchronized (framesLock)
             {
-                frames.clear();
+                // Clear the frames list if it is not empty
+                if (!frames.isEmpty())
+                {
+                    frames.clear();
+                }
             }
-            consecutiveTargetFrames = 0;
+            // Reset the number of consecutive frames
+            consecutiveTargetFrames.set(0);
         }
         else
         {
+            // Deserialize the latest calculated pose
             this.relativePose = gson.fromJson(info, RelativePose.class);
-            this.consecutiveTargetFrames++;
-            while (frames.size() > maxAverageWindow)
+            // Increment the number of consecutive frames
+            this.consecutiveTargetFrames.incrementAndGet();
+            synchronized (framesLock)
             {
-                frames.remove(0);
+                // Add the latest pose
+                frames.add(relativePose);
+                // Trim the list so only the last few are kept
+                while (frames.size() > maxAverageWindow)
+                {
+                    frames.remove(0);
+                }
             }
         }
     }
 
+    /**
+     * Get the average pose of the last n frames where n=maxAverageWindow.
+     *
+     * @return The average pose. (all attributes averaged)
+     */
     public RelativePose getAveragePose()
     {
         return getAveragePose(maxAverageWindow);
     }
 
+    /**
+     * Calcluateds the avergae pose of the lsat numFrames frames.
+     *
+     * @param numFrames How many frames to average.
+     * @return The average pose.
+     */
     public RelativePose getAveragePose(int numFrames)
     {
         int fromIndex = Math.max(0, frames.size() - numFrames);
@@ -78,16 +105,35 @@ public class RaspiVision
         return average;
     }
 
+    /**
+     * Set the max number of frames to keep. You will not be able to average more frames than this.
+     *
+     * @param numFrames How many frames to keep for averaging at maximum.
+     */
     public void setMaxAverageWindow(int numFrames)
     {
+        if (numFrames < 0)
+        {
+            throw new IllegalArgumentException("numFrames must be >= 0!");
+        }
         this.maxAverageWindow = numFrames;
     }
 
+    /**
+     * Gets how many consecutive frames the target has been detected.
+     *
+     * @return The number of consecutive frames the target has been detected.
+     */
     public int getConsecutiveTargetFrames()
     {
-        return consecutiveTargetFrames;
+        return consecutiveTargetFrames.get();
     }
 
+    /**
+     * Gets the last calculated pose.
+     *
+     * @return The pose calculated by the vision system. If no object detected, returns null.
+     */
     public RelativePose getLastPose()
     {
         return relativePose;
