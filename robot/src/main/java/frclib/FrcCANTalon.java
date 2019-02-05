@@ -175,6 +175,20 @@ public class FrcCANTalon extends TrcMotor
         }
     } //recordResponseCode
 
+    @Override
+    public void follow(TrcMotor motor)
+    {
+        if (motor instanceof FrcCANTalon)
+        {
+            FrcCANTalon talon = (FrcCANTalon) motor;
+            this.motor.follow(talon.motor);
+        }
+        else
+        {
+            super.follow(motor);
+        }
+    }
+
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
      *
@@ -188,8 +202,8 @@ public class FrcCANTalon extends TrcMotor
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s",
-                maxVelocity, pidCoefficients == null ? "N/A" : pidCoefficients.toString());
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s", maxVelocity,
+                pidCoefficients == null ? "N/A" : pidCoefficients.toString());
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 

@@ -46,6 +46,12 @@ public abstract class TrcMotor implements TrcMotorController
     protected static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     protected TrcDbgTrace dbgTrace = null;
 
+    public void follow(TrcMotor motor)
+    {
+        throw new UnsupportedOperationException(
+            String.format("This motor does not support following motors of type: %s!", motor.getClass().toString()));
+    }
+
     /**
      * This method returns the motor position by reading the position sensor. The position sensor can be an encoder
      * or a potentiometer.
@@ -92,8 +98,8 @@ public abstract class TrcMotor implements TrcMotorController
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                TrcDbgTrace.getGlobalTracer():
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -240,7 +246,7 @@ public abstract class TrcMotor implements TrcMotorController
      * odometry task to calculate it.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode specifies the competition mode that is running.
+     * @param runMode  specifies the competition mode that is running.
      */
     public static void odometryTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
@@ -248,13 +254,12 @@ public abstract class TrcMotor implements TrcMotorController
 
         if (debugEnabled)
         {
-            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK,
-                    "taskType=%s,runMode=%s", taskType, runMode);
+            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
         }
 
         synchronized (odometryMotors)
         {
-            for (TrcMotor motor: odometryMotors)
+            for (TrcMotor motor : odometryMotors)
             {
                 synchronized (motor.odometry)
                 {
@@ -266,13 +271,13 @@ public abstract class TrcMotor implements TrcMotorController
                     double deltaTime = motor.odometry.currTimestamp - motor.odometry.prevTimestamp;
                     if (deltaTime > 0.0)
                     {
-                        motor.odometry.velocity = (motor.odometry.currPos - motor.odometry.prevPos)/deltaTime;
+                        motor.odometry.velocity = (motor.odometry.currPos - motor.odometry.prevPos) / deltaTime;
                     }
 
                     if (debugEnabled)
                     {
-                        globalTracer.traceInfo(funcName, "[%.3f]: %s encPos=%.0f",
-                                motor.odometry.currTimestamp, motor, motor.odometry.currPos);
+                        globalTracer.traceInfo(funcName, "[%.3f]: %s encPos=%.0f", motor.odometry.currTimestamp, motor,
+                            motor.odometry.currPos);
                     }
                 }
             }
@@ -287,7 +292,7 @@ public abstract class TrcMotor implements TrcMotorController
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
      *
-     * @param maxVelocity specifies the maximum velocity the motor can run, in sensor units per second.
+     * @param maxVelocity     specifies the maximum velocity the motor can run, in sensor units per second.
      * @param pidCoefficients specifies the PID coefficients to use to compute a desired torque value for the motor.
      *                        E.g. these coefficients go from velocity error percent to desired stall torque percent.
      */
@@ -297,8 +302,8 @@ public abstract class TrcMotor implements TrcMotorController
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoef=%s",
-                    maxVelocity, pidCoefficients.toString());
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoef=%s", maxVelocity,
+                pidCoefficients.toString());
         }
 
         if (pidCoefficients == null)
@@ -312,8 +317,8 @@ public abstract class TrcMotor implements TrcMotorController
         }
 
         this.maxMotorVelocity = maxVelocity;
-        velocityPidCtrl = new TrcPidController(
-                instanceName + ".velocityCtrl", pidCoefficients, 1.0, this::getNormalizedVelocity);
+        velocityPidCtrl = new TrcPidController(instanceName + ".velocityCtrl", pidCoefficients, 1.0,
+            this::getNormalizedVelocity);
         velocityPidCtrl.setAbsoluteSetPoint(true);
 
         velocityCtrlTaskObj.registerTask(TaskType.OUTPUT_TASK);
@@ -353,7 +358,7 @@ public abstract class TrcMotor implements TrcMotorController
     private double getNormalizedVelocity()
     {
         final String funcName = "getNormalizedVelocity";
-        double normalizedVel = getVelocity()/maxMotorVelocity;
+        double normalizedVel = getVelocity() / maxMotorVelocity;
 
         if (debugEnabled)
         {
@@ -370,7 +375,7 @@ public abstract class TrcMotor implements TrcMotorController
      * to maintain the set speed if speed control mode is enabled.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode specifies the competition mode that is running.
+     * @param runMode  specifies the competition mode that is running.
      */
     public synchronized void velocityCtrlTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
@@ -390,8 +395,8 @@ public abstract class TrcMotor implements TrcMotorController
             if (debugEnabled)
             {
                 dbgTrace.traceInfo(instanceName,
-                        "targetSpeed=%.2f, currSpeed=%.2f, desiredStallTorque=%.2f, motorPower=%.2f",
-                        velocityPidCtrl.getTarget(), getVelocity(), desiredStallTorquePercentage, motorPower);
+                    "targetSpeed=%.2f, currSpeed=%.2f, desiredStallTorque=%.2f, motorPower=%.2f",
+                    velocityPidCtrl.getTarget(), getVelocity(), desiredStallTorquePercentage, motorPower);
             }
         }
 
@@ -425,14 +430,14 @@ public abstract class TrcMotor implements TrcMotorController
         // as motor speed increases.
         //
         final double currSpeedSensorUnitPerSec = Math.abs(getVelocity());
-        final double currNormalizedSpeed = currSpeedSensorUnitPerSec/maxMotorVelocity;
+        final double currNormalizedSpeed = currSpeedSensorUnitPerSec / maxMotorVelocity;
 
         // Max torque percentage declines proportionally to motor speed.
         final double percentMaxTorqueAvailable = 1 - currNormalizedSpeed;
 
         if (percentMaxTorqueAvailable > 0)
         {
-            power = desiredStallTorquePercentage/percentMaxTorqueAvailable;
+            power = desiredStallTorquePercentage / percentMaxTorqueAvailable;
         }
         else
         {
@@ -590,8 +595,8 @@ public abstract class TrcMotor implements TrcMotorController
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.CALLBK,
-                    "trigger=%s,active=%s", digitalTrigger, Boolean.toString(active));
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.CALLBK, "trigger=%s,active=%s", digitalTrigger,
+                Boolean.toString(active));
         }
 
         resetPosition(false);

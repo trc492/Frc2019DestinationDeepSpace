@@ -63,19 +63,39 @@ public class FrcCANSparkMax extends TrcMotor
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param deviceId specifies the CAN ID of the device.
-     * @param brushless specifies true if the motor is brushless, false otherwise.
+     * @param deviceId     specifies the CAN ID of the device.
+     * @param brushless    specifies true if the motor is brushless, false otherwise.
      */
     public FrcCANSparkMax(String instanceName, int deviceId, boolean brushless)
     {
         super(instanceName);
         this.brushless = brushless;
-        motor = new CANSparkMax(deviceId, brushless ? CANSparkMaxLowLevel.MotorType.kBrushless : CANSparkMaxLowLevel.MotorType.kBrushed);
+        motor = new CANSparkMax(deviceId,
+            brushless ? CANSparkMaxLowLevel.MotorType.kBrushless : CANSparkMaxLowLevel.MotorType.kBrushed);
         encoder = motor.getEncoder();
         fwdLimitSwitch = motor.getForwardLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
         revLimitSwitch = motor.getReverseLimitSwitch(CANDigitalInput.LimitSwitchPolarity.kNormallyOpen);
         resetPosition(true);
     }   //FrcCANSparkMax
+
+    @Override
+    public void follow(TrcMotor motor)
+    {
+        if (motor instanceof FrcCANSparkMax)
+        {
+            FrcCANSparkMax sparkMax = (FrcCANSparkMax) motor;
+            this.motor.follow(sparkMax.motor);
+        }
+        else if (motor instanceof FrcCANTalon)
+        {
+            FrcCANTalon talon = (FrcCANTalon) motor;
+            this.motor.follow(CANSparkMax.ExternalFollower.kFollowerPhoenix, talon.motor.getDeviceID());
+        }
+        else
+        {
+            super.follow(motor);
+        }
+    }
 
     /**
      * This method returns the motor type.
@@ -98,7 +118,7 @@ public class FrcCANSparkMax extends TrcMotor
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
      *
-     * @param maxVelocity specifies the maximum velocity the motor can run, in sensor units per second.
+     * @param maxVelocity     specifies the maximum velocity the motor can run, in sensor units per second.
      * @param pidCoefficients specifies the PIDF coefficients to send to the Talon to use for velocity control.
      */
     @Override
@@ -108,14 +128,14 @@ public class FrcCANSparkMax extends TrcMotor
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s",
-                maxVelocity, pidCoefficients == null ? "N/A" : pidCoefficients.toString());
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxVel=%f,pidCoefficients=%s", maxVelocity,
+                pidCoefficients == null ? "N/A" : pidCoefficients.toString());
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
         this.maxVelocity = maxVelocity;
 
-        if(pidCoefficients != null)
+        if (pidCoefficients != null)
         {
             CANPIDController pidController = motor.getPIDController();
             pidController.setP(pidCoefficients.kP);
@@ -180,7 +200,8 @@ public class FrcCANSparkMax extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        fwdLimitSwitch = motor.getForwardLimitSwitch(normalOpen ? LimitSwitchPolarity.kNormallyOpen : LimitSwitchPolarity.kNormallyClosed);
+        fwdLimitSwitch = motor.getForwardLimitSwitch(
+            normalOpen ? LimitSwitchPolarity.kNormallyOpen : LimitSwitchPolarity.kNormallyClosed);
     }   //configFwdLimitSwitchNormallyOpen
 
     /**
@@ -198,7 +219,8 @@ public class FrcCANSparkMax extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        revLimitSwitch = motor.getReverseLimitSwitch(normalOpen ? LimitSwitchPolarity.kNormallyOpen : LimitSwitchPolarity.kNormallyClosed);
+        revLimitSwitch = motor.getReverseLimitSwitch(
+            normalOpen ? LimitSwitchPolarity.kNormallyOpen : LimitSwitchPolarity.kNormallyClosed);
     }   //configRevLimitSwitchNormallyOpen
 
     // /**
@@ -241,7 +263,7 @@ public class FrcCANSparkMax extends TrcMotor
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        double currPos = encoder.getPosition()*encoderSign;
+        double currPos = encoder.getPosition() * encoderSign;
 
         if (debugEnabled)
         {
@@ -420,23 +442,19 @@ public class FrcCANSparkMax extends TrcMotor
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        // if (feedbackDeviceIsPot || !hardware)
-        // {
-        //     //
-        //     // Potentiometer has no hardware position to reset. So clear the software one.
-        //     //
-        //     zeroPosition = motor.getSelectedSensorPosition(0);
-        //     recordResponseCode(motor.getLastError());
-        // }
-        // else if (hardware)
-        // {
-        //     while (motor.getSelectedSensorPosition(0) != 0)
-        //     {
-        //         Thread.yield();
-        //     }
-        //     zeroPosition = 0.0;
-        // }
-        zeroPosition = getMotorPosition();
+        if (hardware)
+        {
+            encoder.setPosition(0.0);
+            while (encoder.getPosition() != 0)
+            {
+                Thread.yield();
+            }
+            zeroPosition = 0.0;
+        }
+        else
+        {
+            zeroPosition = getMotorPosition();
+        }
     }   //resetPosition
 
     /**
@@ -469,8 +487,8 @@ public class FrcCANSparkMax extends TrcMotor
             throw new IllegalArgumentException("Value must be in the range of -1.0 to 1.0.");
         }
 
-        if (softLowerLimitEnabled && value < 0.0 && getPosition() <= softLowerLimit ||
-            softUpperLimitEnabled && value > 0.0 && getPosition() >= softUpperLimit)
+        if (softLowerLimitEnabled && value < 0.0 && getPosition() <= softLowerLimit
+            || softUpperLimitEnabled && value > 0.0 && getPosition() >= softUpperLimit)
         {
             value = 0.0;
         }
@@ -538,7 +556,7 @@ public class FrcCANSparkMax extends TrcMotor
      * This method inverts the position sensor direction. This may be rare but there are scenarios where the motor
      * encoder may be mounted somewhere in the power train that it rotates opposite to the motor rotation. This will
      * cause the encoder reading to go down when the motor is receiving positive power. This method can correct this
-     *  situation.
+     * situation.
      *
      * @param inverted specifies true to invert position sensor direction, false otherwise.
      */

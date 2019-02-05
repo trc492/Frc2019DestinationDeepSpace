@@ -167,3 +167,4 @@ bin/
 
 # Exceptions for libraries
 !vision/libs/*.jar
+!robot/libs/*.jar
