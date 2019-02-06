@@ -25,17 +25,20 @@ package team492;
 import frclib.FrcCANTalon;
 import frclib.FrcDigitalInput;
 import frclib.FrcPneumatic;
+import trclib.TrcAnalogSensor;
+import trclib.TrcAnalogTrigger;
 import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
-import trclib.TrcStateMachine;
-import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
 public class Pickup
 {
     private static final String instanceName = "Pickup";
+
+    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
+        RobotInfo.PICKUP_STALL_CURRENT };
 
     private enum State
     {
@@ -45,16 +48,18 @@ public class Pickup
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
     private TrcPidActuator pitchController;
-    private TrcStateMachine<State> sm;
-    private TrcEvent event;
     private FrcPneumatic hatchDeployer;
     private FrcDigitalInput cargoSensor;
     private TrcDigitalTrigger cargoTrigger;
+    private TrcAnalogSensor currentSensor;
+    private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
-    private TrcTaskMgr.TaskObject cargoDeployTaskObj;
+    private Robot robot;
 
-    public Pickup()
+    public Pickup(Robot robot)
     {
+        this.robot = robot;
+
         pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
         pickupMotor.setInverted(true);                         // Set opposite directions.
         pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
@@ -79,9 +84,6 @@ public class Pickup
         pitchController.setStallProtection(RobotInfo.PICKUP_STALL_MIN_POWER, RobotInfo.PICKUP_STALL_TIMEOUT,
             RobotInfo.PICKUP_STALL_RESET_TIMEOUT);
 
-        sm = new TrcStateMachine<>(instanceName + ".stateMachine");
-        event = new TrcEvent(instanceName + ".event");
-
         cargoSensor = new FrcDigitalInput(instanceName + ".cargoSensor", RobotInfo.DIO_CARGO_PROXIMITY_SENSOR);
         cargoSensor.setInverted(false);
 
@@ -90,10 +92,36 @@ public class Pickup
 
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
+
+        currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent",
+            () -> pickupMotor.motor.getOutputCurrent());
+        currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
+            TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
+    }
+
+    private void currentTriggerEvent(int currZone, int prevZone, double value)
+    {
+        robot.globalTracer.traceInfo(instanceName + ".currentTriggerEvent",
+            "Current edge event detected! currZone=%d,prevZone=%d,value=%.2f", currZone, prevZone, value);
+
+        // If the current goes from stalling to free spinning, we just ejected a cargo
+        if (currZone == 0 && prevZone > currZone)
+        {
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.set(true);
+            }
+            onFinishedEvent = null;
+            setPickupPower(0.0);
+            currentTrigger.setEnabled(false);
+        }
     }
 
     private void cargoDetectedEvent(boolean active)
     {
+        robot.globalTracer
+            .traceInfo(instanceName + ".cargoDetectedEvent", "Cargo edge event detected! active=%b", active);
+
         if (active)
         {
             if (onFinishedEvent != null)
@@ -108,12 +136,6 @@ public class Pickup
 
     public void cancel()
     {
-        if (sm.isEnabled())
-        {
-            sm.stop();
-            cargoDeployTaskObj.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
-        }
-
         setPickupPower(0.0);
         setPitchPower(0.0);
 
@@ -123,10 +145,15 @@ public class Pickup
         }
     }
 
-    // TODO: Write current detection code to detect when the cargo is ejected.
     public void deployCargo(TrcEvent event)
     {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        if (event != null)
+        {
+            event.clear();
+        }
+        onFinishedEvent = event;
+        currentTrigger.setEnabled(true);
+        setPickupPower(-0.7);
     }
 
     public void deployHatch(TrcEvent event)
@@ -145,9 +172,13 @@ public class Pickup
         else
         {
             // The cargo trigger will signal the event when it detects the cargo
-            event.clear();
+            if (event != null)
+            {
+                event.clear();
+            }
             this.onFinishedEvent = event;
             cargoTrigger.setEnabled(true);
+            setPickupPower(1.0);
         }
     }
 
