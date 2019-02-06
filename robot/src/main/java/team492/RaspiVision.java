@@ -9,7 +9,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaspiVision
@@ -87,21 +86,20 @@ public class RaspiVision
     {
         int fromIndex = Math.max(0, frames.size() - numFrames);
         RelativePose average = new RelativePose();
-        double actualFrames = frames.size() - fromIndex;
-        for (int i = fromIndex; i < frames.size(); i++)
+        List<RelativePose> poses = frames.subList(fromIndex, frames.size() - 1);
+        for (RelativePose pose : poses)
         {
-            RelativePose pose = frames.get(i);
             average.objectYaw += pose.objectYaw;
             average.r += pose.r;
             average.theta += pose.theta;
             average.x += pose.x;
             average.y += pose.y;
         }
-        average.objectYaw /= actualFrames;
-        average.r /= actualFrames;
-        average.theta /= actualFrames;
-        average.x /= actualFrames;
-        average.y /= actualFrames;
+        average.objectYaw /= poses.size();
+        average.r /= poses.size();
+        average.theta /= poses.size();
+        average.x /= poses.size();
+        average.y /= poses.size();
         return average;
     }
 
