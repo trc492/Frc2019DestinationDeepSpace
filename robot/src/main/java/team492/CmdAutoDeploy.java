@@ -27,43 +27,50 @@ import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 
-public class CmdAutoTargetAlign
+public class CmdAutoDeploy
 {
     private enum State
     {
-        START, ORIENT, ALIGN, RAISE_ELEVATOR, DONE
+        START, ORIENT, ALIGN, RAISE_ELEVATOR, DEPLOY, DONE
     }
 
-    private static final String instanceName = "CmdAutoTargetAlign";
+    public enum DeployType
+    {
+        CARGO, HATCH, PICKUP_CARGO, PICKUP_HATCH
+    }
+
+    private static final String instanceName = "CmdAutoDeploy";
 
     private Robot robot;
     private TrcStateMachine<State> sm;
-    private TrcEvent event, elevatorEvent;
+    private TrcEvent event;
     private RaspiVision.RelativePose pose;
     private TrcEvent onFinishedEvent;
     private TrcTaskMgr.TaskObject alignmentTask;
     private double elevatorHeight;
     private double travelHeight;
+    private DeployType deployType;
 
-    public CmdAutoTargetAlign(Robot robot)
+    public CmdAutoDeploy(Robot robot)
     {
         this.robot = robot;
         alignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".alignTask", this::alignTask);
 
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
-        elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
     }
 
     /**
      * Automatically drive to the nearest hatch/cargo port and raise the elevator to the required height.
      *
      * @param elevatorHeight The height to raise the elevator to.
+     * @param deployType     The type of deployment.
      * @param event          The event to signal when done.
      */
-    public void start(double elevatorHeight, TrcEvent event)
+    public void start(double elevatorHeight, DeployType deployType, TrcEvent event)
     {
         this.elevatorHeight = elevatorHeight;
+        this.deployType = deployType;
         this.onFinishedEvent = event;
         setEnabled(true);
     }
@@ -143,10 +150,16 @@ public class CmdAutoTargetAlign
                     break;
 
                 case ORIENT:
+                    // We don't need an event for this, since it should be done by the time everything else finishes.
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_MAX_POS);
+
+                    TrcEvent elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
+
                     robot.targetHeading += pose.objectYaw;
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
+
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
                     sm.waitForEvents(State.ALIGN);
@@ -156,20 +169,43 @@ public class CmdAutoTargetAlign
                     robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
                     double r = pose.r;
                     double theta = pose.theta - pose.objectYaw;
-                    double x = Math.sin(Math.toRadians(theta)) * r;
-                    double y = 0.9 * Math.cos(Math.toRadians(theta)) * r; // scale y so we don't run into the wall
+                    double x = Math.sin(Math.toRadians(theta)) * r + RobotInfo.CAMERA_OFFSET;
+                    double y = Math.cos(Math.toRadians(theta)) * r + RobotInfo.CAMERA_DEPTH;
                     robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
                     sm.waitForSingleEvent(event, State.RAISE_ELEVATOR);
                     break;
 
                 case RAISE_ELEVATOR:
                     robot.elevator.setPosition(elevatorHeight, event);
+                    sm.waitForSingleEvent(event, State.DEPLOY);
+                    break;
+
+                case DEPLOY:
+                    robot.elevator.setPosition(elevatorHeight); // Hold it at that height
+                    event.clear();
+                    switch(deployType)
+                    {
+                        case CARGO:
+                            robot.pickup.deployCargo(event);
+                            break;
+
+                        case HATCH:
+                            robot.pickup.deployHatch(event);
+                            break;
+
+                        case PICKUP_CARGO:
+                            robot.pickup.pickupCargo(event);
+                            break;
+
+                        case PICKUP_HATCH:
+                            robot.pickup.pickupHatch(event);
+                            break;
+                    }
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
                 default:
                 case DONE:
-                    robot.elevator.setPosition(elevatorHeight); // Hold it at that height
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);

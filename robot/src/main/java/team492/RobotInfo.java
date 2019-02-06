@@ -89,6 +89,9 @@ public class RobotInfo
     //
     // Digital Input/Output ports.
     //
+    public static int DIO_CARGO_PROXIMITY_SENSOR                = 0;
+    public static int DIO_HATCH_PROXIMITY_SENSOR                = 1;
+
 
     //
     // PWM Channels.
@@ -103,6 +106,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
+    public static final int SOL_HATCH_DEPLOYER_RETRACT          = 0;
+    public static final int SOL_HATCH_DEPLOYER_EXTEND           = 1;
 
     //
     // Vision subsystem.
@@ -114,6 +119,9 @@ public class RobotInfo
     public static final PixyVision.Orientation PIXY_ORIENTATION = PixyVision.Orientation.NORMAL_LANDSCAPE;
     public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam1.DEF_I2C_ADDRESS;
     public static final int PIXY_TARGET_SIGNATURE               = 1;
+
+    public static final double CAMERA_DEPTH                     = 3; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_OFFSET                    = 4; // Inches from center of EE to center of camera, + = backward
 
     //
     // Ultrasonic sensors.

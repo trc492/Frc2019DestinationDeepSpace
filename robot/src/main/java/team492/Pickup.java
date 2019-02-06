@@ -23,16 +23,36 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import frclib.FrcDigitalInput;
+import frclib.FrcPneumatic;
+import trclib.TrcDigitalTrigger;
+import trclib.TrcEvent;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
+import trclib.TrcStateMachine;
+import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
 public class Pickup
 {
+    private static final String instanceName = "Pickup";
+
+    private enum State
+    {
+        START, MONITOR, DONE
+    }
+
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
-   private TrcPidActuator pitchController;
- 
+    private TrcPidActuator pitchController;
+    private TrcStateMachine<State> sm;
+    private TrcEvent event;
+    private FrcPneumatic hatchDeployer;
+    private FrcDigitalInput cargoSensor;
+    private TrcDigitalTrigger cargoTrigger;
+    private TrcEvent onFinishedEvent;
+    private TrcTaskMgr.TaskObject cargoDeployTaskObj;
+
     public Pickup()
     {
         pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
@@ -58,6 +78,83 @@ public class Pickup
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
         pitchController.setStallProtection(RobotInfo.PICKUP_STALL_MIN_POWER, RobotInfo.PICKUP_STALL_TIMEOUT,
             RobotInfo.PICKUP_STALL_RESET_TIMEOUT);
+
+        sm = new TrcStateMachine<>(instanceName + ".stateMachine");
+        event = new TrcEvent(instanceName + ".event");
+
+        cargoSensor = new FrcDigitalInput(instanceName + ".cargoSensor", RobotInfo.DIO_CARGO_PROXIMITY_SENSOR);
+        cargoSensor.setInverted(false);
+
+        cargoTrigger = new TrcDigitalTrigger(instanceName + ".cargoTrigger", cargoSensor, this::cargoDetectedEvent);
+        cargoTrigger.setEnabled(false);
+
+        hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
+            RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
+    }
+
+    private void cargoDetectedEvent(boolean active)
+    {
+        if (active)
+        {
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.set(true);
+            }
+            onFinishedEvent = null;
+            setPickupPower(0.0);
+            cargoTrigger.setEnabled(false);
+        }
+    }
+
+    public void cancel()
+    {
+        if (sm.isEnabled())
+        {
+            sm.stop();
+            cargoDeployTaskObj.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+        }
+
+        setPickupPower(0.0);
+        setPitchPower(0.0);
+
+        if (onFinishedEvent != null)
+        {
+            onFinishedEvent.set(true);
+        }
+    }
+
+    // TODO: Write current detection code to detect when the cargo is ejected.
+    public void deployCargo(TrcEvent event)
+    {
+        throw new UnsupportedOperationException("Not yet implemented!");
+    }
+
+    public void deployHatch(TrcEvent event)
+    {
+        event.clear();
+        hatchDeployer.timedExtend(1.0, 0.0, event);
+    }
+
+    public void pickupCargo(TrcEvent event)
+    {
+        if (cargoSensor.isActive())
+        {
+            // Return early if we already have a cargo
+            event.set(true);
+        }
+        else
+        {
+            // The cargo trigger will signal the event when it detects the cargo
+            event.clear();
+            this.onFinishedEvent = event;
+            cargoTrigger.setEnabled(true);
+        }
+    }
+
+    public void pickupHatch(TrcEvent event)
+    {
+        // Since this is literally driving into the hatch panel, it's already finished.
+        event.set(true);
     }
 
     public void setManualOverrideEnabled(boolean enabled)
@@ -88,8 +185,8 @@ public class Pickup
     public void setPitchPower(double power, boolean hold)
     {
         pitchMotor.set(power);
-//        power = TrcUtil.clipRange(power, -1.0, 1.0);
-//        pitchController.setPower(power, hold);
+        //        power = TrcUtil.clipRange(power, -1.0, 1.0);
+        //        pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)

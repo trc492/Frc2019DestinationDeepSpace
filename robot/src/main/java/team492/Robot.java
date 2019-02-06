@@ -125,7 +125,7 @@ public class Robot extends FrcRobotBase
     public Pickup pickup;
     public Elevator elevator;
 
-    public CmdAutoTargetAlign autoTargetAlign;
+    public CmdAutoDeploy autoDeploy;
 
     //
     // VisionTargetPipeline subsystem.
@@ -293,7 +293,7 @@ public class Robot extends FrcRobotBase
         //
         // AutoAssist commands.
         //
-        autoTargetAlign = new CmdAutoTargetAlign(this);
+        autoDeploy = new CmdAutoDeploy(this);
 
 
         //
