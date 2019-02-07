@@ -23,6 +23,7 @@
 package trclib;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * This class implements a platform independent pixy camera 2. This class is intended to be extended by a platform
@@ -266,10 +267,21 @@ public abstract class TrcPixyCam2
         public FeatureVectors(byte[] data, int startIndex)
         {
             super(data[startIndex]);
+            final String funcName = "FeatureVectors";
             vectors = new Vector[data[startIndex + 1]/6];
+
+            if (debugEnabled)
+            {
+                dbgTrace.traceInfo(funcName, "data=%s, startIndex=%d", Arrays.toString(data), startIndex);
+            }
+
             for (int i = 0, index = startIndex + 2; i < vectors.length; i++, index += 6)
             {
                 vectors[i] = new Vector(data, index);
+                if (debugEnabled)
+                {
+                    dbgTrace.traceInfo(funcName, "[%d]: %s", i, vectors[i]);
+                }
             }
         }   //FeatureVectors
 
@@ -418,6 +430,7 @@ public abstract class TrcPixyCam2
      */
     private byte[] sendRequest(byte requestType, byte[] data, byte expectedResponseType)
     {
+        final String funcName = "SendRequest";
         int dataLen = data == null ? 0 : data.length;
         byte[] request = new byte[4 + dataLen];
 
@@ -429,6 +442,12 @@ public abstract class TrcPixyCam2
         System.arraycopy(data, 0, request, 4, dataLen);
         syncWriteRequest(request);
         byte[] response = syncReadResponse();
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceInfo(funcName, "Request%s => Response%s",
+                Arrays.toString(request), Arrays.toString(response));
+        }
 
         if ((short) TrcUtil.bytesToInt(response[0], response[1]) == PIXY2_RECV_SYNC &&
             response[2] == expectedResponseType && validateChecksum(response))
@@ -676,7 +695,7 @@ public abstract class TrcPixyCam2
 
             for (int i = 6; i < response.length;)
             {
-                if (i + 1 < response.length && i + 2 + response[i + 1] < response.length)
+                if (i + 1 < response.length && i + 2 + response[i + 1] <= response.length)
                 {
                     Feature feature = null;
 
@@ -703,7 +722,11 @@ public abstract class TrcPixyCam2
                 i += 2 + response[i + 1];
             }
 
-            features = list.toArray(features);
+            if (list.size() > 0)
+            {
+                features = new Feature[list.size()];
+                features = list.toArray(features);
+            }
         }
 
         return features;

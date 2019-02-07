@@ -46,6 +46,7 @@ import trclib.TrcMecanumDriveBase;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
+import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
 import trclib.TrcUtil;
@@ -522,17 +523,32 @@ public class Robot extends FrcRobotBase
                 {
                     if (pixy != null && pixy.isEnabled())
                     {
-                        PixyVision.TargetInfo targetInfo = pixy.getTargetInfo();
-                        if (targetInfo == null)
+                        if (USE_PIXY_LINE_TARGET)
                         {
-                            dashboard.displayPrintf(11, "Pixy: Target not found!");
+                            Vector[] vectors = pixy.getLineVectors();
+                            if (vectors == null)
+                            {
+                                dashboard.displayPrintf(11, "Pixy: line not found");
+                            }
+                            else
+                            {
+                                dashboard.displayPrintf(11, "Pixy: %s", vectors[0]);
+                            }
                         }
                         else
                         {
-                            dashboard.displayPrintf(11, "Pixy: xDistance=%.1f, yDistance=%.1f, angle=%.1f",
-                                targetInfo.xDistance, targetInfo.yDistance, targetInfo.angle);
-                            dashboard.displayPrintf(12, "x=%d, y=%d, width=%d, height=%d",
-                                targetInfo.rect.x, targetInfo.rect.y, targetInfo.rect.width, targetInfo.rect.height);
+                            PixyVision.TargetInfo targetInfo = pixy.getTargetInfo();
+                            if (targetInfo == null)
+                            {
+                                dashboard.displayPrintf(11, "Pixy: Target not found!");
+                            }
+                            else
+                            {
+                                dashboard.displayPrintf(11, "Pixy: xDistance=%.1f, yDistance=%.1f, angle=%.1f",
+                                    targetInfo.xDistance, targetInfo.yDistance, targetInfo.angle);
+                                dashboard.displayPrintf(12, "x=%d, y=%d, width=%d, height=%d",
+                                    targetInfo.rect.x, targetInfo.rect.y, targetInfo.rect.width, targetInfo.rect.height);
+                            }
                         }
                     }
                 }
