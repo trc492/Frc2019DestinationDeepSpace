@@ -61,9 +61,16 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
+    private static final boolean FLIP_Y_AXIS = true;
+
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
+
+    // These are for the Logitech c920
+    private static final double CAMERA_FOV_X = 70.42; // 62.2; (for Raspi)
+    private static final double CAMERA_FOV_Y = 43.3; // 48.8;
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
@@ -111,7 +118,7 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private MatOfDouble dist = new MatOfDouble(DISTORTION_MATRIX);
+    private MatOfDouble dist = null;
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
     private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
     private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
@@ -164,7 +171,15 @@ public class RaspiVision
             dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
         }
 
-        cameraMat.put(0, 0, CAMERA_MATRIX);
+        if (!APPROXIMATE_CAMERA_MATRIX)
+        {
+            cameraMat.put(0, 0, CAMERA_MATRIX);
+            dist = new MatOfDouble(DISTORTION_MATRIX);
+        }
+        else
+        {
+            dist = new MatOfDouble(0, 0, 0, 0);
+        }
 
         cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
@@ -318,6 +333,13 @@ public class RaspiVision
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
+            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
+            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
+            // TODO: Should this be separate x and y focal lengths, or the average? test.
+            if (APPROXIMATE_CAMERA_MATRIX)
+            {
+                cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
+            }
         }
         // Get the selected target from the pipeline
         TargetData data = pipeline.getSelectedTarget();
@@ -405,10 +427,13 @@ public class RaspiVision
 
         Point[] points = new Point[] { leftBottomCorner, leftTopCorner, rightBottomCorner, rightTopCorner };
 
-        // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
-        for (int i = 0; i < points.length; i++)
+        if (FLIP_Y_AXIS)
         {
-            points[i].y = height - points[i].y;
+            // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
+            for (int i = 0; i < points.length; i++)
+            {
+                points[i].y = height - points[i].y;
+            }
         }
 
         imagePoints.fromArray(points);
@@ -436,16 +461,7 @@ public class RaspiVision
         // Convert the rotation matrix to euler angles
         double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
         // Convert the yaw to actual yaw with my fuckit (tm) method.
-        double objectYaw = yawMapper.applyAsDouble(angles[1]);
-
-        // Method 2 of getting the object yaw
-        Mat cameraPose = new Mat();
-        Mat t = new Mat();
-        Core.multiply(translationVector, new Scalar(-1), t);
-        Core.gemm(rotationMatrix, t, 0, new Mat(), 0, cameraPose, Core.GEMM_1_T);
-        double magicYaw = Math.toDegrees(Math.atan2(cameraPose.get(0,0)[0], cameraPose.get(2,0)[0]));
-        // the yaw is some combo of magicYaw and heading. either add or subtract, idk.
-        System.out.printf("Yaw: %.2f, Magic Yaw kinda: %.2f, heading: %.2f\n", objectYaw, magicYaw, heading);
+        double objectYaw = angles[1]; // yawMapper.applyAsDouble(angles[1]);
 
         // Write to the debug display, if necessary
         if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
@@ -464,7 +480,10 @@ public class RaspiVision
             // Draw the left and right target corners. First you have to re-flip the y coordinate
             for (Point point : points)
             {
-                point.y = height - point.y;
+                if (FLIP_Y_AXIS)
+                {
+                    point.y = height - point.y;
+                }
                 Imgproc.circle(image, point, 1, new Scalar(0, 255, 255), 2);
             }
 
@@ -514,8 +533,11 @@ public class RaspiVision
         pointToProject.fromArray(point);
         Calib3d.projectPoints(pointToProject, rotationVector, translationVector, cameraMat, dist, projectedPoints);
         Point toDraw = projectedPoints.toArray()[0];
-        // Re-flip the y axis
-        toDraw.y = height - toDraw.y;
+        if (FLIP_Y_AXIS)
+        {
+            // Re-flip the y axis
+            toDraw.y = height - toDraw.y;
+        }
         Imgproc.line(image, origin, toDraw, color, 2);
     }
 
