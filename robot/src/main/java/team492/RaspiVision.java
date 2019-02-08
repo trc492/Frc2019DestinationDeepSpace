@@ -13,20 +13,38 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaspiVision
 {
+    private static final boolean DEFAULT_USE_VISION_YAW = false;
+
+    private Robot robot;
     private volatile RelativePose relativePose = null;
     private Gson gson;
     private AtomicInteger consecutiveTargetFrames = new AtomicInteger(0);
     private int maxAverageWindow = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
+    private boolean useVisionYaw = DEFAULT_USE_VISION_YAW;
 
-    public RaspiVision()
+    public RaspiVision(Robot robot)
     {
+        this.robot = robot;
         NetworkTable table = NetworkTableInstance.getDefault().getTable("RaspiVision");
         NetworkTableEntry entry = table.getEntry("VisionData");
         gson = new Gson();
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+    }
+
+    /**
+     * If useVisionYaw is enabled, the angle of the hatch/cargo panel is calculated using the vision code. If it is
+     * disabled, the hatch/cargo panel angle will be calculated using the robot gyro. Theoretically, if the vision code
+     * is robust enough it could have better performance than the gyro. In practice, the vision code is noisy, so using
+     * the gyro might be a safer bet.
+     *
+     * @param enabled If true, enable useVisionYaw. If false, disable it.
+     */
+    public void setUseVisionYawEnabled(boolean enabled)
+    {
+        useVisionYaw = enabled;
     }
 
     private void updateTargetInfo(EntryNotification event)
@@ -51,6 +69,11 @@ public class RaspiVision
         {
             // Deserialize the latest calculated pose
             this.relativePose = gson.fromJson(info, RelativePose.class);
+            // If configured to not use vision yaw, use yaw from gyro data.
+            if (!useVisionYaw)
+            {
+                correctObjectYaw(relativePose);
+            }
             // Increment the number of consecutive frames
             this.consecutiveTargetFrames.incrementAndGet();
             synchronized (framesLock)
@@ -64,6 +87,24 @@ public class RaspiVision
                 }
             }
         }
+    }
+
+    private int round(double d)
+    {
+        return (int) Math.floor(d + 0.5);
+    }
+
+    /**
+     * Correct the object yaw value using gyro data, since the required heading is some multiple of 45.
+     *
+     * @param pose The pose object to correct
+     */
+    private void correctObjectYaw(RelativePose pose)
+    {
+        double robotHeading = robot.driveBase.getHeading();
+        int multiple = round(robotHeading / 45.0);
+        double requiredHeading = multiple * 45.0;
+        pose.objectYaw =  requiredHeading - robotHeading;
     }
 
     /**

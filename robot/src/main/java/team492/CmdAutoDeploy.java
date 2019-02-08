@@ -157,7 +157,7 @@ public class CmdAutoDeploy
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
 
-                    robot.targetHeading += pose.objectYaw;
+                    robot.targetHeading = robot.driveBase.getHeading() + pose.objectYaw;
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
 
                     sm.addEvent(elevatorEvent);
