@@ -107,14 +107,14 @@ public class CmdAutoDeploy
             {
                 onFinishedEvent.set(true);
             }
-            stop(hardStop);
+            stop();
         }
     }
 
-    private void stop(boolean hardStop)
+    private void stop()
     {
         sm.stop();
-        robot.pidDrive.cancel(hardStop);
+        robot.pidDrive.cancel();
         robot.elevator.setPower(0.0);
         onFinishedEvent = null;
         setEnabled(false);
@@ -210,7 +210,7 @@ public class CmdAutoDeploy
                     {
                         onFinishedEvent.set(true);
                     }
-                    stop(true);
+                    stop();
                     break;
             }
         }

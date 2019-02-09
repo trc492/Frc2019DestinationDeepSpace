@@ -535,16 +535,6 @@ public class TrcPidDrive
      */
     public synchronized void cancel()
     {
-        cancel(true);
-    }
-
-    /**
-     * This method cancels an active PID drive operation, optionally stopping all motors.
-     *
-     * @param hardStop True to stop all motors, false otherwise.
-     */
-    public synchronized void cancel(boolean hardStop)
-    {
         final String funcName = "cancel";
 
         if (debugEnabled)
@@ -554,7 +544,7 @@ public class TrcPidDrive
 
         if (active)
         {
-            stopPid(hardStop);
+            stopPid();
             canceled = true;
             if (notifyEvent != null)
             {
@@ -587,15 +577,10 @@ public class TrcPidDrive
         return canceled;
     }   //isCanceled
 
-    private synchronized void stopPid()
-    {
-        stopPid(true);
-    }
-
     /**
      * This method stops the PID drive operation and reset the states.
      */
-    private synchronized void stopPid(boolean hardStop)
+    private synchronized void stopPid()
     {
         final String funcName = "stopPid";
 
@@ -605,10 +590,7 @@ public class TrcPidDrive
         }
 
         setTaskEnabled(false);
-        if (hardStop)
-        {
-            driveBase.stop();
-        }
+        driveBase.stop();
 
         if (xPidCtrl != null)
         {
