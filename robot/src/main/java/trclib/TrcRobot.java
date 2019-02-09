@@ -121,6 +121,18 @@ public class TrcRobot
          */
         boolean cmdPeriodic(double elapsedTime);
 
+        /**
+         * This method checks if the current RobotCommand is running.
+         *
+         * @return True if the command is running, false otherwise.
+         */
+        boolean isActive();
+
+        /**
+         * Cancel this command prematurely.
+         */
+        void cancel();
+
     }   //interface RobotCommand
 
     private static RunMode currRunMode = RunMode.INVALID_MODE;

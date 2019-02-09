@@ -25,13 +25,12 @@ package team492;
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
-import frclib.FrcJoystick;
 import hallib.HalDashboard;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
 
-public class FrcAuto implements TrcRobot.RobotMode
+public class FrcAuto extends FrcTeleOp
 {
     private static final String moduleName = "FrcAuto";
     private static final boolean DO_UPDATES = false;
@@ -49,12 +48,13 @@ public class FrcAuto implements TrcRobot.RobotMode
     private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
     private AutoStrategy autoStrategy;
     private double delay;
-    private boolean manualOverride = false;
 
     private TrcRobot.RobotCommand autoCommand;
 
     public FrcAuto(Robot robot)
     {
+        super(robot);
+
         this.robot = robot;
         //
         // Create Autonomous Mode specific menus.
@@ -71,6 +71,21 @@ public class FrcAuto implements TrcRobot.RobotMode
         autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
     } // FrcAuto
 
+    public boolean isAutoActive()
+    {
+        return autoCommand != null && autoCommand.isActive();
+    }
+
+    public void cancel()
+    {
+        if (autoCommand != null)
+        {
+            autoCommand.cancel();
+            autoCommand = null;
+            autoStrategy = AutoStrategy.DO_NOTHING;
+        }
+    }
+
     //
     // Implements TrcRobot.RunMode.
     //
@@ -78,6 +93,9 @@ public class FrcAuto implements TrcRobot.RobotMode
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
+        // Init teleop since we're in sandstorm mode
+        super.startMode(prevMode, nextMode);
+
         final String funcName = moduleName + ".startMode";
 
         robot.getGameInfo();
@@ -85,21 +103,6 @@ public class FrcAuto implements TrcRobot.RobotMode
             .traceInfo(funcName, "%s_%s%03d (%s%d) [FMSConnected=%b] msg=%s", robot.eventName, robot.matchType,
                 robot.matchNumber, robot.alliance.toString(), robot.location, robot.ds.isFMSAttached(),
                 robot.gameSpecificMessage);
-
-        //
-        // Configure joysticks.
-        //
-        robot.leftDriveStick.setButtonHandler(this::leftDriveStickButtonEvent);
-        robot.leftDriveStick.setYInverted(true);
-
-        robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
-        robot.rightDriveStick.setYInverted(true);
-
-        robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
-        robot.operatorStick.setYInverted(false);
-
-        robot.encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
-        robot.encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
 
         //
         // Retrieve menu choice values.
@@ -152,12 +155,9 @@ public class FrcAuto implements TrcRobot.RobotMode
             robot.announceSafety();
         }
 
-        if (manualOverride)
+        if (!robot.isAutoActive())
         {
-            double x = robot.leftDriveStick.getXWithDeadband(true);
-            double y = robot.rightDriveStick.getYWithDeadband(true);
-            double rot = robot.rightDriveStick.getTwistWithDeadband(true);
-            robot.driveBase.holonomicDrive(x, y, rot);
+            super.runPeriodic(elapsedTime);
         }
     } // runPeriodic
 
@@ -176,132 +176,5 @@ public class FrcAuto implements TrcRobot.RobotMode
             }
         }
     } // runContinuous
-
-    //
-    // Implements TrcJoystick.ButtonHandler.
-    //
-
-    public void leftDriveStickButtonEvent(int button, boolean pressed)
-    {
-        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-
-        switch (button)
-        {
-            case FrcJoystick.LOGITECH_TRIGGER:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON2:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON3:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON4:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON5:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON6:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON7:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON8:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON9:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
-                break;
-        }
-    } // leftDriveStickButtonEvent
-
-    public void rightDriveStickButtonEvent(int button, boolean pressed)
-    {
-        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-
-        switch (button)
-        {
-            case FrcJoystick.SIDEWINDER_TRIGGER:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON2:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON3:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON4:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON5:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON6:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON7:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON8:
-                break;
-
-            case FrcJoystick.SIDEWINDER_BUTTON9:
-                break;
-        }
-    } // rightDriveStickButtonEvent
-
-    public void operatorStickButtonEvent(int button, boolean pressed)
-    {
-        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-
-        switch (button)
-        {
-            case FrcJoystick.LOGITECH_TRIGGER:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON2:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON3:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON4:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON5:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON6:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON7:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON8:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON9:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON10:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON12:
-                break;
-        }
-    } // operatorStickButtonEvent
 
 } // class FrcAuto

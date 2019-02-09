@@ -100,6 +100,20 @@ public class FrcJoystick extends Joystick
     public static final int XBOX_RB             = (1 << 5);
     public static final int XBOX_BACK           = (1 << 6);
     public static final int XBOX_START          = (1 << 7);
+    //
+    // Button panel:
+    // UsagePage=0x01, Usage-0x04 (i have no idea what this means)
+    //
+    public static final int PANEL_BUTTON1    = (1 << 0);
+    public static final int PANEL_BUTTON2    = (1 << 1);
+    public static final int PANEL_BUTTON3    = (1 << 2);
+    public static final int PANEL_BUTTON4    = (1 << 3);
+    public static final int PANEL_BUTTON5    = (1 << 4);
+    public static final int PANEL_BUTTON6    = (1 << 5);
+    public static final int PANEL_BUTTON7    = (1 << 6);
+    public static final int PANEL_BUTTON8    = (1 << 7);
+    public static final int PANEL_BUTTON9    = (1 << 8);
+    public static final int PANEL_BUTTON10   = (1 << 9);
 
     /**
      * This interface, if provided, will allow this class to do a notification callback when there are button

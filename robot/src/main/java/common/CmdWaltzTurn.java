@@ -75,21 +75,29 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     {
         this.clockwiseTurn = clockwiseTurn;
         this.driveInverted = driveInverted;
-        stop();
+        cancel();
         sm.start(State.WALTZ_TURN);
     }   //start
 
     /**
      * This method is called to abort the waltz turn in progress.
      */
-    public void stop()
+    @Override
+    public void cancel()
     {
         if (robot.pidDrive.isActive())
         {
             robot.pidDrive.cancel();
             robot.pidDrive.setTurnMode(prevTurnMode);
         }
+        sm.stop();
     }   //cancel
+
+    @Override
+    public boolean isActive()
+    {
+        return sm.isEnabled();
+    }
 
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.
