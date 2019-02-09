@@ -162,6 +162,8 @@ public class Robot extends FrcRobotBase
     public double drivePowerLimit;
     public TrcPidController.PidCoefficients tunePidCoeff;
 
+    private FrcAuto autoMode;
+
     /**
      * Constructor.
      */
@@ -301,9 +303,10 @@ public class Robot extends FrcRobotBase
         //
         // Create Robot Modes.
         //
+        autoMode = new FrcAuto(this);
         setupRobotModes(
             new FrcTeleOp(this),
-            new FrcAuto(this),
+            autoMode,
             new FrcTest(this),
             new FrcDisabled(this));
     }   //robotInit
@@ -580,6 +583,16 @@ public class Robot extends FrcRobotBase
                 builder.addDoubleProperty("Rear Right Motor Speed", rightRearWheel::getPower, null);
             }
         };
+    }
+
+    /**
+     * Checks if any auto processes are running, be it auto mode or auto assist, etc.
+     *
+     * @return True if any auto processes are active, false otherwise.
+     */
+    public boolean isAutoActive()
+    {
+        return autoMode.isAutoActive() || autoDeploy.isActive();
     }
 
     public void announceSafety()

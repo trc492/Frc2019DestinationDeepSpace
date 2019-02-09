@@ -135,6 +135,21 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     //
     // Implements the TrcRobot.RobotCommand interface.
     //
+    @Override
+    public boolean isActive()
+    {
+        return sm.isEnabled();
+    }
+
+    @Override
+    public void cancel()
+    {
+        if (robot.pidDrive.isActive())
+        {
+            robot.pidDrive.cancel();
+        }
+        sm.stop();
+    }   //cancel
 
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.

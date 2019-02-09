@@ -87,6 +87,22 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
     // Implements the TrcRobot.AutoStrategy interface.
     //
 
+    @Override
+    public boolean isActive()
+    {
+        return sm.isEnabled();
+    }
+
+    /**
+     * Stop the drivebase.
+     */
+    @Override
+    public void cancel()
+    {
+        robot.driveBase.stop();
+        sm.stop();
+    }   //cancel
+
     /**
      * This method must be called periodically by the caller to drive the command sequence forward.
      *
