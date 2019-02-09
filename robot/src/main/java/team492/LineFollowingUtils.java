@@ -4,9 +4,6 @@ package team492;
 
 public class LineFollowingUtils
 {
-    public static final int PIXY2_HEIGHT = 104;
-    public static final int PIXY2_WIDTH = 636;
-
     public static double getTurnDegrees(double angle)
     {
         return angle - 90.0;
@@ -34,8 +31,8 @@ public class LineFollowingUtils
 	 */
     public static RealWorldPair getRWP(int x0, int y0, double widthCoefficient, double heightCoefficient)
     {
-        double xLength = widthCoefficient * ((double) x0 / (double) PIXY2_WIDTH);
-        double yLength = heightCoefficient * ((double) (PIXY2_HEIGHT - y0) / (double) PIXY2_HEIGHT);
+        double xLength = widthCoefficient * ((double) x0 / (double) RobotInfo.PIXY2_LINE_TRACKING_WIDTH);
+        double yLength = heightCoefficient * ((double) (RobotInfo.PIXY2_LINE_TRACKING_HEIGHT - y0) / (double) RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
         return new RealWorldPair(xLength, yLength);
     }
 
