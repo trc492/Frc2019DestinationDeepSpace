@@ -63,6 +63,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
+
+        robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
     } // startMode
 
     @Override
@@ -141,7 +143,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void leftDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed? "pressed": "released");
+        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
@@ -185,7 +187,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void rightDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s", button, pressed? "pressed": "released");
+        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
@@ -208,8 +210,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     gyroAssist = !gyroAssist;
                     if (gyroAssist)
                     {
-                        robot.driveBase.enableGyroAssist(
-                            RobotInfo.DRIVE_MAX_ROTATION_RATE, RobotInfo.DRIVE_GYRO_ASSIST_KP);
+                        robot.driveBase
+                            .enableGyroAssist(RobotInfo.DRIVE_MAX_ROTATION_RATE, RobotInfo.DRIVE_GYRO_ASSIST_KP);
                     }
                     else
                     {
@@ -234,7 +236,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed? "pressed": "released");
+        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
@@ -243,6 +245,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                robot.pickup.deployHatch(null);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
@@ -276,6 +279,44 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON12:
+                break;
+        }
+    } // operatorStickButtonEvent
+
+    public void buttonPanelButtonEvent(int button, boolean pressed)
+    {
+        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
+
+        switch (button)
+        {
+            case FrcJoystick.LOGITECH_TRIGGER:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON3:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON5:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON6:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON7:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON8:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
                 break;
         }
     } // operatorStickButtonEvent

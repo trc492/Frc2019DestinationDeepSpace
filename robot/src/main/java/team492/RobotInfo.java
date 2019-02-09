@@ -44,6 +44,7 @@ public class RobotInfo
     public static final int JSPORT_LEFT_DRIVESTICK              = 0;
     public static final int JSPORT_RIGHT_DRIVESTICK             = 1;
     public static final int JSPORT_OPERATORSTICK                = 2;
+    public static final int BUTTON_PANEL                        = 3;
 
     //
     // CAN IDs.

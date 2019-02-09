@@ -152,13 +152,17 @@ public class Pickup
             event.clear();
         }
         onFinishedEvent = event;
+        cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
         currentTrigger.setEnabled(true);
         setPickupPower(-0.7);
     }
 
     public void deployHatch(TrcEvent event)
     {
-        event.clear();
+        if (event != null)
+        {
+            event.clear();
+        }
         hatchDeployer.timedExtend(1.0, 0.0, event);
     }
 
@@ -177,6 +181,7 @@ public class Pickup
                 event.clear();
             }
             this.onFinishedEvent = event;
+            currentTrigger.setEnabled(false); // make sure the current trigger is disabled
             cargoTrigger.setEnabled(true);
             setPickupPower(1.0);
         }
