@@ -705,42 +705,4 @@ public class Robot extends FrcRobotBase
 
         return targetInfo != null? targetInfo.yDistance: null;
     }
-
-    public void alignRobotWithTape()
-    {
-        if (gyroTurnPidCtrl == null)
-        {
-            return;
-        }
-        Vector[] possiblePaths = pixy.getLineVectors();
-        if (possiblePaths.length == 0)
-        {
-            return;
-        }
-        Vector toPick = null;
-        double bestLength = 0.0;
-        for (int i = 0; i < possiblePaths.length; i++)
-        {
-            Vector current = possiblePaths[i];
-            double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0)) + ((current.x1 - current.x0) * (current.x1 - current.x0)));
-            if (curLength > bestLength)
-            {
-                bestLength = curLength;
-                toPick = current;
-            }
-        }
-
-        if (toPick == null)
-        {
-            return;
-        }
-        else
-        {
-            LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0, RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-            LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1, RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-            double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
-            gyroTurnPidCtrl.setTarget(degrees);
-        }
-    }
-
 }   //class Robot
