@@ -25,146 +25,169 @@ package team492;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
+import trclib.TrcTaskMgr;
 import trclib.TrcPixyCam2.Vector;
 
-public class CmdRobotTargetAlign implements TrcRobot.RobotCommand
+public class CmdRobotTargetAlign
 {
-    private static final String moduleName = "CmdRobotTargetAlign";
+    private static final String instanceName = "CmdRobotTargetAlign";
 
     public static enum State
     {
-        START, ALIGN_ROBOT, DONE
+        START,
+        ALIGN_ROBOT,
+        DONE
     }
 
     private Robot robot;
     private TrcEvent event;
     private TrcStateMachine<State> sm;
+    private TrcTaskMgr.TaskObject lineAlignmentTask;
+    private TrcEvent onFinishedEvent;
     private double targetX = 0.0;
     private double targetY = 0.0;
 
     public CmdRobotTargetAlign(Robot robot)
     {
         this.robot = robot;
-        event = new TrcEvent(moduleName);
-        sm = new TrcStateMachine<>(moduleName);
+        lineAlignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".lineAlignTask", this::lineAlignTask);
         sm.start(State.START);
-    }
-
-    public boolean isEnabled()
-    {
-        return sm.isEnabled();
     }
 
     public boolean isActive()
     {
-        return isEnabled();
+        return sm.isEnabled();
+    }
+
+    public void start(TrcEvent event)
+    {
+        this.onFinishedEvent = event;
+        setEnabled(true);
     }
 
     public void cancel()
     {
-        if (sm.isEnabled())
+        cancel(true);
+    }
+
+    public void cancel(boolean hardStop)
+    {
+        if (isActive())
         {
-            robot.pidDrive.cancel();
-            sm.stop();
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.set(true);
+            }
+            stop();
+        }
+    }
+
+    private void stop()
+    {
+        sm.stop();
+        robot.pidDrive.cancel();
+        onFinishedEvent = null;
+        setEnabled(false);
+    }
+
+    private void setEnabled(boolean enabled)
+    {
+        if (enabled)
+        {
+            lineAlignmentTask.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            sm.start(State.START);
+        }
+        else
+        {
+            lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
         }
     }
 
     private int alignAngleTries = 0;
 
-    @Override
-    public boolean cmdPeriodic(double elapsedTime)
+    private void lineAlignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
     {
-        boolean done = !sm.isEnabled();
+        State state = sm.checkReadyAndGetState();
+        State nextState;
 
-        if (!done)
+        if (state != null)
         {
-            State state = sm.checkReadyAndGetState();
-            State nextState;
-            boolean traceState = true;
-            //
-            // Print debug info.
-            //
-            robot.dashboard.displayPrintf(1, "State: %s", state == null ? "NotReady" : state);
-
-            if (state != null)
+            switch (sm.getState())
             {
-                switch (sm.getState())
-                {
-                    case START:
-                        robot.globalTracer.traceInfo(moduleName, "%s: Starting robot alignment assist! ^w^", state);
-                        sm.setState(State.ALIGN_ROBOT);
-                        break;
+                case START:
+                    robot.globalTracer.traceInfo(instanceName, "%s: Starting robot alignment assist! ^w^", state);
+                    sm.setState(State.ALIGN_ROBOT);
+                    break;
 
-                    case ALIGN_ROBOT:
-                        robot.globalTracer.traceInfo(moduleName, "%s: Trying to align robot (try %d of 3)", state,
-                            alignAngleTries);
-                        Vector[] possiblePaths = robot.pixy.getLineVectors();
+                case ALIGN_ROBOT:
+                    robot.globalTracer.traceInfo(instanceName, "%s: Trying to align robot (try %d of 3)", state,
+                        alignAngleTries);
+                    Vector[] possiblePaths = robot.pixy.getLineVectors();
 
-                        if (possiblePaths.length == 0)
+                    if (possiblePaths.length == 0)
+                    {
+                        robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
+                        nextState = State.DONE;
+                    }
+                    else
+                    {
+                        robot.globalTracer.traceInfo(instanceName, "%s: Found %d possible lines.", state,
+                            possiblePaths.length);
+                        Vector toPick = null;
+                        double bestLength = 0.0;
+                        for (int i = 0; i < possiblePaths.length; i++)
                         {
-                            robot.globalTracer.traceInfo(moduleName, "%s: I don't see a line! Quitting...", state);
-                            nextState = State.DONE;
-                        }
-                        else
-                        {
-                            robot.globalTracer.traceInfo(moduleName, "%s: Found %d possible lines.", state, possiblePaths.length);
-                            Vector toPick = null;
-                            double bestLength = 0.0;
-                            for (int i = 0; i < possiblePaths.length; i++)
+                            Vector current = possiblePaths[i];
+                            double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
+                                + ((current.x1 - current.x0) * (current.x1 - current.x0)));
+                            if (curLength > bestLength)
                             {
-                                Vector current = possiblePaths[i];
-                                double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
-                                    + ((current.x1 - current.x0) * (current.x1 - current.x0)));
-                                if (curLength > bestLength)
-                                {
-                                    bestLength = curLength;
-                                    toPick = current;
-                                }
+                                bestLength = curLength;
+                                toPick = current;
                             }
-
-                            robot.globalTracer.traceInfo(moduleName, "%s: Line found! Index: %d, length: %.2f pixels", state, toPick.index, bestLength);
-
-                            LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0,
-                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                            LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1,
-                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                            double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
-
-                            robot.globalTracer.traceInfo(moduleName, "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, toPick.x0, toPick.y0, origin.getXLength(), origin.getYLength());
-                            robot.globalTracer.traceInfo(moduleName, "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in", state, toPick.x1, toPick.y1, p2.getXLength(), p2.getYLength());
-                            robot.globalTracer.traceInfo(moduleName, "%s: Target heading set to %.2f °", state, degrees);
-
-                            robot.targetHeading = degrees;
-                            robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
                         }
 
-                        if (alignAngleTries >= 3)
-                        {
-                            nextState = State.DONE;
-                        }
-                        else
-                        {
-                            alignAngleTries++;
-                            nextState = State.ALIGN_ROBOT;
-                        }
-                        
-                        sm.waitForSingleEvent(event, nextState);
-                        break;
+                        robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
+                            state, toPick.index, bestLength);
 
-                    case DONE:
-                        robot.globalTracer.traceInfo(moduleName, "%s: Robot alignment finished :3", state);
-                        done = true;
-                        sm.stop();
-                        break;
-                }
+                        LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0,
+                            RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
+                        LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1,
+                            RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
+                        double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
 
-                if (traceState)
-                {
-                    robot.traceStateInfo(elapsedTime, state.toString(), targetX, targetY, robot.targetHeading);
-                }
+                        robot.globalTracer.traceInfo(instanceName, "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in",
+                            state, toPick.x0, toPick.y0, origin.getXLength(), origin.getYLength());
+                        robot.globalTracer.traceInfo(instanceName, "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in",
+                            state, toPick.x1, toPick.y1, p2.getXLength(), p2.getYLength());
+                        robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, degrees);
+
+                        robot.targetHeading = degrees;
+                        robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+                    }
+
+                    if (alignAngleTries >= 3)
+                    {
+                        nextState = State.DONE;
+                    }
+                    else
+                    {
+                        alignAngleTries++;
+                        nextState = State.ALIGN_ROBOT;
+                    }
+
+                    sm.waitForSingleEvent(event, nextState);
+                    break;
+
+                case DONE:
+                    robot.globalTracer.traceInfo(instanceName, "%s: Robot alignment finished :3", state);
+                    if (onFinishedEvent != null)
+                    {
+                        onFinishedEvent.set(true);
+                    }
+                    sm.stop();
+                    break;
             }
         }
-        return done;
     }
-
 }
