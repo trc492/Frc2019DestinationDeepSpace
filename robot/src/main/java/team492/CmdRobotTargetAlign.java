@@ -32,7 +32,7 @@ public class CmdRobotTargetAlign
 {
     private static final String instanceName = "CmdRobotTargetAlign";
 
-    public static enum State
+    public enum State
     {
         START, ALIGN_ROBOT, DONE
     }
@@ -48,8 +48,9 @@ public class CmdRobotTargetAlign
     public CmdRobotTargetAlign(Robot robot)
     {
         this.robot = robot;
+        sm = new TrcStateMachine<>(instanceName + ".stateMachine");
+        event = new TrcEvent(instanceName + ".event");
         lineAlignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".lineAlignTask", this::lineAlignTask);
-        sm.start(State.START);
     }
 
     public boolean isActive()
@@ -61,14 +62,10 @@ public class CmdRobotTargetAlign
     {
         this.onFinishedEvent = event;
         setEnabled(true);
+        sm.start(State.START);
     }
 
     public void cancel()
-    {
-        cancel(true);
-    }
-
-    public void cancel(boolean hardStop)
     {
         if (isActive())
         {
@@ -113,7 +110,8 @@ public class CmdRobotTargetAlign
             switch (sm.getState())
             {
                 case START:
-                    robot.globalTracer.traceInfo(instanceName, "%s: Starting robot alignment assist! ^w^", state);
+                    alignAngleTries = 0;
+                    robot.globalTracer.traceInfo(instanceName, "%s: Starting robot alignment assist.", state);
                     sm.setState(State.ALIGN_ROBOT);
                     break;
 
@@ -169,7 +167,7 @@ public class CmdRobotTargetAlign
                                 p2.getXLength(), p2.getYLength());
                             robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
                                 degrees);
-                            robot.targetHeading = degrees;
+                            robot.targetHeading = robot.driveBase.getHeading() + degrees;
                             robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
 
                             if (alignAngleTries >= 3)
@@ -188,7 +186,7 @@ public class CmdRobotTargetAlign
                     break;
 
                 case DONE:
-                    robot.globalTracer.traceInfo(instanceName, "%s: Robot alignment finished :3", state);
+                    robot.globalTracer.traceInfo(instanceName, "%s: Robot alignment finished", state);
                     if (onFinishedEvent != null)
                     {
                         onFinishedEvent.set(true);
