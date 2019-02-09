@@ -90,17 +90,6 @@ public class CmdAutoDeploy
      */
     public void cancel()
     {
-        cancel(true);
-    }
-
-    /**
-     * Cancel the auto alignment command, optionally without stopping the motors. This is so if the drivers want to
-     * override it, the robot doesn't stop in the middle. It will allow the robot to switch into manual control faster.
-     *
-     * @param hardStop True to stop the wheels, false otherwise.
-     */
-    public void cancel(boolean hardStop)
-    {
         if (isActive())
         {
             if (onFinishedEvent != null)
