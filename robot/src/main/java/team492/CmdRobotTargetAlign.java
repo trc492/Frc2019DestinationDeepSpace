@@ -34,9 +34,7 @@ public class CmdRobotTargetAlign
 
     public static enum State
     {
-        START,
-        ALIGN_ROBOT,
-        DONE
+        START, ALIGN_ROBOT, DONE
     }
 
     private Robot robot;
@@ -173,17 +171,17 @@ public class CmdRobotTargetAlign
                                 degrees);
                             robot.targetHeading = degrees;
                             robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
-                        }
-                    }
 
-                    if (alignAngleTries >= 3)
-                    {
-                        nextState = State.DONE;
-                    }
-                    else
-                    {
-                        alignAngleTries++;
-                        nextState = State.ALIGN_ROBOT;
+                            if (alignAngleTries >= 3)
+                            {
+                                nextState = State.DONE;
+                            }
+                            else
+                            {
+                                alignAngleTries++;
+                                nextState = State.ALIGN_ROBOT;
+                            }
+                        }
                     }
 
                     sm.waitForSingleEvent(event, nextState);
