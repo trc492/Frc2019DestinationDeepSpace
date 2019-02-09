@@ -18,7 +18,6 @@ public class RaspiVision
     private Robot robot;
     private volatile RelativePose relativePose = null;
     private Gson gson;
-    private AtomicInteger consecutiveTargetFrames = new AtomicInteger(0);
     private int maxAverageWindow = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
@@ -62,8 +61,6 @@ public class RaspiVision
                     frames.clear();
                 }
             }
-            // Reset the number of consecutive frames
-            consecutiveTargetFrames.set(0);
         }
         else
         {
@@ -74,8 +71,6 @@ public class RaspiVision
             {
                 correctObjectYaw(relativePose);
             }
-            // Increment the number of consecutive frames
-            this.consecutiveTargetFrames.incrementAndGet();
             synchronized (framesLock)
             {
                 // Add the latest pose
@@ -125,22 +120,41 @@ public class RaspiVision
      */
     public RelativePose getAveragePose(int numFrames)
     {
-        int fromIndex = Math.max(0, frames.size() - numFrames);
+        return getAveragePose(numFrames, false);
+    }
+
+    /**
+     * Calculates the average pose of the last numFrames frames, optionally requiring numFrames frames.
+     *
+     * @param numFrames How many frames to average.
+     * @param requireAll If true, require at least numFrames frames to average.
+     * @return Average of last numFrames frames, or null if not enough frames and requireAll is true.
+     */
+    public RelativePose getAveragePose(int numFrames, boolean requireAll)
+    {
         RelativePose average = new RelativePose();
-        List<RelativePose> poses = frames.subList(fromIndex, frames.size() - 1);
-        for (RelativePose pose : poses)
+        synchronized (framesLock)
         {
-            average.objectYaw += pose.objectYaw;
-            average.r += pose.r;
-            average.theta += pose.theta;
-            average.x += pose.x;
-            average.y += pose.y;
+            if (requireAll && frames.size() < numFrames)
+            {
+                return null;
+            }
+            int fromIndex = Math.max(0, frames.size() - numFrames);
+            List<RelativePose> poses = frames.subList(fromIndex, frames.size() - 1);
+            for (RelativePose pose : poses)
+            {
+                average.objectYaw += pose.objectYaw;
+                average.r += pose.r;
+                average.theta += pose.theta;
+                average.x += pose.x;
+                average.y += pose.y;
+            }
+            average.objectYaw /= poses.size();
+            average.r /= poses.size();
+            average.theta /= poses.size();
+            average.x /= poses.size();
+            average.y /= poses.size();
         }
-        average.objectYaw /= poses.size();
-        average.r /= poses.size();
-        average.theta /= poses.size();
-        average.x /= poses.size();
-        average.y /= poses.size();
         return average;
     }
 
@@ -156,16 +170,6 @@ public class RaspiVision
             throw new IllegalArgumentException("numFrames must be >= 0!");
         }
         this.maxAverageWindow = numFrames;
-    }
-
-    /**
-     * Gets how many consecutive frames the target has been detected.
-     *
-     * @return The number of consecutive frames the target has been detected.
-     */
-    public int getConsecutiveTargetFrames()
-    {
-        return consecutiveTargetFrames.get();
     }
 
     /**

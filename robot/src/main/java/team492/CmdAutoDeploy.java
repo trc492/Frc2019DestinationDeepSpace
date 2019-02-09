@@ -131,9 +131,9 @@ public class CmdAutoDeploy
             switch (state)
             {
                 case START:
-                    if (robot.vision.getConsecutiveTargetFrames() > 5)
+                    pose = robot.vision.getAveragePose(5, true);
+                    if (pose != null)
                     {
-                        pose = robot.vision.getAveragePose(5);
                         sm.setState(State.ORIENT);
                     }
                     break;
@@ -172,7 +172,7 @@ public class CmdAutoDeploy
                 case DEPLOY:
                     robot.elevator.setPosition(elevatorHeight); // Hold it at that height
                     event.clear();
-                    switch(deployType)
+                    switch (deployType)
                     {
                         case CARGO:
                             robot.pickup.deployCargo(event);
