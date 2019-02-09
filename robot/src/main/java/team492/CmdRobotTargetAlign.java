@@ -124,46 +124,56 @@ public class CmdRobotTargetAlign
                         alignAngleTries);
                     Vector[] possiblePaths = robot.pixy.getLineVectors();
 
-                    if (possiblePaths.length == 0)
+                    if (possiblePaths == null)
                     {
-                        robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
+                        robot.globalTracer.traceInfo(instanceName, "%s: Pixy2 not found! Quitting...", state);
                         nextState = State.DONE;
                     }
                     else
                     {
-                        robot.globalTracer.traceInfo(instanceName, "%s: Found %d possible lines.", state,
-                            possiblePaths.length);
-                        Vector toPick = null;
-                        double bestLength = 0.0;
-                        for (int i = 0; i < possiblePaths.length; i++)
+                        if (possiblePaths.length == 0)
                         {
-                            Vector current = possiblePaths[i];
-                            double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
-                                + ((current.x1 - current.x0) * (current.x1 - current.x0)));
-                            if (curLength > bestLength)
-                            {
-                                bestLength = curLength;
-                                toPick = current;
-                            }
+                            robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
+                            nextState = State.DONE;
                         }
+                        else
+                        {
+                            robot.globalTracer.traceInfo(instanceName, "%s: Found %d possible lines.", state,
+                                possiblePaths.length);
+                            Vector toPick = null;
+                            double bestLength = 0.0;
+                            for (int i = 0; i < possiblePaths.length; i++)
+                            {
+                                Vector current = possiblePaths[i];
+                                double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
+                                    + ((current.x1 - current.x0) * (current.x1 - current.x0)));
+                                if (curLength > bestLength)
+                                {
+                                    bestLength = curLength;
+                                    toPick = current;
+                                }
+                            }
 
-                        robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
-                            state, toPick.index, bestLength);
+                            robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
+                                state, toPick.index, bestLength);
 
-                        LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0,
-                            RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                        LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1,
-                            RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                        double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
+                            LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0,
+                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
+                            LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1,
+                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
+                            double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
 
-                        robot.globalTracer.traceInfo(instanceName, "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in",
-                            state, toPick.x0, toPick.y0, origin.getXLength(), origin.getYLength());
-                        robot.globalTracer.traceInfo(instanceName, "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in",
-                            state, toPick.x1, toPick.y1, p2.getXLength(), p2.getYLength());
-                        robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, degrees);
-
-                        robot.targetHeading = degrees;
-                        robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+                            robot.globalTracer.traceInfo(instanceName,
+                                "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, toPick.x0, toPick.y0,
+                                origin.getXLength(), origin.getYLength());
+                            robot.globalTracer.traceInfo(instanceName,
+                                "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in", state, toPick.x1, toPick.y1,
+                                p2.getXLength(), p2.getYLength());
+                            robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
+                                degrees);
+                            robot.targetHeading = degrees;
+                            robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+                        }
                     }
 
                     if (alignAngleTries >= 3)
