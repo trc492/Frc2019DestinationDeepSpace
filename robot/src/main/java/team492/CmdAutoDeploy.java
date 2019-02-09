@@ -162,7 +162,7 @@ public class CmdAutoDeploy
 
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
-                    sm.waitForEvents(State.ALIGN);
+                    sm.waitForEvents(State.ALIGN, 0.0, true);
                     break;
 
                 case ALIGN:
