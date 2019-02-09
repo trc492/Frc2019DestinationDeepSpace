@@ -206,4 +206,14 @@ public class RobotInfo
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
+    //
+    // Pixy line following subsystem
+    //
+    // In inches. These will need to be adjusted when the Pixy2 is mounted.
+    // These are the scaled lengths of the camera's FoV's furthest visible length and width 
+    // in real-world measurements.
+    //
+    public static final double WIDTH_COEFFICIENT                = 5.0;
+    public static final double HEIGHT_COEFFICIENT               = 3.0;
+
 }   // class RobotInfo
