@@ -289,34 +289,34 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         switch (button)
         {
-            case FrcJoystick.LOGITECH_TRIGGER:
+            case FrcJoystick.PANEL_BUTTON1:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON2:
+            case FrcJoystick.PANEL_BUTTON2:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON3:
+            case FrcJoystick.PANEL_BUTTON3:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON4:
+            case FrcJoystick.PANEL_BUTTON4:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON5:
+            case FrcJoystick.PANEL_BUTTON5:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON6:
+            case FrcJoystick.PANEL_BUTTON6:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON7:
+            case FrcJoystick.PANEL_BUTTON7:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON8:
+            case FrcJoystick.PANEL_BUTTON8:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON9:
+            case FrcJoystick.PANEL_BUTTON9:
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON10:
+            case FrcJoystick.PANEL_BUTTON10:
                 break;
         }
     } // operatorStickButtonEvent
