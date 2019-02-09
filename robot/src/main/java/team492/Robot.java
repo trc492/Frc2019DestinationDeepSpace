@@ -128,6 +128,7 @@ public class Robot extends FrcRobotBase
     public Elevator elevator;
 
     public CmdAutoDeploy autoDeploy;
+    private CmdRobotTargetAlign autoTargetAlign;
 
     //
     // VisionTargetPipeline subsystem.
@@ -300,6 +301,7 @@ public class Robot extends FrcRobotBase
         // AutoAssist commands.
         //
         autoDeploy = new CmdAutoDeploy(this);
+        autoTargetAlign = new CmdRobotTargetAlign(this);
 
 
         //
@@ -594,7 +596,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive();
+        return autoMode.isAutoActive() || autoDeploy.isActive() || autoTargetAlign.isActive();
     }
 
     public void announceSafety()
