@@ -193,6 +193,16 @@ public class Pickup
         event.set(true);
     }
 
+    public void extendHatchDeployer()
+    {
+        hatchDeployer.extend();
+    }
+
+    public void retractHatchDeployer()
+    {
+        hatchDeployer.retract();
+    }
+
     public void setManualOverrideEnabled(boolean enabled)
     {
         pitchController.setManualOverride(enabled);

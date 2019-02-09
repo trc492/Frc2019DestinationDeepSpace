@@ -245,7 +245,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
-                robot.pickup.deployHatch(null);
+                if (pressed)
+                {
+                    robot.pickup.extendHatchDeployer();
+                }
+                else
+                {
+                    robot.pickup.retractHatchDeployer();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:

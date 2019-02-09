@@ -91,7 +91,6 @@ public class RobotInfo
     // Digital Input/Output ports.
     //
     public static int DIO_CARGO_PROXIMITY_SENSOR                = 0;
-    public static int DIO_HATCH_PROXIMITY_SENSOR                = 1;
 
 
     //
