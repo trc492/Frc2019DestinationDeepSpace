@@ -354,14 +354,14 @@ public class FrcTest extends FrcTeleOp
         {
             if (Robot.USE_PIXY_LINE_TARGET)
             {
-                Vector[] vectors = robot.pixy.getLineVectors();
-                if (vectors == null)
+                Vector vector = robot.pixy.getLineVector();
+                if (vector == null)
                 {
                     robot.dashboard.displayPrintf(6, "Pixy: line not found");
                 }
                 else
                 {
-                    robot.dashboard.displayPrintf(6, "Pixy: %s", vectors[0]);
+                    robot.dashboard.displayPrintf(6, "Pixy: %s", vector);
                 }
             }
             else

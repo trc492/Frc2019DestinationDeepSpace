@@ -533,14 +533,14 @@ public class Robot extends FrcRobotBase
                     {
                         if (USE_PIXY_LINE_TARGET)
                         {
-                            Vector[] vectors = pixy.getLineVectors();
-                            if (vectors == null)
+                            Vector vector = pixy.getLineVector();
+                            if (vector == null)
                             {
                                 dashboard.displayPrintf(11, "Pixy: line not found");
                             }
                             else
                             {
-                                dashboard.displayPrintf(11, "Pixy: %s", vectors[0]);
+                                dashboard.displayPrintf(11, "Pixy: %s", vector);
                             }
                         }
                         else

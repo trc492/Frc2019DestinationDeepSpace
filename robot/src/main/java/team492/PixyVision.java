@@ -32,6 +32,7 @@ import frclib.FrcPixyCam1;
 import frclib.FrcPixyCam2;
 import trclib.TrcPixyCam1;
 import trclib.TrcPixyCam2;
+import trclib.TrcPixyCam2.*;
 import trclib.TrcUtil;
 
 public class PixyVision
@@ -146,15 +147,15 @@ public class PixyVision
         return pixyCamera1 != null ? pixyCamera1.isEnabled() : pixyCamera2 != null ? pixyCamera2.isEnabled() : false;
     }   //isEnabled
 
-    public TrcPixyCam2.Vector[] getLineVectors()
+    private Vector[] getFeatureVectors()
     {
-        final String funcName = "getLineVectors";
-        TrcPixyCam2.Vector[] vectors = null;
+        final String funcName = "getFeatureVectors";
+        Vector[] vectors = null;
 
         if (pixyCamera2 != null)
         {
             double startTime = TrcUtil.getCurrentTime();
-            TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+            Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
             double elapsedTime = TrcUtil.getCurrentTime() - startTime;
 
             if (features != null)
@@ -169,16 +170,55 @@ public class PixyVision
 
                     if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
                     {
-                        vectors = ((TrcPixyCam2.FeatureVectors) features[i]).vectors;
+                        vectors = ((FeatureVectors) features[i]).vectors;
                         break;
                     }
                 }
             }
-
         }
 
         return vectors;
     }   //getFeatureVectors
+
+    public Vector getLineVector()
+    {
+        final String funcName = "getLineVector";
+        Vector lineVector = null;
+        Vector[] vectors = getFeatureVectors();
+
+        if (vectors != null && vectors.length > 0)
+        {
+            // CodeReview: So the best line is the longest line??
+            double maxLen = 0.0;
+
+            for (int i = 0; i < vectors.length; i++)
+            {
+                double dx = vectors[i].x1 - vectors[i].x0;
+                double dy = vectors[i].y1 - vectors[i].y0;
+                double lineLen = Math.sqrt(dx * dx + dy * dy);
+
+                if (lineLen > maxLen)
+                {
+                    maxLen = lineLen;
+                    lineVector = vectors[i];
+                }
+            }
+
+            if (debugEnabled)
+            {
+                if (lineVector != null)
+                {
+                    robot.globalTracer.traceInfo(funcName, "Line found (len=%.2f): %s", maxLen, lineVector);
+                }
+                else
+                {
+                    robot.globalTracer.traceInfo(funcName, "Line not found!");
+                }
+            }
+        }
+
+        return lineVector;
+    }   //getLineVector
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have
@@ -308,7 +348,7 @@ public class PixyVision
     {
         final String funcName = "getV2TargetRect";
         Rect targetRect = null;
-        TrcPixyCam2.Block[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
+        Block[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
         double currTime = TrcUtil.getCurrentTime();
 
         if (debugEnabled)
