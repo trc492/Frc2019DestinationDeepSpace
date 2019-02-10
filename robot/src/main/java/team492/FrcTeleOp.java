@@ -280,6 +280,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
+                if (pressed)
+                {
+                    // Lower right button on joystick base.
+                    robot.autoTargetAlign.start(null);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON11:

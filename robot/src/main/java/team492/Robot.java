@@ -128,7 +128,7 @@ public class Robot extends FrcRobotBase
     public Elevator elevator;
 
     public CmdAutoDeploy autoDeploy;
-    private CmdRobotTargetAlign autoTargetAlign;
+    public CmdRobotTargetAlign autoTargetAlign;
 
     //
     // VisionTargetPipeline subsystem.
