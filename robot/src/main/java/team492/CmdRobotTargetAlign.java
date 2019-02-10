@@ -116,8 +116,6 @@ public class CmdRobotTargetAlign
 
                 case ALIGN_ROBOT:
                     Vector lineVector = robot.pixy.getLineVector();
-                    event.clear();
-                    event.set(true);
 
                     if (lineVector == null)
                     {
