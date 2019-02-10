@@ -45,9 +45,12 @@ public class CmdRobotTargetAlign
     private double targetX = 0.0;
     private double targetY = 0.0;
 
+    private LineFollowingUtils lfu;
+
     public CmdRobotTargetAlign(Robot robot)
     {
         this.robot = robot;
+        lfu = new LineFollowingUtils();
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
         lineAlignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".lineAlignTask", this::lineAlignTask);
@@ -153,11 +156,9 @@ public class CmdRobotTargetAlign
                             robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
                                 state, toPick.index, bestLength);
 
-                            LineFollowingUtils.RealWorldPair origin = LineFollowingUtils.getRWP(toPick.x0, toPick.y0,
-                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                            LineFollowingUtils.RealWorldPair p2 = LineFollowingUtils.getRWP(toPick.x1, toPick.y1,
-                                RobotInfo.WIDTH_COEFFICIENT, RobotInfo.HEIGHT_COEFFICIENT);
-                            double degrees = LineFollowingUtils.getTurnDegrees(LineFollowingUtils.getAngle(origin, p2));
+                            LineFollowingUtils.RealWorldPair origin = lfu.getRWP(toPick.x0, toPick.y0);
+                            LineFollowingUtils.RealWorldPair p2 = lfu.getRWP(toPick.x1, toPick.y1);
+                            double degrees = lfu.getTurnDegrees(lfu.getAngle(origin, p2));
 
                             robot.globalTracer.traceInfo(instanceName,
                                 "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, toPick.x0, toPick.y0,

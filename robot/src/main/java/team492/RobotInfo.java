@@ -208,16 +208,9 @@ public class RobotInfo
 
     //
     // Pixy line following subsystem
-    //
-    // In inches. These will need to be adjusted when the Pixy2 is mounted.
-    // These are the scaled lengths of the camera's FoV's furthest visible length and width 
-    // in real-world measurements.
-    //
     // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
     // Source: https://forum.pixycam.com/t/resolution-tracking-pixy2/5646/2
     //
-    public static final double WIDTH_COEFFICIENT                = 5.0; // inches
-    public static final double HEIGHT_COEFFICIENT               = 3.0; // inches
     public static final int PIXY2_LINE_TRACKING_HEIGHT          = 104; // pixels
     public static final int PIXY2_LINE_TRACKING_WIDTH           = 636; // pixels
 
