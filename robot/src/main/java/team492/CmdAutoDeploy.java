@@ -69,6 +69,11 @@ public class CmdAutoDeploy
      */
     public void start(double elevatorHeight, DeployType deployType, TrcEvent event)
     {
+        if (event != null)
+        {
+            event.clear();
+        }
+
         this.elevatorHeight = elevatorHeight;
         this.deployType = deployType;
         this.onFinishedEvent = event;

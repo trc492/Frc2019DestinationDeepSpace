@@ -206,6 +206,20 @@ public class RobotInfo
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
+    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 20.0; // I'm just spitballing here, man.
+    public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 40.0;
+    public static final double ELEVATOR_POS_CARGO_ROCKET_HIGH   = 60.0;
+
+    public static final double ELEVATOR_POS_HATCH_ROCKET_LOW    = 20.0;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 40.0;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 60.0;
+
+    public static final double ELEVATOR_POS_CARGO_SHIP          = ELEVATOR_POS_CARGO_ROCKET_LOW;
+    public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
+
+    public static final double ELEVATOR_POS_CARGO_PICKUP        = ELEVATOR_POS_CARGO_ROCKET_LOW;
+    public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
+
     //
     // Pixy line following subsystem
     // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
