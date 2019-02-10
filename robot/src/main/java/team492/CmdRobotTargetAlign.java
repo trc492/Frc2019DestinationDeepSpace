@@ -97,8 +97,7 @@ public class CmdRobotTargetAlign
         }
         else
         {
-            // CodeReview: is the task POST_CONTINUOUS or POST_PERIODIC?
-            lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
+            lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         }
     }
 
@@ -123,6 +122,8 @@ public class CmdRobotTargetAlign
                     robot.globalTracer.traceInfo(instanceName, "%s: Trying to align robot (try %d of 3)", state,
                         alignAngleTries);
                     Vector[] possiblePaths = robot.pixy.getLineVectors();
+                    event.clear();
+                    event.set(true); // Signal the event, this will be cleared later in case of PID drive
 
                     if (possiblePaths == null)
                     {
@@ -182,7 +183,6 @@ public class CmdRobotTargetAlign
                             nextState = State.ALIGN_ROBOT;
                         }
                     }
-                    // CodeReivew: event may not get set if getLineVectors failed, so you will be waiting forever.
                     sm.waitForSingleEvent(event, nextState);
                     break;
 

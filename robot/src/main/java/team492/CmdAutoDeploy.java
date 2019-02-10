@@ -118,8 +118,7 @@ public class CmdAutoDeploy
         }
         else
         {
-            // CodeReview: is it POSTCONTINUOUS or POSTPERIODIC??
-            alignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
+            alignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         }
     }
 
