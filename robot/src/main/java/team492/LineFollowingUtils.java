@@ -15,10 +15,10 @@ public class LineFollowingUtils
 
     public LineFollowingUtils()
     {
-        Point tL = new Point(0, 0);
-        Point tR = new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, 0);
-        Point bL = new Point(0, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
-        Point bR = new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
+        Point tL = new Point(RobotInfo.PIXY2_TOP_LEFT_X, RobotInfo.PIXY2_TOP_LEFT_Y);
+        Point tR = new Point(RobotInfo.PIXY2_TOP_RIGHT_X, RobotInfo.PIXY2_TOP_RIGHT_Y);
+        Point bL = new Point(RobotInfo.PIXY2_BOTTOM_LEFT_X, RobotInfo.PIXY2_BOTTOM_LEFT_Y);
+        Point bR = new Point(RobotInfo.PIXY2_BOTTOM_RIGHT_X, RobotInfo.PIXY2_BOTTOM_RIGHT_Y);
         cfov = new CameraFieldOfView(tL, tR, bL, bR, RobotInfo.PIXY2_LINE_TRACKING_WIDTH, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
     }
 
