@@ -101,36 +101,28 @@ public class CmdRobotTargetAlign
         }
     }
 
-    private int alignAngleTries = 0;
-
     private void lineAlignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
     {
         State state = sm.checkReadyAndGetState();
-        State nextState;
 
         if (state != null)
         {
             switch (sm.getState())
             {
                 case START:
-                    alignAngleTries = 0;
                     robot.globalTracer.traceInfo(instanceName, "%s: Starting robot alignment assist.", state);
                     sm.setState(State.ALIGN_ROBOT);
                     break;
 
                 case ALIGN_ROBOT:
-                    robot.globalTracer.traceInfo(instanceName, "%s: Trying to align robot (try %d of 3)", state,
-                        alignAngleTries);
                     Vector lineVector = robot.pixy.getLineVector();
-                    // CodeReview: Why made it so complicated? Can't you put the waitForSingleEvent right after the
-                    // if-else of alignAngleTries > 3 and then do a sm.setState(State.DONE) on the failure cases?
                     event.clear();
-                    event.set(true); // Signal the event, this will be cleared later in case of PID drive
+                    event.set(true);
 
                     if (lineVector == null)
                     {
                         robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
-                        nextState = State.DONE;
+                        sm.setState(State.DONE);
                     }
                     else
                     {
@@ -150,19 +142,8 @@ public class CmdRobotTargetAlign
                             degrees);
                         robot.targetHeading = robot.driveBase.getHeading() + degrees;
                         robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
-
-                        // CodeReview: Why try 3 times if it is successful??
-                        if (alignAngleTries >= 3)
-                        {
-                            nextState = State.DONE;
-                        }
-                        else
-                        {
-                            alignAngleTries++;
-                            nextState = State.ALIGN_ROBOT;
-                        }
+                        sm.waitForSingleEvent(event, State.DONE);
                     }
-                    sm.waitForSingleEvent(event, nextState);
                     break;
 
                 case DONE:
