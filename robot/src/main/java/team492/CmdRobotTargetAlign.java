@@ -133,10 +133,10 @@ public class CmdRobotTargetAlign
                         double degrees = lfu.getTurnDegrees(lfu.getAngle(origin, p2));
 
                         robot.globalTracer.traceInfo(instanceName,
-                            "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, lineVector.x0, lineVector.y0,
+                            "%s: Vector origin: (%d, %d) -> %.2f, %.2f", state, lineVector.x0, lineVector.y0,
                             origin.getXLength(), origin.getYLength());
                         robot.globalTracer.traceInfo(instanceName,
-                            "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in", state, lineVector.x1, lineVector.y1,
+                            "%s: Vector vertex: (%d, %d) -> %.2f, %.2f", state, lineVector.x1, lineVector.y1,
                             p2.getXLength(), p2.getYLength());
                         robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
                             degrees);
