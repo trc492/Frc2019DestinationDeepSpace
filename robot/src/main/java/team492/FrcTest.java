@@ -40,7 +40,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, MOTION_MAGIC_TEST, SPARK_FOLLOW_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, MOTION_MAGIC_TEST, SPARK_FOLLOW_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW, PIXY_LINE_FOLLOW_TEST
     } // enum Test
 
     private enum State
@@ -63,6 +63,8 @@ public class FrcTest extends FrcTeleOp
     private SparkMaxFollowTest sparkTest = null;
 
     private int motorIndex = 0;
+
+    private LineFollowingUtils lfu;
 
     public FrcTest(Robot robot)
     {
@@ -92,6 +94,7 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
         testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
+        testMenu.addChoice("Pixy Line Magic", FrcTest.Test.PIXY_LINE_FOLLOW_TEST);
     } // FrcTest
 
     //
@@ -178,6 +181,10 @@ public class FrcTest extends FrcTeleOp
             case LIVE_WINDOW:
                 liveWindowEnabled = true;
                 break;
+
+            case PIXY_LINE_FOLLOW_TEST:
+                lfu = new LineFollowingUtils();
+                break;
         }
 
         LiveWindow.setEnabled(liveWindowEnabled);
@@ -250,6 +257,32 @@ public class FrcTest extends FrcTeleOp
                 robot.encoderYPidCtrl.displayPidInfo(5);
                 robot.gyroTurnPidCtrl.displayPidInfo(7);
                 pidDriveCommand.cmdPeriodic(elapsedTime);
+                break;
+
+            case PIXY_LINE_FOLLOW_TEST:
+                Vector lineVector = robot.pixy.getLineVector();
+                if (lineVector == null)
+                {
+                    robot.dashboard.displayPrintf(2, "No lines detected!");
+                }
+                else
+                {
+                    robot.dashboard.displayPrintf(2, "Line found! line=%s", lineVector);
+
+                    LineFollowingUtils.RealWorldPair origin = lfu.getRWP(lineVector.x0, lineVector.y0);
+                    LineFollowingUtils.RealWorldPair p2 = lfu.getRWP(lineVector.x1, lineVector.y1);
+                    double rawangle = lfu.getAngle(origin, p2);
+                    double degrees = lfu.getTurnDegrees(rawangle);
+
+                    robot.dashboard.displayPrintf(3,
+                        "Vector origin: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x0, lineVector.y0,
+                        origin.getXLength(), origin.getYLength());
+                    robot.dashboard.displayPrintf(4,
+                        "Vector vertex: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x1, lineVector.y1,
+                        p2.getXLength(), p2.getYLength());
+                    robot.dashboard.displayPrintf(5, "Atan2(origin, vertex): %.2f°", rawangle);
+                    robot.dashboard.displayPrintf(6, "Target heading: %.2f°", degrees);
+                }
                 break;
 
             default:
@@ -470,5 +503,4 @@ public class FrcTest extends FrcTeleOp
             }
         }
     } // doDriveMotorsTest
-
 } // class FrcTest
