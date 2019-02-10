@@ -31,6 +31,7 @@ import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
+import trclib.TrcTimer;
 import trclib.TrcUtil;
 
 public class Pickup
@@ -55,6 +56,7 @@ public class Pickup
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
     private Robot robot;
+    private TrcTimer timer;
 
     public Pickup(Robot robot)
     {
@@ -97,6 +99,8 @@ public class Pickup
             () -> pickupMotor.motor.getOutputCurrent());
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
             TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
+
+        timer = new TrcTimer(instanceName + ".timer");
     }
 
     private void currentTriggerEvent(int currZone, int prevZone, double value)
@@ -175,14 +179,12 @@ public class Pickup
         }
         else
         {
-            // The cargo trigger will signal the event when it detects the cargo
-            if (event != null)
-            {
-                event.clear();
-            }
+            // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+            // Just call the trigger method when the timer expires.
+            timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
             this.onFinishedEvent = event;
             currentTrigger.setEnabled(false); // make sure the current trigger is disabled
-            cargoTrigger.setEnabled(true);
+            cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
             setPickupPower(1.0);
         }
     }

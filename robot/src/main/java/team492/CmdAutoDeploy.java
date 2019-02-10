@@ -69,6 +69,11 @@ public class CmdAutoDeploy
      */
     public void start(double elevatorHeight, DeployType deployType, TrcEvent event)
     {
+        if (event != null)
+        {
+            event.clear();
+        }
+
         this.elevatorHeight = elevatorHeight;
         this.deployType = deployType;
         this.onFinishedEvent = event;
@@ -118,8 +123,7 @@ public class CmdAutoDeploy
         }
         else
         {
-            // CodeReview: is it POSTCONTINUOUS or POSTPERIODIC??
-            alignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
+            alignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         }
     }
 

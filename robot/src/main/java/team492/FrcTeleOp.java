@@ -294,38 +294,101 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
+        /*
+        Button mappings:
+        1 = rocket hatch high
+        2 = rocket hatch med
+        3 = rocket hatch low
+        4 = rocket cargo high
+        5 = rocket cargo med
+        6 = rocket cargo low
+        7 = ship cargo
+        8 = ship hatch
+        9 = pickup cargo
+        10 = pickup hatch
+         */
+        // TODO: this could maybe be cut down by automatically detecting which gamepiece is being held
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, CmdAutoDeploy.DeployType.HATCH, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, CmdAutoDeploy.DeployType.HATCH, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, CmdAutoDeploy.DeployType.HATCH, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, CmdAutoDeploy.DeployType.CARGO, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, CmdAutoDeploy.DeployType.CARGO, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, CmdAutoDeploy.DeployType.CARGO, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, CmdAutoDeploy.DeployType.CARGO, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, CmdAutoDeploy.DeployType.HATCH, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, CmdAutoDeploy.DeployType.PICKUP_CARGO, null);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
+                if (pressed)
+                {
+                    robot.autoDeploy
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, CmdAutoDeploy.DeployType.PICKUP_HATCH, null);
+                }
                 break;
         }
     } // operatorStickButtonEvent
-
 } // class FrcTeleOp

@@ -97,8 +97,7 @@ public class CmdRobotTargetAlign
         }
         else
         {
-            // CodeReview: is the task POST_CONTINUOUS or POST_PERIODIC?
-            lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
+            lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         }
     }
 
@@ -123,6 +122,10 @@ public class CmdRobotTargetAlign
                     robot.globalTracer.traceInfo(instanceName, "%s: Trying to align robot (try %d of 3)", state,
                         alignAngleTries);
                     Vector lineVector = robot.pixy.getLineVector();
+                    // CodeReview: Why made it so complicated? Can't you put the waitForSingleEvent right after the
+                    // if-else of alignAngleTries > 3 and then do a sm.setState(State.DONE) on the failure cases?
+                    event.clear();
+                    event.set(true); // Signal the event, this will be cleared later in case of PID drive
 
                     if (lineVector == null)
                     {
@@ -159,7 +162,6 @@ public class CmdRobotTargetAlign
                             nextState = State.ALIGN_ROBOT;
                         }
                     }
-                    // CodeReivew: event may not get set if getLineVectors failed, so you will be waiting forever.
                     sm.waitForSingleEvent(event, nextState);
                     break;
 
