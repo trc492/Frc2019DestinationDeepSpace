@@ -39,28 +39,31 @@ public class LineFollowingUtils
     }
 
     /**
-	 * This function creates a very crude estimation of an object's position in real-world units.
+     * This function creates a very crude estimation of an object's position in real-world units.
      * 
-	 * @param x0 the x-coordinate of a pair on the camera plane. (x: right positive)
-	 * @param y0 the y-coordinate of a pair on the camera plane: (y: down positive)
-	 * @param widthCoefficient: the width coefficient, the length of the camera view width in inches.
-	 * @param heightCoefficient the height coefficient, the height of the camera view width in inches.
-	 * @return a RealWorldPair instance of the approximate scaled real world location of the objects at the coordinates (x0, y0)
-	 */
+     * @param x0 the x-coordinate of a pair on the camera plane. (x: right positive)
+     * @param y0 the y-coordinate of a pair on the camera plane: (y: down positive)
+     * @param widthCoefficient: the width coefficient, the length of the camera view width in inches.
+     * @param heightCoefficient the height coefficient, the height of the camera view width in inches.
+     * @return a RealWorldPair instance of the approximate scaled real world location of the objects at the coordinates
+     *         (x0, y0)
+     */
     public RealWorldPair getRWPCrude(int x0, int y0, double widthCoefficient, double heightCoefficient)
     {
         double xLength = widthCoefficient * ((double) x0 / (double) RobotInfo.PIXY2_LINE_TRACKING_WIDTH);
-        double yLength = heightCoefficient * ((double) (RobotInfo.PIXY2_LINE_TRACKING_HEIGHT - y0) / (double) RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
+        double yLength = heightCoefficient * ((double) (RobotInfo.PIXY2_LINE_TRACKING_HEIGHT - y0) /
+                         (double) RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
         return new RealWorldPair(xLength, yLength);
     }
 
     /**
-	 * This function creates an estimation of an object's position in real-world units, using a homography matrix
+     * This function creates an estimation of an object's position in real-world units, using a homography matrix
      * 
-	 * @param x0 the x-coordinate of a pair on the camera plane. (x: right positive)
-	 * @param y0 the y-coordinate of a pair on the camera plane: (y: down positive)
-	 * @return a RealWorldPair instance of the approximate scaled real world location of the objects at the coordinates (x0, y0)
-	 */
+     * @param x0 the x-coordinate of a pair on the camera plane. (x: right positive)
+     * @param y0 the y-coordinate of a pair on the camera plane: (y: down positive)
+     * @return a RealWorldPair instance of the approximate scaled real world location of the objects at the coordinates
+     *         (x0, y0)
+     */
     public RealWorldPair getRWP(int x0, int y0)
     {
         // TODO: Test this implementation
@@ -108,8 +111,7 @@ public class LineFollowingUtils
             Point bottomLeft,
             Point bottomRight,
             double xResolution,
-            double yResolution
-        ) 
+            double yResolution) 
         {
             this.topLeft = topLeft;
             this.topRight = topRight;

@@ -97,6 +97,7 @@ public class CmdRobotTargetAlign
         }
         else
         {
+            // CodeReview: is the task POST_CONTINUOUS or POST_PERIODIC?
             lineAlignmentTask.unregisterTask(TrcTaskMgr.TaskType.POSTPERIODIC_TASK);
         }
     }
@@ -128,61 +129,60 @@ public class CmdRobotTargetAlign
                         robot.globalTracer.traceInfo(instanceName, "%s: Pixy2 not found! Quitting...", state);
                         nextState = State.DONE;
                     }
+                    else if (possiblePaths.length == 0)
+                    {
+                        robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
+                        nextState = State.DONE;
+                    }
                     else
                     {
-                        if (possiblePaths.length == 0)
+                        robot.globalTracer.traceInfo(instanceName, "%s: Found %d possible lines.", state,
+                            possiblePaths.length);
+                        Vector toPick = null;
+                        double bestLength = 0.0;
+                        for (int i = 0; i < possiblePaths.length; i++)
                         {
-                            robot.globalTracer.traceInfo(instanceName, "%s: I don't see a line! Quitting...", state);
+                            Vector current = possiblePaths[i];
+                            double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
+                                + ((current.x1 - current.x0) * (current.x1 - current.x0)));
+                            if (curLength > bestLength)
+                            {
+                                bestLength = curLength;
+                                toPick = current;
+                            }
+                        }
+
+                        // CodeReview: So the best line is the longest line??
+                        robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
+                            state, toPick.index, bestLength);
+
+                        LineFollowingUtils.RealWorldPair origin = lfu.getRWP(toPick.x0, toPick.y0);
+                        LineFollowingUtils.RealWorldPair p2 = lfu.getRWP(toPick.x1, toPick.y1);
+                        double degrees = lfu.getTurnDegrees(lfu.getAngle(origin, p2));
+
+                        robot.globalTracer.traceInfo(instanceName,
+                            "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, toPick.x0, toPick.y0,
+                            origin.getXLength(), origin.getYLength());
+                        robot.globalTracer.traceInfo(instanceName,
+                            "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in", state, toPick.x1, toPick.y1,
+                            p2.getXLength(), p2.getYLength());
+                        robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
+                            degrees);
+                        robot.targetHeading = robot.driveBase.getHeading() + degrees;
+                        robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+
+                        // CodeReview: Why try 3 times if it is successful??
+                        if (alignAngleTries >= 3)
+                        {
                             nextState = State.DONE;
                         }
                         else
                         {
-                            robot.globalTracer.traceInfo(instanceName, "%s: Found %d possible lines.", state,
-                                possiblePaths.length);
-                            Vector toPick = null;
-                            double bestLength = 0.0;
-                            for (int i = 0; i < possiblePaths.length; i++)
-                            {
-                                Vector current = possiblePaths[i];
-                                double curLength = Math.sqrt(((current.y1 - current.y0) * (current.y1 - current.y0))
-                                    + ((current.x1 - current.x0) * (current.x1 - current.x0)));
-                                if (curLength > bestLength)
-                                {
-                                    bestLength = curLength;
-                                    toPick = current;
-                                }
-                            }
-
-                            robot.globalTracer.traceInfo(instanceName, "%s: Line found! Index: %d, length: %.2f pixels",
-                                state, toPick.index, bestLength);
-
-                            LineFollowingUtils.RealWorldPair origin = lfu.getRWP(toPick.x0, toPick.y0);
-                            LineFollowingUtils.RealWorldPair p2 = lfu.getRWP(toPick.x1, toPick.y1);
-                            double degrees = lfu.getTurnDegrees(lfu.getAngle(origin, p2));
-
-                            robot.globalTracer.traceInfo(instanceName,
-                                "%s: Vector origin: (%d, %d) -> %.2f in, %.2f in", state, toPick.x0, toPick.y0,
-                                origin.getXLength(), origin.getYLength());
-                            robot.globalTracer.traceInfo(instanceName,
-                                "%s: Vector vertex: (%d, %d) -> %.2f in, %.2f in", state, toPick.x1, toPick.y1,
-                                p2.getXLength(), p2.getYLength());
-                            robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
-                                degrees);
-                            robot.targetHeading = robot.driveBase.getHeading() + degrees;
-                            robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
-
-                            if (alignAngleTries >= 3)
-                            {
-                                nextState = State.DONE;
-                            }
-                            else
-                            {
-                                alignAngleTries++;
-                                nextState = State.ALIGN_ROBOT;
-                            }
+                            alignAngleTries++;
+                            nextState = State.ALIGN_ROBOT;
                         }
                     }
-
+                    // CodeReivew: event may not get set if getLineVectors failed, so you will be waiting forever.
                     sm.waitForSingleEvent(event, nextState);
                     break;
 
