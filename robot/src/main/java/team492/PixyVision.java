@@ -188,7 +188,8 @@ public class PixyVision
 
         if (vectors != null && vectors.length > 0)
         {
-            // CodeReview: So the best line is the longest line??
+            // - Ideally, the best line should be the longest line.
+            // - This is mostly to filter out any remaining interference that the Pixy might pick up.
             double maxLen = 0.0;
 
             for (int i = 0; i < vectors.length; i++)
