@@ -185,6 +185,8 @@ public class RobotInfo
     public static final double PICKUP_FREE_SPIN_CURRENT         = 5.0;
     public static final double PICKUP_STALL_CURRENT             =  25;
 
+    public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
+
     //
     // Elevator subsystem
     //
