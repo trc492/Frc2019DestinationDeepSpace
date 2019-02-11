@@ -108,8 +108,7 @@ public class CmdAutoDeploy
     private void stop()
     {
         sm.stop();
-        robot.pidDrive.cancel();
-        robot.elevator.setPower(0.0);
+        robot.stopSubsystems();
         onFinishedEvent = null;
         setEnabled(false);
     }

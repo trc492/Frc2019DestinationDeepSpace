@@ -457,6 +457,18 @@ public class Robot extends FrcRobotBase
         }
     }
 
+    /**
+     * Stops the lower level subsystems. This does NOT stop any auto/auto assist commands.
+     */
+    public void stopSubsystems()
+    {
+        pidDrive.cancel();
+        driveBase.stop();
+        elevator.setPower(0.0);
+        pickup.setPitchPower(0.0);
+        pickup.setPickupPower(0.0);
+    }
+
     public void setVisionEnabled(boolean enabled)
     {
         final String funcName = "setVisionEnabled";
