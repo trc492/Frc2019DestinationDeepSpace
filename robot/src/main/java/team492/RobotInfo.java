@@ -240,4 +240,6 @@ public class RobotInfo
     public static final double PIXY2_BOTTOM_RIGHT_X             = 0;   // in real-world units.
     public static final double PIXY2_BOTTOM_RIGHT_Y             = 0;   // in real-world units.
 
+    public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
+    public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
 }   // class RobotInfo
