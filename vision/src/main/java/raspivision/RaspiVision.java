@@ -56,12 +56,12 @@ public class RaspiVision
     }
 
     private static final int TEAM_NUMBER = 492;
-    private static final boolean SERVER = true; // true for debugging only
+    private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
@@ -79,12 +79,12 @@ public class RaspiVision
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
 
     // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 250.22788401, 0.0, 177.6591477, 0.0, 249.78546762,
-        119.9751127, 0.0, 0.0, 0.5 };
+    private static double[] CAMERA_MATRIX = new double[] { 279.23728868, 0.0, 154.82842703, 0.0, 281.04311504,
+        116.78960534, 0.0, 0.0, 1.0 };
 
     // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.21809204, -0.76028143, -0.00155715, 0.02590141,
-        0.21755087 };
+    private static double[] DISTORTION_MATRIX = new double[] { 0.07558564, -0.2477479, 0.00454396, -0.0029934,
+        0.42422577 };
 
     public static void main(String[] args)
     {
@@ -128,10 +128,6 @@ public class RaspiVision
     private MatOfPoint2f projectedPoints = new MatOfPoint2f();
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
-
-    // Screw it the yaw is off by a pretty linear amount to just map it using a best line fit.
-    // This was calculated using measurements and comparing to solvePNP output.
-    private DoubleUnaryOperator yawMapper = yaw -> yaw * 1.6677 + 2.95847;
 
     public RaspiVision()
     {
