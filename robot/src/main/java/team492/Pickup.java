@@ -142,6 +142,10 @@ public class Pickup
         {
             onFinishedEvent.set(true);
         }
+
+        currentTrigger.setEnabled(false);
+        cargoTrigger.setEnabled(false);
+        timer.cancel();
     }
 
     public void deployCargo(TrcEvent event)
@@ -167,10 +171,18 @@ public class Pickup
 
     public void pickupCargo(TrcEvent event)
     {
+        if (event != null)
+        {
+            event.clear();
+        }
+
         if (cargoSensor.isActive())
         {
             // Return early if we already have a cargo
-            event.set(true);
+            if (event != null)
+            {
+                event.set(true);
+            }
         }
         else
         {
@@ -187,7 +199,10 @@ public class Pickup
     public void pickupHatch(TrcEvent event)
     {
         // Since this is literally driving into the hatch panel, it's already finished.
-        event.set(true);
+        if (event != null)
+        {
+            event.set(true);
+        }
     }
 
     public void extendHatchDeployer()
