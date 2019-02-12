@@ -187,7 +187,7 @@ public class Robot extends FrcRobotBase
         leftDriveStick = new FrcJoystick("leftDriveStick", RobotInfo.JSPORT_LEFT_DRIVESTICK);
         rightDriveStick = new FrcJoystick("rightDriveStick", RobotInfo.JSPORT_RIGHT_DRIVESTICK);
         operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
-        buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.BUTTON_PANEL);
+        buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         //
         // Sensors.
         //
