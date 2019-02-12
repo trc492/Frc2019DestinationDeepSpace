@@ -41,10 +41,11 @@ public class Pickup
     private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
         RobotInfo.PICKUP_STALL_CURRENT };
 
-    private enum State
-    {
-        START, MONITOR, DONE
-    }
+    // CodeReview: This is never used???
+    // private enum State
+    // {
+    //     START, MONITOR, DONE
+    // }
 
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;

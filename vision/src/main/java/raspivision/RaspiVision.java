@@ -46,7 +46,6 @@ import org.opencv.imgproc.Imgproc;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.DoubleUnaryOperator;
 
 public class RaspiVision
 {
@@ -256,6 +255,7 @@ public class RaspiVision
                 System.err.println(sink.getError());
             }
         }
+        sink.close();
     }
 
     private void visionProcessingThread()

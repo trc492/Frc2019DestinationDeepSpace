@@ -9,7 +9,6 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class RaspiVision
 {

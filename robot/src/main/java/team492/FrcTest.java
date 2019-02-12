@@ -185,6 +185,9 @@ public class FrcTest extends FrcTeleOp
             case PIXY_LINE_FOLLOW_TEST:
                 lfu = new LineFollowingUtils();
                 break;
+
+            default:
+                break;
         }
 
         LiveWindow.setEnabled(liveWindowEnabled);
