@@ -569,7 +569,6 @@ public class Robot extends FrcRobotBase
                         dashboard.displayPrintf(13, "RaspiVision: No target found!");
                     }
                 }
-
             }
         }
     }   //updateDashboard

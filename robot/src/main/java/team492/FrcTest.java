@@ -423,6 +423,20 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard
             .displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed, lrSpeed,
                 rrSpeed, avgSpeed);
+
+        if (robot.vision != null)
+        {
+            RaspiVision.RelativePose pose = robot.vision.getLastPose();
+            if (pose != null)
+            {
+                robot.dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
+                    pose.objectYaw);
+            }
+            else
+            {
+                robot.dashboard.displayPrintf(13, "RaspiVision: No target found!");
+            }
+        }
     } // doSensorsTest
 
     /**

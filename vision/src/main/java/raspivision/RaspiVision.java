@@ -252,7 +252,7 @@ public class RaspiVision
             }
             else
             {
-                System.err.println(sink.getError());
+                System.err.println("Camera Error: " + sink.getError());
             }
         }
         sink.close();
