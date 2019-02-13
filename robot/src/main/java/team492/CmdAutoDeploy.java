@@ -26,6 +26,9 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
+import trclib.TrcWarpSpace;
+
+import java.util.Arrays;
 
 public class CmdAutoDeploy
 {
@@ -39,6 +42,9 @@ public class CmdAutoDeploy
         CARGO, HATCH, PICKUP_CARGO, PICKUP_HATCH
     }
 
+    private static final boolean USE_VISION_YAW = false;
+    private static final double[] TARGET_YAWS = new double[] { 0.0, 45.0, 90.0, 135.0, 225.0, 270.0, 315.0 };
+
     private static final String instanceName = "CmdAutoDeploy";
 
     private Robot robot;
@@ -50,6 +56,7 @@ public class CmdAutoDeploy
     private double elevatorHeight;
     private double travelHeight;
     private DeployType deployType;
+    private TrcWarpSpace warpSpace;
 
     public CmdAutoDeploy(Robot robot)
     {
@@ -58,6 +65,7 @@ public class CmdAutoDeploy
 
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
+        warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
     }
 
     /**
@@ -126,6 +134,32 @@ public class CmdAutoDeploy
         }
     }
 
+    private double getTargetRotation(DeployType deployType)
+    {
+        if (deployType == DeployType.PICKUP_CARGO || deployType == DeployType.PICKUP_HATCH)
+        {
+            return 180.0;
+        }
+
+        double currentRot = robot.driveBase.getHeading();
+        Double targetYaw = null;
+        for (double yaw : TARGET_YAWS)
+        {
+            yaw = warpSpace.getOptimizedTarget(yaw, currentRot);
+            if (targetYaw == null)
+            {
+                targetYaw = yaw;
+            }
+            double error = Math.abs(yaw - currentRot);
+            double currError = Math.abs(targetYaw - currentRot);
+            if (error < currError)
+            {
+                targetYaw = yaw;
+            }
+        }
+        return targetYaw - currentRot;
+    }
+
     private void alignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
     {
         State state = sm.checkReadyAndGetState();
@@ -138,6 +172,10 @@ public class CmdAutoDeploy
                     pose = robot.vision.getAveragePose(5, true);
                     if (pose != null)
                     {
+                        if (!USE_VISION_YAW)
+                        {
+                            pose.objectYaw = getTargetRotation(deployType);
+                        }
                         sm.setState(State.ORIENT);
                     }
                     break;
