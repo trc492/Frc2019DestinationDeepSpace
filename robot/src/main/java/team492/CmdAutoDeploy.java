@@ -28,13 +28,11 @@ import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 import trclib.TrcWarpSpace;
 
-import java.util.Arrays;
-
 public class CmdAutoDeploy
 {
     private enum State
     {
-        START, ORIENT, ALIGN, RAISE_ELEVATOR, DEPLOY, DONE
+        START, ORIENT, REFRESH_VISION, ALIGN, RAISE_ELEVATOR, DEPLOY, DONE
     }
 
     public enum DeployType
@@ -43,7 +41,9 @@ public class CmdAutoDeploy
     }
 
     private static final boolean USE_VISION_YAW = false;
-    private static final double[] TARGET_YAWS = new double[] { 0.0, 45.0, 90.0, 135.0, 225.0, 270.0, 315.0 };
+    private static final boolean REFRESH_VISION = false; // Only applicable if using vision yaw.
+    private static final double[] HATCH_YAWS = new double[] { 0.0, 45.0, 90.0, 135.0, 225.0, 270.0, 315.0 };
+    private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
     private static final String instanceName = "CmdAutoDeploy";
 
@@ -141,15 +141,13 @@ public class CmdAutoDeploy
             return 180.0;
         }
 
+        double[] yaws = deployType == DeployType.CARGO ? CARGO_YAWS : HATCH_YAWS;
+
         double currentRot = robot.driveBase.getHeading();
-        Double targetYaw = null;
-        for (double yaw : TARGET_YAWS)
+        double targetYaw = yaws[0];
+        for (double yaw : yaws)
         {
             yaw = warpSpace.getOptimizedTarget(yaw, currentRot);
-            if (targetYaw == null)
-            {
-                targetYaw = yaw;
-            }
             double error = Math.abs(yaw - currentRot);
             double currError = Math.abs(targetYaw - currentRot);
             if (error < currError)
@@ -157,7 +155,7 @@ public class CmdAutoDeploy
                 targetYaw = yaw;
             }
         }
-        return targetYaw - currentRot;
+        return targetYaw;
     }
 
     private void alignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
@@ -169,13 +167,16 @@ public class CmdAutoDeploy
             switch (state)
             {
                 case START:
-                    pose = robot.vision.getAveragePose(5, true);
-                    if (pose != null)
+                    if (USE_VISION_YAW)
                     {
-                        if (!USE_VISION_YAW)
+                        pose = robot.vision.getAveragePose(5, true);
+                        if (pose != null)
                         {
-                            pose.objectYaw = getTargetRotation(deployType);
+                            sm.setState(State.ORIENT);
                         }
+                    }
+                    else
+                    {
                         sm.setState(State.ORIENT);
                     }
                     break;
@@ -188,20 +189,47 @@ public class CmdAutoDeploy
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
 
-                    robot.targetHeading = robot.driveBase.getHeading() + pose.objectYaw;
+                    if (USE_VISION_YAW)
+                    {
+                        robot.targetHeading = robot.driveBase.getHeading() + pose.objectYaw;
+                    }
+                    else
+                    {
+                        robot.targetHeading = getTargetRotation(deployType);
+                    }
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
 
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
-                    sm.waitForEvents(State.ALIGN, 0.0, true);
+                    State nextState = (!USE_VISION_YAW || REFRESH_VISION) ? State.REFRESH_VISION : State.ALIGN;
+                    sm.waitForEvents(nextState, 0.0, true);
+                    break;
+
+                case REFRESH_VISION:
+                    pose = robot.vision.getAveragePose(5, true);
+                    if (pose != null)
+                    {
+                        sm.setState(State.ALIGN);
+                    }
                     break;
 
                 case ALIGN:
                     robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
-                    double r = pose.r;
-                    double theta = pose.theta - pose.objectYaw;
-                    double x = Math.sin(Math.toRadians(theta)) * r + RobotInfo.CAMERA_OFFSET;
-                    double y = Math.cos(Math.toRadians(theta)) * r + RobotInfo.CAMERA_DEPTH;
+                    double x, y;
+                    if (USE_VISION_YAW && !REFRESH_VISION)
+                    {
+                        // Vision data was taken BEFORE the ORIENT state, so we need to transform it to match robot coords.
+                        double r = pose.r;
+                        double theta = pose.theta - pose.objectYaw;
+                        x = Math.sin(Math.toRadians(theta)) * r + RobotInfo.CAMERA_OFFSET;
+                        y = Math.cos(Math.toRadians(theta)) * r + RobotInfo.CAMERA_DEPTH;
+                    }
+                    else
+                    {
+                        // Vision data was taken AFTER the ORIENT state, so no transformation required.
+                        x = pose.x;
+                        y = pose.y;
+                    }
                     robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
                     sm.waitForSingleEvent(event, State.RAISE_ELEVATOR);
                     break;
