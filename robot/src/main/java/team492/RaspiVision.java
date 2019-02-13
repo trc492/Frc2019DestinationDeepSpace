@@ -98,7 +98,7 @@ public class RaspiVision
                 return null;
             }
             int fromIndex = Math.max(0, frames.size() - numFrames);
-            List<RelativePose> poses = frames.subList(fromIndex, frames.size() - 1);
+            List<RelativePose> poses = frames.subList(fromIndex, frames.size());
             for (RelativePose pose : poses)
             {
                 average.objectYaw += pose.objectYaw;
