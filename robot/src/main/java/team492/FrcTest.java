@@ -27,6 +27,7 @@ import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
+import hallib.HalDashboard;
 import team492.PixyVision.TargetInfo;
 import trclib.TrcEvent;
 import trclib.TrcPixyCam2.Vector;
@@ -277,12 +278,12 @@ public class FrcTest extends FrcTeleOp
                     double rawangle = lfu.getAngle(origin, p2);
                     double degrees = lfu.getTurnDegrees(rawangle);
 
-                    robot.dashboard.displayPrintf(3,
-                        "Vector origin: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x0, lineVector.y0,
-                        origin.getXLength(), origin.getYLength());
-                    robot.dashboard.displayPrintf(4,
-                        "Vector vertex: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x1, lineVector.y1,
-                        p2.getXLength(), p2.getYLength());
+                    robot.dashboard
+                        .displayPrintf(3, "Vector origin: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x0, lineVector.y0,
+                            origin.getXLength(), origin.getYLength());
+                    robot.dashboard
+                        .displayPrintf(4, "Vector vertex: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x1, lineVector.y1,
+                            p2.getXLength(), p2.getYLength());
                     robot.dashboard.displayPrintf(5, "Atan2(origin, vertex): %.2f°", rawangle);
                     robot.dashboard.displayPrintf(6, "Target heading: %.2f°", degrees);
                 }
@@ -424,13 +425,16 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed, lrSpeed,
                 rrSpeed, avgSpeed);
 
+        double pickupCurrent = robot.pickup.getPickupCurrent();
+        HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
+
         if (robot.vision != null)
         {
             RaspiVision.RelativePose pose = robot.vision.getLastPose();
             if (pose != null)
             {
-                robot.dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
-                    pose.objectYaw);
+                robot.dashboard
+                    .displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y, pose.objectYaw);
             }
             else
             {

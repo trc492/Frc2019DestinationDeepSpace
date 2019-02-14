@@ -38,8 +38,7 @@ public class Pickup
 {
     private static final String instanceName = "Pickup";
 
-    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
-        RobotInfo.PICKUP_STALL_CURRENT };
+    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
 
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
@@ -90,8 +89,7 @@ public class Pickup
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
 
-        currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent",
-            () -> pickupMotor.motor.getOutputCurrent());
+        currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
             TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
 
@@ -131,6 +129,11 @@ public class Pickup
             setPickupPower(0.0);
             cargoTrigger.setEnabled(false);
         }
+    }
+
+    public double getPickupCurrent()
+    {
+        return pickupMotor.motor.getOutputCurrent();
     }
 
     public void cancel()
