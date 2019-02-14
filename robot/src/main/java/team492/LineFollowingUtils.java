@@ -149,7 +149,6 @@ public class LineFollowingUtils
             scene.fromList(sceneList);
 
             this.H = Calib3d.findHomography(scene, obj);
-            System.out.println(this.H.dump());
         }
 
         // get the real world coordinates of a image (x,y) point.
@@ -172,49 +171,13 @@ public class LineFollowingUtils
             
             
             double[][] result = multiply(h, pmat);
-            System.out.println(Arrays.deepToString(result));
             
             for (int furry = 0; furry < result.length; furry++)
             {
             	result[furry][0] *= (1.0 / result[2][0]);
             }
             
-            System.out.println(Arrays.deepToString(result));
             return new Point(result[0][0], result[1][0]);
-        }
-
-        public static boolean Test()
-        {
-            CameraFieldOfView fov = new CameraFieldOfView(new Point(-2, 2), new Point(2, 2), new Point(-1, 1),
-                new Point(1, 1), 320, 240);
-
-            Point[] testIn = new Point[4];
-            Point[] testOut = new Point[4];
-
-            testIn[0] = new Point(0, 0);
-            testOut[0] = fov.topLeft;
-
-            testIn[1] = new Point(fov.xResolution, 0);
-            testOut[1] = fov.topRight;
-
-            testIn[2] = new Point(0, fov.yResolution);
-            testOut[2] = fov.bottomLeft;
-
-            testIn[3] = new Point(fov.xResolution, fov.yResolution);
-            testOut[3] = fov.bottomRight;
-
-            boolean success = true;
-            int i;
-            for (i = 0; i < testIn.length; i++)
-            {
-                Point pOut = fov.GetRealWorldCoords(testIn[i]);
-                double dx = pOut.x - testOut[i].x;
-                double dy = pOut.y - testOut[i].y;
-                double distance = Math.sqrt(dx * dx + dy * dy);
-                success = success && distance < 1e-5;
-            }
-            return success;
-
         }
         
         public double[][] multiply(double[][] firstMatrix, double[][] secondMatrix)
