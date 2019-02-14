@@ -9,7 +9,7 @@ import java.util.LinkedList;
 
 public class LineFollowingUtils
 {
-    public CameraFieldOfView cfov;
+    private CameraFieldOfView cfov;
 
     public LineFollowingUtils()
     {
@@ -26,42 +26,15 @@ public class LineFollowingUtils
         return angle - 90.0;
     }
 
-    public double getAngle(RealWorldPair origin, RealWorldPair p2)
+    public double getAngle(Point origin, Point p2)
     {
-        double dx = p2.getXLength() - origin.getXLength();
-        double dy = p2.getYLength() - origin.getYLength();
+        double dx = p2.x - origin.x;
+        double dy = p2.y - origin.y;
 
         double theta = Math.atan2(dy, dx);
         theta = Math.toDegrees(theta);
         theta = (theta + 360.0) % 360.0;
         return theta;
-    }
-
-    /**
-     * This function creates a very crude estimation of an object's position in
-     * real-world units.
-     * 
-     * @param x0
-     *                              the x-coordinate of a pair on the camera
-     *                              plane. (x: right positive)
-     * @param y0
-     *                              the y-coordinate of a pair on the camera
-     *                              plane: (y: down positive)
-     * @param                   widthCoefficient:
-     *                              the width coefficient, the length of the
-     *                              camera view width in inches.
-     * @param heightCoefficient
-     *                              the height coefficient, the height of the
-     *                              camera view width in inches.
-     * @return a RealWorldPair instance of the approximate scaled real world
-     *         location of the objects at the coordinates (x0, y0)
-     */
-    public RealWorldPair getRWPCrude(int x0, int y0, double widthCoefficient, double heightCoefficient)
-    {
-        double xLength = widthCoefficient * ((double) x0 / (double) RobotInfo.PIXY2_LINE_TRACKING_WIDTH);
-        double yLength = heightCoefficient
-            * ((double) (RobotInfo.PIXY2_LINE_TRACKING_HEIGHT - y0) / (double) RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
-        return new RealWorldPair(xLength, yLength);
     }
 
     /**
@@ -77,33 +50,9 @@ public class LineFollowingUtils
      * @return a RealWorldPair instance of the approximate scaled real world
      *         location of the objects at the coordinates (x0, y0)
      */
-    public RealWorldPair getRWP(double x0, double y0)
+    public Point getRWP(double x0, double y0)
     {
-        // TODO: Test this implementation
-        Point point = cfov.GetRealWorldCoords(new Point(x0, y0));
-        return new RealWorldPair(point.x, point.y);
-    }
-
-    public static class RealWorldPair
-    {
-        private double xLength;
-        private double yLength;
-
-        public RealWorldPair(double xLength, double yLength)
-        {
-            this.xLength = xLength;
-            this.yLength = yLength;
-        }
-
-        public double getXLength()
-        {
-            return xLength;
-        }
-
-        public double getYLength()
-        {
-            return yLength;
-        }
+        return cfov.GetRealWorldCoords(new Point(x0, y0));
     }
 
     public static class CameraFieldOfView

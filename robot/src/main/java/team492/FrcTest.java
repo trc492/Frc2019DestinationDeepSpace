@@ -22,6 +22,8 @@
 
 package team492;
 
+import org.opencv.core.Point;
+
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -273,17 +275,17 @@ public class FrcTest extends FrcTeleOp
                 {
                     robot.dashboard.displayPrintf(2, "Line found! line=%s", lineVector);
 
-                    LineFollowingUtils.RealWorldPair origin = lfu.getRWP(lineVector.x0, lineVector.y0);
-                    LineFollowingUtils.RealWorldPair p2 = lfu.getRWP(lineVector.x1, lineVector.y1);
+                    Point origin = lfu.getRWP(lineVector.x0, lineVector.y0);
+                    Point p2 = lfu.getRWP(lineVector.x1, lineVector.y1);
                     double rawangle = lfu.getAngle(origin, p2);
                     double degrees = lfu.getTurnDegrees(rawangle);
 
                     robot.dashboard
                         .displayPrintf(3, "Vector origin: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x0, lineVector.y0,
-                            origin.getXLength(), origin.getYLength());
+                            origin.x, origin.y);
                     robot.dashboard
                         .displayPrintf(4, "Vector vertex: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x1, lineVector.y1,
-                            p2.getXLength(), p2.getYLength());
+                            p2.x, p2.y);
                     robot.dashboard.displayPrintf(5, "Atan2(origin, vertex): %.2f°", rawangle);
                     robot.dashboard.displayPrintf(6, "Target heading: %.2f°", degrees);
                 }
