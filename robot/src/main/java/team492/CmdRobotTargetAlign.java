@@ -52,7 +52,8 @@ public class CmdRobotTargetAlign
     public CmdRobotTargetAlign(Robot robot)
     {
         this.robot = robot;
-        lfu = new LineFollowingUtils();
+        this.lfu = robot.lfu;
+        //lfu = new LineFollowingUtils();
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
         lineAlignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".lineAlignTask", this::lineAlignTask);
