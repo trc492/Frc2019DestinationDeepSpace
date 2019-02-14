@@ -106,9 +106,9 @@ public class LineFollowingUtils
             pmat[0][0] = p.x;
             pmat[1][0] = p.y;
             pmat[2][0] = 1.0;
-        	
+
             double[][] h = new double[3][3];
-            
+
             for (int i = 0; i < this.H.rows(); i++)
             {
                 for (int j = 0; j < this.H.cols(); j++)
@@ -116,24 +116,28 @@ public class LineFollowingUtils
                     h[i][j] = this.H.get(i, j)[0];
                 }
             }
-            
-            
+
             double[][] result = multiply(h, pmat);
-            
+
+            // Results need to be scaled by the Z-axis.
             for (int furry = 0; furry < result.length; furry++)
             {
-            	result[furry][0] *= (1.0 / result[2][0]);
+                result[furry][0] *= (1.0 / result[2][0]);
             }
-            
+
             return new Point(result[0][0], result[1][0]);
         }
-        
+
+        // custom matrix multiplication function, cause Core.gemm is not functioning correctly for the job.
         public double[][] multiply(double[][] firstMatrix, double[][] secondMatrix)
         {
-        	double[][] product = new double[firstMatrix.length][secondMatrix[0].length];
-            for(int i = 0; i < firstMatrix.length; i++) {
-                for (int j = 0; j < secondMatrix[0].length; j++) {
-                    for (int k = 0; k < firstMatrix[0].length; k++) {
+            double[][] product = new double[firstMatrix.length][secondMatrix[0].length];
+            for (int i = 0; i < firstMatrix.length; i++)
+            {
+                for (int j = 0; j < secondMatrix[0].length; j++)
+                {
+                    for (int k = 0; k < firstMatrix[0].length; k++)
+                    {
                         product[i][j] += firstMatrix[i][k] * secondMatrix[k][j];
                     }
                 }
