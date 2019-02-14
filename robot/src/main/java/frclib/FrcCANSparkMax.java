@@ -374,7 +374,7 @@ public class FrcCANSparkMax extends TrcMotor
     public double getVelocity()
     {
         final String funcName = "getVelocity";
-        double velocity = encoder.getVelocity() * encoderSign;
+        double velocity = encoder.getVelocity() * encoderSign / 60.0;
 
         if (debugEnabled)
         {
