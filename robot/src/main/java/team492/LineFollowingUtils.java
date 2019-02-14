@@ -128,6 +128,8 @@ public class LineFollowingUtils
             this.topRight = topRight;
             this.bottomLeft = bottomLeft;
             this.bottomRight = bottomRight;
+            this.xResolution = xResolution;
+            this.yResolution = yResolution;
             // find the 3x3 homography matrix H
             LinkedList<Point> objList = new LinkedList<Point>();
             LinkedList<Point> sceneList = new LinkedList<Point>();
