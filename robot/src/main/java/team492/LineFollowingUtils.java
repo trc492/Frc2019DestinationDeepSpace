@@ -1,17 +1,16 @@
 package team492;
 
-import org.opencv.core.Core;
 import org.opencv.core.Point;
-import org.opencv.core.Size;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.calib3d.Calib3d;
+
+import java.util.Arrays;
 import java.util.LinkedList;
 
 public class LineFollowingUtils
 {
-    private CameraFieldOfView cfov;
+    public CameraFieldOfView cfov;
 
     public LineFollowingUtils()
     {
@@ -79,7 +78,7 @@ public class LineFollowingUtils
      * @return a RealWorldPair instance of the approximate scaled real world
      *         location of the objects at the coordinates (x0, y0)
      */
-    public RealWorldPair getRWP(int x0, int y0)
+    public RealWorldPair getRWP(double x0, double y0)
     {
         // TODO: Test this implementation
         Point point = cfov.GetRealWorldCoords(new Point(x0, y0));
@@ -135,11 +134,11 @@ public class LineFollowingUtils
             LinkedList<Point> sceneList = new LinkedList<Point>();
 
             objList.add(topLeft);
-            sceneList.add(new Point(0, 0));
+            sceneList.add(new Point(0.0, 0.0));
             objList.add(topRight);
-            sceneList.add(new Point(this.xResolution, 0));
+            sceneList.add(new Point(this.xResolution, 0.0));
             objList.add(bottomLeft);
-            sceneList.add(new Point(0, this.yResolution));
+            sceneList.add(new Point(0.0, this.yResolution));
             objList.add(bottomRight);
             sceneList.add(new Point(this.xResolution, this.yResolution));
 
@@ -149,25 +148,39 @@ public class LineFollowingUtils
             MatOfPoint2f scene = new MatOfPoint2f();
             scene.fromList(sceneList);
 
-            // find the homography from scene (image coords) to obj (world
-            // coords).
-            // note this relative to a scale factor. hopefully s=1 will Just
-            // Work.
             this.H = Calib3d.findHomography(scene, obj);
+            System.out.println(this.H.dump());
         }
 
         // get the real world coordinates of a image (x,y) point.
         public Point GetRealWorldCoords(Point p)
         {
-            // todo: verify
-            Mat pMat = Mat.ones(new Size(3, 1), CvType.CV_32F);
-            pMat.put(0, 0, p.x);
-            pMat.put(1, 0, p.y);
-            Mat result = new Mat();
-            Core.gemm(this.H, pMat, 1.0, new Mat(), 0, result);
-            return new Point(
-                result.get(0, 0)[0] / result.get(0, 2)[0],
-                result.get(0, 1)[0] / result.get(0, 2)[0]); // Result has to be scaled by Z.                                                                                                           // Z.
+            double[][] pmat = new double[3][1];
+            pmat[0][0] = p.x;
+            pmat[1][0] = p.y;
+            pmat[2][0] = 1.0;
+        	
+            double[][] h = new double[3][3];
+            
+            for (int i = 0; i < this.H.rows(); i++)
+            {
+                for (int j = 0; j < this.H.cols(); j++)
+                {
+                    h[i][j] = this.H.get(i, j)[0];
+                }
+            }
+            
+            
+            double[][] result = multiply(h, pmat);
+            System.out.println(Arrays.deepToString(result));
+            
+            for (int furry = 0; furry < result.length; furry++)
+            {
+            	result[furry][0] *= (1.0 / result[2][0]);
+            }
+            
+            System.out.println(Arrays.deepToString(result));
+            return new Point(result[0][0], result[1][0]);
         }
 
         public static boolean Test()
@@ -202,6 +215,19 @@ public class LineFollowingUtils
             }
             return success;
 
+        }
+        
+        public double[][] multiply(double[][] firstMatrix, double[][] secondMatrix)
+        {
+        	double[][] product = new double[firstMatrix.length][secondMatrix[0].length];
+            for(int i = 0; i < firstMatrix.length; i++) {
+                for (int j = 0; j < secondMatrix[0].length; j++) {
+                    for (int k = 0; k < firstMatrix[0].length; k++) {
+                        product[i][j] += firstMatrix[i][k] * secondMatrix[k][j];
+                    }
+                }
+            }
+            return product;
         }
     }
 }
