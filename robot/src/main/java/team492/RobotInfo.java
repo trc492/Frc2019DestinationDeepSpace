@@ -182,8 +182,7 @@ public class RobotInfo
     public static final double PICKUP_STALL_MIN_POWER           = 0.3;
     public static final double PICKUP_STALL_TIMEOUT             = 0.5;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
-    public static final double PICKUP_FREE_SPIN_CURRENT         = 5.0;
-    public static final double PICKUP_STALL_CURRENT             =  25;
+    public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
 

@@ -69,10 +69,10 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_RASPI_VISION = true;
-    public static final boolean USE_PIXY_I2C = true;
-    public static final boolean USE_PIXY_V2 = true;
-    public static final boolean USE_PIXY_LINE_TARGET = true;
+    public static final boolean USE_RASPI_VISION = false;
+    public static final boolean USE_PIXY_I2C = false;
+    public static final boolean USE_PIXY_V2 = false;
+    public static final boolean USE_PIXY_LINE_TARGET = false;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;

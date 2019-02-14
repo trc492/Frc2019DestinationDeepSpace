@@ -241,14 +241,16 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                if (pressed)
-                {
-                    robot.pickup.pickupCargo(null);
-                }
-                else
-                {
-                    robot.pickup.cancel();
-                }
+//                if (pressed)
+//                {
+//                    robot.pickup.pickupCargo(null);
+//                }
+//                else
+//                {
+//                    robot.pickup.cancel();
+//                }
+                // TODO: Test if pickupCargo works
+                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
@@ -263,14 +265,16 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                if (pressed)
-                {
-                    robot.pickup.deployCargo(null);
-                }
-                else
-                {
-                    robot.pickup.cancel();
-                }
+//                if (pressed)
+//                {
+//                    robot.pickup.deployCargo(null);
+//                }
+//                else
+//                {
+//                    robot.pickup.cancel();
+//                }
+                // TODO: Test if deployCargo works.
+                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
