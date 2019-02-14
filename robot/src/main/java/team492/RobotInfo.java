@@ -225,10 +225,10 @@ public class RobotInfo
     //
     // Pixy line following subsystem
     // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
-    // Source: https://forum.pixycam.com/t/resolution-tracking-pixy2/5646/2
+    // Source: https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:line_api
     //
-    public static final double PIXY2_LINE_TRACKING_HEIGHT       = 104.0; // in pixels.
-    public static final double PIXY2_LINE_TRACKING_WIDTH        = 636.0; // in pixels.
+    public static final double PIXY2_LINE_TRACKING_HEIGHT       = 51.0; // in pixels.
+    public static final double PIXY2_LINE_TRACKING_WIDTH        = 78.0; // in pixels.
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // TODO: Tune all of this
     public static final double PIXY2_TOP_LEFT_X                 = 0;   // in real-world units.
