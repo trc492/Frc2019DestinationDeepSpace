@@ -5,7 +5,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.calib3d.Calib3d;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 
 public class LineFollowingUtils
