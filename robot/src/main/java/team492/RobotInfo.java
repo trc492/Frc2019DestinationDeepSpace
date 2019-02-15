@@ -230,14 +230,14 @@ public class RobotInfo
     public static final double PIXY2_LINE_TRACKING_WIDTH        = 78.0; // in pixels.
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // TODO: Tune all of this
-    public static final double PIXY2_TOP_LEFT_X                 = 0;   // in real-world units.
-    public static final double PIXY2_TOP_LEFT_Y                 = 0;   // in real-world units.
-    public static final double PIXY2_TOP_RIGHT_X                = 0;   // in real-world units.
-    public static final double PIXY2_TOP_RIGHT_Y                = 0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_LEFT_X              = 0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_LEFT_Y              = 0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_RIGHT_X             = 0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_RIGHT_Y             = 0;   // in real-world units.
+    public static final double PIXY2_TOP_LEFT_X                 = -46.5;   // in real-world units.
+    public static final double PIXY2_TOP_LEFT_Y                 = 59.0;   // in real-world units.
+    public static final double PIXY2_TOP_RIGHT_X                = 26.0;   // in real-world units.
+    public static final double PIXY2_TOP_RIGHT_Y                = 65.0;   // in real-world units.
+    public static final double PIXY2_BOTTOM_LEFT_X              = -22.5;   // in real-world units.
+    public static final double PIXY2_BOTTOM_LEFT_Y              = 15.0;   // in real-world units.
+    public static final double PIXY2_BOTTOM_RIGHT_X             = 11.5;   // in real-world units.
+    public static final double PIXY2_BOTTOM_RIGHT_Y             = 13.5;   // in real-world units.
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
