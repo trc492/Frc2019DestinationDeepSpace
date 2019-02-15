@@ -28,8 +28,6 @@ import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 import trclib.TrcPixyCam2.Vector;
 
-import org.opencv.core.Point;
-
 public class CmdRobotTargetAlign
 {
     private static final String instanceName = "CmdRobotTargetAlign";

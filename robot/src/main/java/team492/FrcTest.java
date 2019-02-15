@@ -22,8 +22,6 @@
 
 package team492;
 
-import org.opencv.core.Point;
-
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
