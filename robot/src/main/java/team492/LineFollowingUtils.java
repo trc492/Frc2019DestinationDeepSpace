@@ -1,12 +1,10 @@
 package team492;
 
-import org.opencv.core.Core;
 import org.opencv.core.Point;
-import org.opencv.core.Size;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.calib3d.Calib3d;
+
 import java.util.LinkedList;
 
 public class LineFollowingUtils
@@ -28,42 +26,15 @@ public class LineFollowingUtils
         return angle - 90.0;
     }
 
-    public double getAngle(RealWorldPair origin, RealWorldPair p2)
+    public double getAngle(Point origin, Point p2)
     {
-        double dx = p2.getXLength() - origin.getXLength();
-        double dy = p2.getYLength() - origin.getYLength();
+        double dx = p2.x - origin.x;
+        double dy = p2.y - origin.y;
 
         double theta = Math.atan2(dy, dx);
         theta = Math.toDegrees(theta);
         theta = (theta + 360.0) % 360.0;
         return theta;
-    }
-
-    /**
-     * This function creates a very crude estimation of an object's position in
-     * real-world units.
-     * 
-     * @param x0
-     *                              the x-coordinate of a pair on the camera
-     *                              plane. (x: right positive)
-     * @param y0
-     *                              the y-coordinate of a pair on the camera
-     *                              plane: (y: down positive)
-     * @param                   widthCoefficient:
-     *                              the width coefficient, the length of the
-     *                              camera view width in inches.
-     * @param heightCoefficient
-     *                              the height coefficient, the height of the
-     *                              camera view width in inches.
-     * @return a RealWorldPair instance of the approximate scaled real world
-     *         location of the objects at the coordinates (x0, y0)
-     */
-    public RealWorldPair getRWPCrude(int x0, int y0, double widthCoefficient, double heightCoefficient)
-    {
-        double xLength = widthCoefficient * ((double) x0 / (double) RobotInfo.PIXY2_LINE_TRACKING_WIDTH);
-        double yLength = heightCoefficient
-            * ((double) (RobotInfo.PIXY2_LINE_TRACKING_HEIGHT - y0) / (double) RobotInfo.PIXY2_LINE_TRACKING_HEIGHT);
-        return new RealWorldPair(xLength, yLength);
     }
 
     /**
@@ -79,33 +50,9 @@ public class LineFollowingUtils
      * @return a RealWorldPair instance of the approximate scaled real world
      *         location of the objects at the coordinates (x0, y0)
      */
-    public RealWorldPair getRWP(int x0, int y0)
+    public Point getRWP(double x0, double y0)
     {
-        // TODO: Test this implementation
-        Point point = cfov.GetRealWorldCoords(new Point(x0, y0));
-        return new RealWorldPair(point.x, point.y);
-    }
-
-    public static class RealWorldPair
-    {
-        private double xLength;
-        private double yLength;
-
-        public RealWorldPair(double xLength, double yLength)
-        {
-            this.xLength = xLength;
-            this.yLength = yLength;
-        }
-
-        public double getXLength()
-        {
-            return xLength;
-        }
-
-        public double getYLength()
-        {
-            return yLength;
-        }
+        return cfov.GetRealWorldCoords(new Point(x0, y0));
     }
 
     public static class CameraFieldOfView
@@ -135,11 +82,11 @@ public class LineFollowingUtils
             LinkedList<Point> sceneList = new LinkedList<Point>();
 
             objList.add(topLeft);
-            sceneList.add(new Point(0, 0));
+            sceneList.add(new Point(0.0, 0.0));
             objList.add(topRight);
-            sceneList.add(new Point(this.xResolution, 0));
+            sceneList.add(new Point(this.xResolution, 0.0));
             objList.add(bottomLeft);
-            sceneList.add(new Point(0, this.yResolution));
+            sceneList.add(new Point(0.0, this.yResolution));
             objList.add(bottomRight);
             sceneList.add(new Point(this.xResolution, this.yResolution));
 
@@ -149,59 +96,53 @@ public class LineFollowingUtils
             MatOfPoint2f scene = new MatOfPoint2f();
             scene.fromList(sceneList);
 
-            // find the homography from scene (image coords) to obj (world
-            // coords).
-            // note this relative to a scale factor. hopefully s=1 will Just
-            // Work.
             this.H = Calib3d.findHomography(scene, obj);
         }
 
         // get the real world coordinates of a image (x,y) point.
         public Point GetRealWorldCoords(Point p)
         {
-            // todo: verify
-            Mat pMat = Mat.ones(new Size(3, 1), CvType.CV_32F);
-            pMat.put(0, 0, p.x);
-            pMat.put(1, 0, p.y);
-            Mat result = new Mat();
-            Core.gemm(this.H, pMat, 1.0, new Mat(), 0, result);
-            return new Point(
-                result.get(0, 0)[0] / result.get(0, 2)[0],
-                result.get(0, 1)[0] / result.get(0, 2)[0]); // Result has to be scaled by Z.                                                                                                           // Z.
+            double[][] pmat = new double[3][1];
+            pmat[0][0] = p.x;
+            pmat[1][0] = p.y;
+            pmat[2][0] = 1.0;
+
+            double[][] h = new double[3][3];
+
+            for (int i = 0; i < this.H.rows(); i++)
+            {
+                for (int j = 0; j < this.H.cols(); j++)
+                {
+                    h[i][j] = this.H.get(i, j)[0];
+                }
+            }
+
+            double[][] result = multiply(h, pmat);
+
+            // Results need to be scaled by the Z-axis.
+            for (int furry = 0; furry < result.length; furry++)
+            {
+                result[furry][0] *= (1.0 / result[2][0]);
+            }
+
+            return new Point(result[0][0], result[1][0]);
         }
 
-        public static boolean Test()
+        // custom matrix multiplication function, cause Core.gemm is not functioning correctly for the job.
+        public double[][] multiply(double[][] firstMatrix, double[][] secondMatrix)
         {
-            CameraFieldOfView fov = new CameraFieldOfView(new Point(-2, 2), new Point(2, 2), new Point(-1, 1),
-                new Point(1, 1), 320, 240);
-
-            Point[] testIn = new Point[4];
-            Point[] testOut = new Point[4];
-
-            testIn[0] = new Point(0, 0);
-            testOut[0] = fov.topLeft;
-
-            testIn[1] = new Point(fov.xResolution, 0);
-            testOut[1] = fov.topRight;
-
-            testIn[2] = new Point(0, fov.yResolution);
-            testOut[2] = fov.bottomLeft;
-
-            testIn[3] = new Point(fov.xResolution, fov.yResolution);
-            testOut[3] = fov.bottomRight;
-
-            boolean success = true;
-            int i;
-            for (i = 0; i < testIn.length; i++)
+            double[][] product = new double[firstMatrix.length][secondMatrix[0].length];
+            for (int i = 0; i < firstMatrix.length; i++)
             {
-                Point pOut = fov.GetRealWorldCoords(testIn[i]);
-                double dx = pOut.x - testOut[i].x;
-                double dy = pOut.y - testOut[i].y;
-                double distance = Math.sqrt(dx * dx + dy * dy);
-                success = success && distance < 1e-5;
+                for (int j = 0; j < secondMatrix[0].length; j++)
+                {
+                    for (int k = 0; k < firstMatrix[0].length; k++)
+                    {
+                        product[i][j] += firstMatrix[i][k] * secondMatrix[k][j];
+                    }
+                }
             }
-            return success;
-
+            return product;
         }
     }
 }
