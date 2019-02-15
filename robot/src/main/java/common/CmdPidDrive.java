@@ -144,10 +144,12 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
+        /*
         if (robot.pidDrive.isActive())
         {
             robot.pidDrive.cancel();
         }
+        */
         sm.stop();
     }   //cancel
 
@@ -249,7 +251,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     break;
             }
 
-            robot.traceStateInfo(elapsedTime, state.toString(), xDistance, yDistance, heading);
+            //robot.traceStateInfo(elapsedTime, state.toString(), xDistance, yDistance, heading);
         }
 
         if (pidDrive.isActive() && (debugXPid || debugYPid || debugTurnPid))
@@ -260,7 +262,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                         robot.battery.getVoltage(), robot.battery.getLowestVoltage());
             }
 
-            if (debugXPid && robot.encoderXPidCtrl != null)
+            if (debugXPid)// && robot.encoderXPidCtrl != null)
             {
                 pidDrive.getXPidCtrl().printPidInfo(robot.globalTracer, elapsedTime);
             }

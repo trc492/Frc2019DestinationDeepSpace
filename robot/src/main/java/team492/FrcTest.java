@@ -63,7 +63,7 @@ public class FrcTest extends FrcTeleOp
 
     private CmdTimedDrive timedDriveCommand = null;
     private CmdPidDrive pidDriveCommand = null;
-    private SparkMaxFollowTest sparkTest = null;
+   // private SparkMaxFollowTest sparkTest = null;
 
     private int motorIndex = 0;
 
@@ -114,12 +114,13 @@ public class FrcTest extends FrcTeleOp
         //
         test = testMenu.getCurrentChoiceObject();
 
-        robot.gyroTurnPidCtrl.setNoOscillation(false);
-        robot.gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE);
+        //robot.gyroTurnPidCtrl.setNoOscillation(false);
+        //robot.gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE);
 
         boolean liveWindowEnabled = false;
         switch (test)
         {
+            /*
             case SPARK_FOLLOW_TEST:
                 sparkTest.start();
                 break;
@@ -183,6 +184,7 @@ public class FrcTest extends FrcTeleOp
             case LIVE_WINDOW:
                 liveWindowEnabled = true;
                 break;
+                */
 
             case PIXY_LINE_FOLLOW_TEST:
                 break;
@@ -217,7 +219,7 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case DRIVE_MOTORS_TEST:
-                doDriveMotorsTest();
+                //doDriveMotorsTest();
                 break;
 
             default:
@@ -236,6 +238,7 @@ public class FrcTest extends FrcTeleOp
 
             case X_TIMED_DRIVE:
             case Y_TIMED_DRIVE:
+            /*
                 double lfEnc = robot.leftFrontWheel.getPosition();
                 double rfEnc = robot.rightFrontWheel.getPosition();
                 double lrEnc = robot.leftRearWheel.getPosition();
@@ -263,6 +266,7 @@ public class FrcTest extends FrcTeleOp
                 robot.gyroTurnPidCtrl.displayPidInfo(7);
                 pidDriveCommand.cmdPeriodic(elapsedTime);
                 break;
+                */
 
             case PIXY_LINE_FOLLOW_TEST:
                 if (robot.lfu == null || robot.pixy == null)
@@ -299,12 +303,14 @@ public class FrcTest extends FrcTeleOp
                 break;
         }
 
+        /*
         if (robot.pidDrive.isActive())
         {
             robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
             robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
             robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
         }
+        */
     } // runContinuous
 
     @Override
@@ -313,7 +319,7 @@ public class FrcTest extends FrcTeleOp
         switch (test)
         {
             case SPARK_FOLLOW_TEST:
-                sparkTest.stop();
+                //sparkTest.stop();
                 break;
 
             default:
@@ -380,6 +386,7 @@ public class FrcTest extends FrcTeleOp
      */
     private void doSensorsTest()
     {
+        /*
         double lfPos = robot.leftFrontWheel.getPosition();
         double rfPos = robot.rightFrontWheel.getPosition();
         double lrPos = robot.leftRearWheel.getPosition();
@@ -392,7 +399,8 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f",
             robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
             robot.gyro.getZRotationRate().value);
-        robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
+            */
+        //robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
         if (robot.pixy != null)
         {
             if (Robot.USE_PIXY_LINE_TARGET)
@@ -421,6 +429,7 @@ public class FrcTest extends FrcTeleOp
                 }
             }
         }
+        /*
         double lfSpeed = robot.leftFrontWheel.getVelocity();
         double rfSpeed = robot.rightFrontWheel.getVelocity();
         double lrSpeed = robot.leftRearWheel.getVelocity();
@@ -429,8 +438,10 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed,
             lrSpeed, rrSpeed, avgSpeed);
 
+
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
+        */
 
         if (robot.vision != null)
         {
@@ -456,6 +467,7 @@ public class FrcTest extends FrcTeleOp
      * this test to check if a motor needs to be "inverted" (i.e. turning in the
      * wrong direction).
      */
+    /*
     private void doDriveMotorsTest()
     {
         robot.dashboard.displayPrintf(1, "Motors Test: index=%d", motorIndex);
@@ -528,4 +540,5 @@ public class FrcTest extends FrcTeleOp
             }
         }
     } // doDriveMotorsTest
+    */
 } // class FrcTest

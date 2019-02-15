@@ -70,9 +70,9 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
     public static final boolean USE_RASPI_VISION = false;
-    public static final boolean USE_PIXY_I2C = false;
-    public static final boolean USE_PIXY_V2 = false;
-    public static final boolean USE_PIXY_LINE_TARGET = false;
+    public static final boolean USE_PIXY_I2C = true;
+    public static final boolean USE_PIXY_V2 = true;
+    public static final boolean USE_PIXY_LINE_TARGET = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -120,15 +120,15 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp = null;
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
-    public AnalogInput pressureSensor = null;
+    //public AnalogInput pressureSensor = null;
 
     //
     // Primary robot subystems
     //
-    public Pickup pickup;
-    public Elevator elevator;
+    //public Pickup pickup;
+    //public Elevator elevator;
 
-    public CmdAutoDeploy autoDeploy;
+    //public CmdAutoDeploy autoDeploy;
     public LineFollowingUtils lfu;
     public CmdRobotTargetAlign autoTargetAlign;
 
@@ -146,6 +146,7 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
+    /*
     public FrcCANSparkMax leftFrontWheel;
     public FrcCANSparkMax leftRearWheel;
     public FrcCANSparkMax rightFrontWheel;
@@ -156,6 +157,7 @@ public class Robot extends FrcRobotBase
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
+    */
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
@@ -198,7 +200,7 @@ public class Robot extends FrcRobotBase
         {
             gyro = new FrcAHRSGyro("NavX", SPI.Port.kMXP);
         }
-        pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
+        //pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
 
         //
         // Vision subsystem.
@@ -233,6 +235,7 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
+        /*
         leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
@@ -241,10 +244,12 @@ public class Robot extends FrcRobotBase
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel");
+        */
 
         //
         // Initialize each drive motor controller.
         //
+        /*
         leftFrontWheel.setInverted(false);
         leftRearWheel.setInverted(false);
         rightFrontWheel.setInverted(true);
@@ -254,10 +259,12 @@ public class Robot extends FrcRobotBase
         leftRearWheel.setPositionSensorInverted(false);
         rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
+        */
 
         //
         // Initialize DriveBase subsystem.
         //
+        /*
         driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
         driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
 
@@ -281,18 +288,19 @@ public class Robot extends FrcRobotBase
         encoderXPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_XPID_POWER);
         encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
         gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);
+        */
 
         //
         // Create other hardware subsystems.
         //
-        elevator = new Elevator();
-        pickup = new Pickup(this);
+        //elevator = new Elevator();
+        //pickup = new Pickup(this);
         lfu = new LineFollowingUtils();
 
         //
         // AutoAssist commands.
         //
-        autoDeploy = new CmdAutoDeploy(this);
+        //autoDeploy = new CmdAutoDeploy(this);
         autoTargetAlign = new CmdRobotTargetAlign(this);
 
         //
@@ -336,7 +344,7 @@ public class Robot extends FrcRobotBase
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
             setVisionEnabled(true);
-            driveBase.resetOdometry();
+            //driveBase.resetOdometry();
             targetHeading = 0.0;
 
             dashboard.clearDisplay();
@@ -448,11 +456,13 @@ public class Robot extends FrcRobotBase
      */
     public void stopSubsystems()
     {
-        pidDrive.cancel();
-        driveBase.stop();
+       //pidDrive.cancel();
+       // driveBase.stop();
+        /*
         elevator.setPower(0.0);
         pickup.setPitchPower(0.0);
         pickup.setPickupPower(0.0);
+        */
     }
 
     public void setVisionEnabled(boolean enabled)
@@ -488,6 +498,7 @@ public class Robot extends FrcRobotBase
                 }
             }
 
+            /*
             if (DEBUG_DRIVE_BASE)
             {
                 double xPos = driveBase.getXPosition();
@@ -520,6 +531,7 @@ public class Robot extends FrcRobotBase
                     gyroTurnPidCtrl.displayPidInfo(14);
                 }
             }
+            */
 
             if (DEBUG_SUBSYSTEMS)
             {
@@ -574,6 +586,7 @@ public class Robot extends FrcRobotBase
         }
     }   //updateDashboard
 
+    /*
     private Sendable createMecanumDriveInfo()
     {
         return new Sendable()
@@ -615,6 +628,7 @@ public class Robot extends FrcRobotBase
             }
         };
     }
+    */
 
     /**
      * Checks if any auto processes are running, be it auto mode or auto assist, etc.
@@ -623,7 +637,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive() || autoTargetAlign.isActive();
+        return autoMode.isAutoActive() || autoTargetAlign.isActive(); //|| autoDeploy.isActive() || autoTargetAlign.isActive();
     }
 
     public void announceSafety()
@@ -648,6 +662,7 @@ public class Robot extends FrcRobotBase
         }
     }   //announceIdling
 
+    /*
     public void traceStateInfo(double elapsedTime, String stateName, double xDistance, double yDistance, double heading)
     {
         final String funcName = "traceStateInfo";
@@ -666,15 +681,18 @@ public class Robot extends FrcRobotBase
                 driveBase.getHeading(), heading);
         }
     }   //traceStateInfo
+    */
 
     //
     // Getters for sensor data.
     //
 
+    /*
     public double getPressure()
     {
         return 50.0 * pressureSensor.getVoltage() - 25.0;
     }   //getPressure
+    */
 
     public Double getPixyTargetAngle()
     {

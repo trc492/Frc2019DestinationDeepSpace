@@ -112,27 +112,28 @@ public class FrcAuto extends FrcTeleOp
         switch (autoStrategy)
         {
             case X_TIMED_DRIVE:
-                autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
+                //autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
                 break;
 
             case Y_TIMED_DRIVE:
-                autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, 0.0, robot.drivePower, 0.0);
+                //autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, 0.0, robot.drivePower, 0.0);
                 break;
 
             case X_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
-                    robot.drivePowerLimit, false);
+                //autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
+                //    robot.drivePowerLimit, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
-                    robot.drivePowerLimit, false);
+                //autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
+                //    robot.drivePowerLimit, false);
                 break;
 
             case TURN_DEGREES:
-                autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
-                    robot.drivePowerLimit, false);
+                //autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
+                //    robot.drivePowerLimit, false);
                 break;
+            
 
             case DO_NOTHING:
                 autoCommand = null;
@@ -168,12 +169,14 @@ public class FrcAuto extends FrcTeleOp
         {
             autoCommand.cmdPeriodic(elapsedTime);
 
+            /*
             if (robot.pidDrive.isActive())
             {
                 robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
                 robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
                 robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
             }
+            */
         }
     } // runContinuous
 

@@ -62,7 +62,7 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
 
         event = new TrcEvent(moduleName);
         sm = new TrcStateMachine<>(moduleName);
-        prevTurnMode = robot.pidDrive.getTurnMode();
+        //prevTurnMode = robot.pidDrive.getTurnMode();
     }   //CmdWaltzTurn
 
     /**
@@ -85,11 +85,13 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
+        /*
         if (robot.pidDrive.isActive())
         {
             robot.pidDrive.cancel();
             robot.pidDrive.setTurnMode(prevTurnMode);
         }
+        */
         sm.stop();
     }   //cancel
 
@@ -124,12 +126,14 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
                     //
                     // Do the waltz turn.
                     //
+                    /*
                     robot.targetHeading = robot.driveBase.getHeading();
                     robot.targetHeading += clockwiseTurn? 180.0: -180.0;
 
                     prevTurnMode = robot.pidDrive.getTurnMode();
                     robot.pidDrive.setTurnMode(driveInverted? TurnMode.PIVOT_FORWARD: TurnMode.PIVOT_BACKWARD);
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event, 2.0);
+                    */
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
@@ -138,11 +142,11 @@ public class CmdWaltzTurn implements TrcRobot.RobotCommand
                     //
                     // We are done.
                     //
-                    robot.pidDrive.setTurnMode(prevTurnMode);
+                    //robot.pidDrive.setTurnMode(prevTurnMode);
                     sm.stop();
                     break;
             }
-            robot.traceStateInfo(elapsedTime, state.toString(), 0.0, 0.0, robot.targetHeading);
+            //robot.traceStateInfo(elapsedTime, state.toString(), 0.0, 0.0, robot.targetHeading);
         }
 
         return !sm.isEnabled();

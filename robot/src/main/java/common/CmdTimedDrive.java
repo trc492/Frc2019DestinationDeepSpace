@@ -99,7 +99,7 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
     @Override
     public void cancel()
     {
-        robot.driveBase.stop();
+        //robot.driveBase.stop();
         sm.stop();
     }   //cancel
 
@@ -143,6 +143,7 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
                     //
                     // Drive the robot with the given power for a set amount of time.
                     //
+                    /*
                     if (robot.driveBase.supportsHolonomicDrive())
                     {
                         robot.driveBase.holonomicDrive(xDrivePower, yDrivePower, turnPower);
@@ -151,6 +152,7 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
                     {
                         robot.driveBase.arcadeDrive(yDrivePower, turnPower);
                     }
+                    */
                     timer.set(driveTime, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
@@ -160,11 +162,11 @@ public class CmdTimedDrive implements TrcRobot.RobotCommand
                     //
                     // We are done.
                     //
-                    robot.driveBase.stop();
+                    //robot.driveBase.stop();
                     sm.stop();
                     break;
             }
-            robot.traceStateInfo(elapsedTime, state.toString(), 0.0, 0.0, 0.0);
+            //robot.traceStateInfo(elapsedTime, state.toString(), 0.0, 0.0, 0.0);
         }
 
         return !sm.isEnabled();

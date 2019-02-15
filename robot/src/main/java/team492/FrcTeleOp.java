@@ -76,7 +76,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public void runPeriodic(double elapsedTime)
     {
         double elevatorPower = robot.operatorStick.getYWithDeadband(true);
-        robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
+        //robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
 
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
@@ -86,6 +86,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         switch (driveMode)
         {
+            /*
             case TANK_MODE:
                 double leftPower = leftDriveY;
                 double rightPower = rightDriveY;
@@ -119,6 +120,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 }
                 robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+                */
+            default:
                 break;
         }
 
@@ -205,6 +208,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON5:
+                /*
                 if (pressed)
                 {
                     gyroAssist = !gyroAssist;
@@ -218,6 +222,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                         robot.driveBase.disableGyroAssist();
                     }
                 }
+                */
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON6:
@@ -250,10 +255,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 //                    robot.pickup.cancel();
 //                }
                 // TODO: Test if pickupCargo works
-                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
+//                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                /*
                 if (pressed)
                 {
                     robot.pickup.extendHatchDeployer();
@@ -262,6 +268,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.pickup.retractHatchDeployer();
                 }
+                */
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
@@ -274,7 +281,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 //                    robot.pickup.cancel();
 //                }
                 // TODO: Test if deployCargo works.
-                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
+//                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -284,25 +291,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? -0.25 : 0.0, false);
+                //robot.pickup.setPitchPower(pressed ? -0.25 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
+                //robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                /*
                 if (pressed)
                 {
                     robot.pickup.setPickupAngle(0.0);
                 }
+                */
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
+                /*
                 if (pressed)
                 {
                     robot.pickup.setPickupAngle(90.0);
                 }
+                */
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
@@ -342,83 +353,103 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, CmdAutoDeploy.DeployType.HATCH, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, CmdAutoDeploy.DeployType.HATCH, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, CmdAutoDeploy.DeployType.HATCH, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, CmdAutoDeploy.DeployType.CARGO, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, CmdAutoDeploy.DeployType.CARGO, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, CmdAutoDeploy.DeployType.CARGO, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, CmdAutoDeploy.DeployType.CARGO, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, CmdAutoDeploy.DeployType.HATCH, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, CmdAutoDeploy.DeployType.PICKUP_CARGO, null);
                 }
+                */
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
+            /*
                 if (pressed)
                 {
                     robot.autoDeploy
                         .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, CmdAutoDeploy.DeployType.PICKUP_HATCH, null);
                 }
+                */
                 break;
         }
     } // operatorStickButtonEvent

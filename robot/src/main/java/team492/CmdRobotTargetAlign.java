@@ -86,7 +86,7 @@ public class CmdRobotTargetAlign
     private void stop()
     {
         sm.stop();
-        robot.pidDrive.cancel();
+        //robot.pidDrive.cancel();
         onFinishedEvent = null;
         setEnabled(false);
     }
@@ -141,8 +141,8 @@ public class CmdRobotTargetAlign
                             p2.x, p2.y);
                         robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
                             degrees);
-                        robot.targetHeading = robot.driveBase.getHeading() + degrees;
-                        robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+                        //robot.targetHeading = robot.driveBase.getHeading() + degrees;
+                        //robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
                         sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;
