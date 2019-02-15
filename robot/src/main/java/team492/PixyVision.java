@@ -87,24 +87,21 @@ public class PixyVision
     private Rect lastTargetRect = null;
     private double lastTargetRectExpireTime = TrcUtil.getCurrentTime();
 
-    private void commonInit(Robot robot, int signature, int brightness, Orientation orientation, boolean pixyV2)
+    private void commonInit(Robot robot, int signature, int brightness, Orientation orientation)
     {
         this.robot = robot;
         this.signature = signature;
         this.brightness = brightness;
         this.orientation = orientation;
-        if (pixyV2)
-        {
-            homographyMapper = new TrcHomographyMapper(
-                // Camera coordinates: top left, top right, bottom left and bottom right
-                new Point(0.0, 0.0), new Point(RobotInfo.PIXYCAM_WIDTH, 0.0),
-                new Point(0.0, RobotInfo.PIXYCAM_HEIGHT), new Point(RobotInfo.PIXYCAM_WIDTH, RobotInfo.PIXYCAM_HEIGHT),
-                // World coordinates: top left, top right, bottom left and bottom right.
-                new Point(RobotInfo.PIXYCAM_WORLD_TOPLEFT_X, RobotInfo.PIXYCAM_WORLD_TOPLEFT_Y),
-                new Point(RobotInfo.PIXYCAM_WORLD_TOPRIGHT_X, RobotInfo.PIXYCAM_WORLD_TOPRIGHT_Y),
-                new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_Y),
-                new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_Y));
-        }
+        homographyMapper = new TrcHomographyMapper(
+            // Camera coordinates: top left, top right, bottom left and bottom right
+            new Point(0.0, 0.0), new Point(RobotInfo.PIXYCAM_WIDTH, 0.0),
+            new Point(0.0, RobotInfo.PIXYCAM_HEIGHT), new Point(RobotInfo.PIXYCAM_WIDTH, RobotInfo.PIXYCAM_HEIGHT),
+            // World coordinates: top left, top right, bottom left and bottom right.
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPLEFT_X, RobotInfo.PIXYCAM_WORLD_TOPLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPRIGHT_X, RobotInfo.PIXYCAM_WORLD_TOPRIGHT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_Y));
     }   //commonInit
 
     public PixyVision(
@@ -119,7 +116,7 @@ public class PixyVision
         {
             pixyCamera1 = new FrcPixyCam1(instanceName, port);
         }
-        commonInit(robot, signature, brightness, orientation, pixyV2);
+        commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 
     public PixyVision(
@@ -134,7 +131,7 @@ public class PixyVision
         {
             pixyCamera1 = new FrcPixyCam1(instanceName, port, i2cAddress);
         }
-        commonInit(robot, signature, brightness, orientation, pixyV2);
+        commonInit(robot, signature, brightness, orientation);
     }   //PixyVision
 
     public void setEnabled(boolean enabled)
