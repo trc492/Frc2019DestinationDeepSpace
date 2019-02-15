@@ -38,7 +38,8 @@ public class Pickup
 {
     private static final String instanceName = "Pickup";
 
-    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
+    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
+        RobotInfo.PICKUP_PICKUP_CURRENT };
 
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;

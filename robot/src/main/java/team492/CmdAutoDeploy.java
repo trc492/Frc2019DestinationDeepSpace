@@ -164,6 +164,8 @@ public class CmdAutoDeploy
 
         if (state != null)
         {
+            robot.globalTracer.traceInfo("AlignTask", "Curr State: %s", state.toString());
+            robot.dashboard.displayPrintf(12, "State: %s", state.toString());
             switch (state)
             {
                 case START:
@@ -183,11 +185,11 @@ public class CmdAutoDeploy
 
                 case ORIENT:
                     // We don't need an event for this, since it should be done by the time everything else finishes.
-                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_MAX_POS);
+                    //robot.pickup.setPickupAngle(RobotInfo.PICKUP_MAX_POS);
 
                     TrcEvent elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
-                    robot.elevator.setPosition(travelHeight, elevatorEvent);
+                    //robot.elevator.setPosition(travelHeight, elevatorEvent);
 
                     if (USE_VISION_YAW)
                     {
@@ -199,7 +201,7 @@ public class CmdAutoDeploy
                     }
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
 
-                    sm.addEvent(elevatorEvent);
+                    //sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
                     State nextState = (!USE_VISION_YAW || REFRESH_VISION) ? State.REFRESH_VISION : State.ALIGN;
                     sm.waitForEvents(nextState, 0.0, true);
@@ -214,7 +216,7 @@ public class CmdAutoDeploy
                     break;
 
                 case ALIGN:
-                    robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
+                    //robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
                     double x, y;
                     if (USE_VISION_YAW && !REFRESH_VISION)
                     {
@@ -222,21 +224,24 @@ public class CmdAutoDeploy
                         double r = pose.r;
                         double theta = pose.theta - pose.objectYaw;
                         x = Math.sin(Math.toRadians(theta)) * r + RobotInfo.CAMERA_OFFSET;
-                        y = Math.cos(Math.toRadians(theta)) * r + RobotInfo.CAMERA_DEPTH;
+                        y = Math.cos(Math.toRadians(theta)) * r - RobotInfo.CAMERA_DEPTH;
                     }
                     else
                     {
                         // Vision data was taken AFTER the ORIENT state, so no transformation required.
-                        x = pose.x;
-                        y = pose.y;
+                        x = pose.x + RobotInfo.CAMERA_OFFSET;
+                        y = pose.y - RobotInfo.CAMERA_DEPTH;
                     }
+                    robot.globalTracer
+                        .traceInfo("DeployTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
                     robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
                     sm.waitForSingleEvent(event, State.RAISE_ELEVATOR);
                     break;
 
                 case RAISE_ELEVATOR:
-                    robot.elevator.setPosition(elevatorHeight, event);
-                    sm.waitForSingleEvent(event, State.DEPLOY);
+                    //robot.elevator.setPosition(elevatorHeight, event);
+                    //sm.waitForSingleEvent(event, State.DEPLOY);
+                    sm.setState(State.DONE);
                     break;
 
                 case DEPLOY:

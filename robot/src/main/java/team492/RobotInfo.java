@@ -120,8 +120,8 @@ public class RobotInfo
     public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam1.DEF_I2C_ADDRESS;
     public static final int PIXY_TARGET_SIGNATURE               = 1;
 
-    public static final double CAMERA_DEPTH                     = 3; // Inches from center of EE to center of camera, + = right
-    public static final double CAMERA_OFFSET                    = 4; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_DEPTH                     = 4; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_OFFSET                    = 0; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -182,7 +182,8 @@ public class RobotInfo
     public static final double PICKUP_STALL_MIN_POWER           = 0.3;
     public static final double PICKUP_STALL_TIMEOUT             = 0.5;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
-    public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
+    public static final double PICKUP_FREE_SPIN_CURRENT         = 1.5; // Free=1.5,startup=2-4,cargopickup=5.5
+    public static final double PICKUP_PICKUP_CURRENT            = 4.5;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
 

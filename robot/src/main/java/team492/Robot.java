@@ -69,7 +69,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_RASPI_VISION = false;
+    public static final boolean USE_RASPI_VISION = true;
     public static final boolean USE_PIXY_I2C = false;
     public static final boolean USE_PIXY_V2 = false;
     public static final boolean USE_PIXY_LINE_TARGET = false;
@@ -337,6 +337,7 @@ public class Robot extends FrcRobotBase
             battery.setEnabled(true);
             setVisionEnabled(true);
             driveBase.resetOdometry();
+            driveBase.setOdometryEnabled(true);
             targetHeading = 0.0;
 
             dashboard.clearDisplay();
@@ -367,6 +368,8 @@ public class Robot extends FrcRobotBase
         if (runMode != RunMode.DISABLED_MODE)
         {
             setVisionEnabled(false);
+            driveBase.setOdometryEnabled(false);
+            cancelAllAuto();
             pdp.setTaskEnabled(false);
             battery.setEnabled(false);
 
@@ -624,6 +627,24 @@ public class Robot extends FrcRobotBase
     public boolean isAutoActive()
     {
         return autoMode.isAutoActive() || autoDeploy.isActive() || autoTargetAlign.isActive();
+    }
+
+    public void cancelAllAuto()
+    {
+        if (autoMode.isAutoActive())
+        {
+            autoMode.cancel();
+        }
+
+        if (autoDeploy.isActive())
+        {
+            autoDeploy.cancel();
+        }
+
+        if (autoTargetAlign.isActive())
+        {
+            autoTargetAlign.cancel();
+        }
     }
 
     public void announceSafety()
