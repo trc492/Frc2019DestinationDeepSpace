@@ -72,6 +72,9 @@ public class TrcHomographyMapper
 
         // Find the 3x3 homography matrix.
         homographyMatrix = Calib3d.findHomography(srcPoints, dstPoints);
+        // release MatOfPoint2f to prevent memory leak.
+        srcPoints.release();
+        dstPoints.release();
     }   //TrcHomographyMapper
 
     /**
