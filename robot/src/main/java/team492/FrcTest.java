@@ -323,6 +323,11 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                processedInput = true;
+                if (pressed)
+                {
+                    robot.autoDeploy.start(20.0, CmdAutoDeploy.DeployType.CARGO, null);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
