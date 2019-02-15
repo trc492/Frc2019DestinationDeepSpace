@@ -47,9 +47,9 @@ public class VisionTargetPipeline implements VisionPipeline
     private List<TargetData> detectedTargets = new ArrayList<>();
     private TargetData selectedTarget = null;
 
-    public double[] hslThresholdHue = { 0, 180 };
-    public double[] hslThresholdSaturation = { 12, 255 };
-    public double[] hslThresholdLuminance = { 160, 255 };
+    public double[] hslThresholdHue = { 50.0, 80.0 };
+    public double[] hslThresholdSaturation = { 40, 255 };
+    public double[] hslThresholdLuminance = { 50, 255 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
