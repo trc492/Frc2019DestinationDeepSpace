@@ -47,13 +47,9 @@ public class CmdRobotTargetAlign
     private double targetX = 0.0;
     private double targetY = 0.0;
 
-    private LineFollowingUtils lfu;
-
     public CmdRobotTargetAlign(Robot robot)
     {
         this.robot = robot;
-        this.lfu = robot.lfu;
-        //lfu = new LineFollowingUtils();
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
         lineAlignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".lineAlignTask", this::lineAlignTask);
@@ -127,21 +123,12 @@ public class CmdRobotTargetAlign
                     }
                     else
                     {
-                        robot.globalTracer.traceInfo(instanceName, "%s: Line found! line=%s", state, lineVector);
+                        double angle = robot.pixy.getVectorAngle(lineVector);
 
-                        Point origin = lfu.getRWP(lineVector.x0, lineVector.y0);
-                        Point p2 = lfu.getRWP(lineVector.x1, lineVector.y1);
-                        double degrees = lfu.getTurnDegrees(lfu.getAngle(origin, p2));
+                        robot.globalTracer.traceInfo(instanceName, "%s: Line found! line=%s, angle=%.2f",
+                            state, lineVector, angle);
 
-                        robot.globalTracer.traceInfo(instanceName,
-                            "%s: Vector origin: (%d, %d) -> %.2f, %.2f", state, lineVector.x0, lineVector.y0,
-                            origin.x, origin.y);
-                        robot.globalTracer.traceInfo(instanceName,
-                            "%s: Vector vertex: (%d, %d) -> %.2f, %.2f", state, lineVector.x1, lineVector.y1,
-                            p2.x, p2.y);
-                        robot.globalTracer.traceInfo(instanceName, "%s: Target heading set to %.2f °", state, 
-                            degrees);
-                        robot.targetHeading = robot.driveBase.getHeading() + degrees;
+                        robot.targetHeading = robot.driveBase.getHeading() + angle;
                         robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
                         sm.waitForSingleEvent(event, State.DONE);
                     }

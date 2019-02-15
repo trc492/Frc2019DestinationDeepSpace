@@ -129,7 +129,6 @@ public class Robot extends FrcRobotBase
     public Elevator elevator;
 
     public CmdAutoDeploy autoDeploy;
-    public LineFollowingUtils lfu;
     public CmdRobotTargetAlign autoTargetAlign;
 
     //
@@ -287,7 +286,6 @@ public class Robot extends FrcRobotBase
         //
         elevator = new Elevator();
         pickup = new Pickup(this);
-        lfu = new LineFollowingUtils();
 
         //
         // AutoAssist commands.
