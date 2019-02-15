@@ -26,6 +26,9 @@ import frclib.FrcJoystick;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
+import java.util.Arrays;
+import java.util.stream.Stream;
+
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     private enum DriveMode
@@ -81,46 +84,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
-        //
-        // DriveBase operation.
-        //
-        switch (driveMode)
-        {
-            case TANK_MODE:
-                double leftPower = leftDriveY;
-                double rightPower = rightDriveY;
-                if (slowDriveOverride)
-                {
-                    leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                }
-                robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
-                break;
-
-            case ARCADE_MODE:
-                double drivePower = rightDriveY;
-                double turnPower = robot.rightDriveStick.getTwistWithDeadband(true);
-                if (slowDriveOverride)
-                {
-                    drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                }
-                robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
-                break;
-
-            case MECANUM_MODE:
-                double x = leftDriveX;
-                double y = rightDriveY;
-                double rot = robot.rightDriveStick.getTwistWithDeadband(true);
-                if (slowDriveOverride)
-                {
-                    x /= RobotInfo.DRIVE_SLOW_XSCALE;
-                    y /= RobotInfo.DRIVE_SLOW_YSCALE;
-                    rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                }
-                robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
-                break;
-        }
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
@@ -130,7 +93,57 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             // Force update of LEDs
             robot.pixy.getTargetInfo();
         }
+
+        if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY) || !robot.isAutoActive())
+        {
+            robot.cancelAllAuto();
+            //
+            // DriveBase operation.
+            //
+            switch (driveMode)
+            {
+                case TANK_MODE:
+                    double leftPower = leftDriveY;
+                    double rightPower = rightDriveY;
+                    if (slowDriveOverride)
+                    {
+                        leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                        rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                    }
+                    robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
+                    break;
+
+                case ARCADE_MODE:
+                    double drivePower = rightDriveY;
+                    double turnPower = robot.rightDriveStick.getTwistWithDeadband(true);
+                    if (slowDriveOverride)
+                    {
+                        drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                        turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                    }
+                    robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
+                    break;
+
+                case MECANUM_MODE:
+                    double x = leftDriveX;
+                    double y = rightDriveY;
+                    double rot = robot.rightDriveStick.getTwistWithDeadband(true);
+                    if (slowDriveOverride)
+                    {
+                        x /= RobotInfo.DRIVE_SLOW_XSCALE;
+                        y /= RobotInfo.DRIVE_SLOW_YSCALE;
+                        rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                    }
+                    robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+                    break;
+            }
+        }
     } // runPeriodic
+
+    private boolean shouldCancelAuto(double... joystickValues)
+    {
+        return Arrays.stream(joystickValues).anyMatch(d -> d != 0.0);
+    }
 
     @Override
     public void runContinuous(double elapsedTime)
