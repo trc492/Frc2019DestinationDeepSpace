@@ -18,7 +18,7 @@ public class RaspiVision
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
 
-    public RaspiVision(Robot robot)
+    public RaspiVision()
     {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("RaspiVision");
         NetworkTableEntry entry = table.getEntry("VisionData");

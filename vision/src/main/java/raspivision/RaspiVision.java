@@ -44,8 +44,10 @@ import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 public class RaspiVision
 {
@@ -117,7 +119,7 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private MatOfDouble dist = null;
+    private MatOfDouble dist;
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
     private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
     private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
@@ -426,9 +428,9 @@ public class RaspiVision
         if (FLIP_Y_AXIS)
         {
             // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
-            for (int i = 0; i < points.length; i++)
+            for (Point point : points)
             {
-                points[i].y = height - points[i].y;
+                point.y = height - point.y;
             }
         }
 
@@ -467,10 +469,12 @@ public class RaspiVision
             // Draw the contours first, so the corners get put on top
             if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
             {
+                List<MatOfPoint> contours = new ArrayList<>();
                 contourPoints.fromArray(data.leftTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                contours.add(contourPoints);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
                 contourPoints.fromArray(data.rightTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
             }
 
             // Draw the left and right target corners. First you have to re-flip the y coordinate
