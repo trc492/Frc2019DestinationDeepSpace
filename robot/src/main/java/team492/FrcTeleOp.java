@@ -333,7 +333,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     // Lower right button on joystick base.
-                    robot.autoTargetAlign.start(null);
+                    robot.autoAlignTarget.start(null);
                 }
                 break;
 
@@ -373,7 +373,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, CmdAutoDeploy.DeployType.HATCH, null);
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, TaskAutoDeploy.DeployType.HATCH, null);
                 }
                 break;
 
@@ -381,7 +381,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, CmdAutoDeploy.DeployType.HATCH, null);
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, TaskAutoDeploy.DeployType.HATCH, null);
                 }
                 break;
 
@@ -389,7 +389,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, CmdAutoDeploy.DeployType.HATCH, null);
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, TaskAutoDeploy.DeployType.HATCH, null);
                 }
                 break;
 
@@ -397,7 +397,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, CmdAutoDeploy.DeployType.CARGO, null);
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, TaskAutoDeploy.DeployType.CARGO, null);
                 }
                 break;
 
@@ -405,7 +405,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, CmdAutoDeploy.DeployType.CARGO, null);
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, TaskAutoDeploy.DeployType.CARGO, null);
                 }
                 break;
 
@@ -413,21 +413,21 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, CmdAutoDeploy.DeployType.CARGO, null);
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, TaskAutoDeploy.DeployType.CARGO, null);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
                 if (pressed)
                 {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, CmdAutoDeploy.DeployType.CARGO, null);
+                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, TaskAutoDeploy.DeployType.CARGO, null);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
                 if (pressed)
                 {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, CmdAutoDeploy.DeployType.HATCH, null);
+                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, TaskAutoDeploy.DeployType.HATCH, null);
                 }
                 break;
 
@@ -435,7 +435,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, CmdAutoDeploy.DeployType.PICKUP_CARGO, null);
+                        .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, TaskAutoDeploy.DeployType.PICKUP_CARGO, null);
                 }
                 break;
 
@@ -443,7 +443,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, CmdAutoDeploy.DeployType.PICKUP_HATCH, null);
+                        .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, TaskAutoDeploy.DeployType.PICKUP_HATCH, null);
                 }
                 break;
         }

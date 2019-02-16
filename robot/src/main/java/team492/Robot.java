@@ -128,8 +128,8 @@ public class Robot extends FrcRobotBase
     public Pickup pickup;
     public Elevator elevator;
 
-    public CmdAutoDeploy autoDeploy;
-    public CmdRobotTargetAlign autoTargetAlign;
+    public TaskAutoDeploy autoDeploy;
+    public TaskAlignTarget autoAlignTarget;
 
     //
     // VisionTargetPipeline subsystem.
@@ -290,8 +290,8 @@ public class Robot extends FrcRobotBase
         //
         // AutoAssist commands.
         //
-        autoDeploy = new CmdAutoDeploy(this);
-        autoTargetAlign = new CmdRobotTargetAlign(this);
+        autoDeploy = new TaskAutoDeploy(this);
+        autoAlignTarget = new TaskAlignTarget(this);
 
         //
         // Create Robot Modes.
@@ -624,7 +624,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive() || autoTargetAlign.isActive();
+        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive();
     }
 
     public void cancelAllAuto()
@@ -639,9 +639,9 @@ public class Robot extends FrcRobotBase
             autoDeploy.cancel();
         }
 
-        if (autoTargetAlign.isActive())
+        if (autoAlignTarget.isActive())
         {
-            autoTargetAlign.cancel();
+            autoAlignTarget.cancel();
         }
     }
 

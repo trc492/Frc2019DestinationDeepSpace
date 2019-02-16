@@ -92,16 +92,16 @@ public class CmdAutoMiddle implements TrcRobot.RobotCommand
                     break;
 
                 case DEPLOY:
-                    CmdAutoDeploy.DeployType deployType;
+                    TaskAutoDeploy.DeployType deployType;
                     double elevatorHeight;
                     if (hatch)
                     {
-                        deployType = CmdAutoDeploy.DeployType.HATCH;
+                        deployType = TaskAutoDeploy.DeployType.HATCH;
                         elevatorHeight = RobotInfo.ELEVATOR_POS_HATCH_SHIP;
                     }
                     else
                     {
-                        deployType = CmdAutoDeploy.DeployType.CARGO;
+                        deployType = TaskAutoDeploy.DeployType.CARGO;
                         elevatorHeight = RobotInfo.ELEVATOR_POS_CARGO_SHIP;
                     }
                     robot.autoDeploy.start(elevatorHeight, deployType, event);

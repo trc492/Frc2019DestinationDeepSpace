@@ -319,7 +319,7 @@ public class FrcTest extends FrcTeleOp
                 processedInput = true;
                 if (pressed)
                 {
-                    robot.autoDeploy.start(20.0, CmdAutoDeploy.DeployType.CARGO, null);
+                    robot.autoDeploy.start(20.0, TaskAutoDeploy.DeployType.CARGO, null);
                 }
                 break;
 

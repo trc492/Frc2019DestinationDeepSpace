@@ -28,9 +28,9 @@ import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 import trclib.TrcPixyCam2.Vector;
 
-public class CmdRobotTargetAlign
+public class TaskAlignTarget
 {
-    private static final String instanceName = "CmdRobotTargetAlign";
+    private static final String instanceName = "TaskAlignTarget";
 
     public enum State
     {
@@ -45,7 +45,7 @@ public class CmdRobotTargetAlign
     private double targetX = 0.0;
     private double targetY = 0.0;
 
-    public CmdRobotTargetAlign(Robot robot)
+    public TaskAlignTarget(Robot robot)
     {
         this.robot = robot;
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");

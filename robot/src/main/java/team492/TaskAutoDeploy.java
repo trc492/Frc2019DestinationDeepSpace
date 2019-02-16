@@ -28,7 +28,7 @@ import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 import trclib.TrcWarpSpace;
 
-public class CmdAutoDeploy
+public class TaskAutoDeploy
 {
     private enum State
     {
@@ -45,7 +45,7 @@ public class CmdAutoDeploy
     private static final double[] HATCH_YAWS = new double[] { 0.0, 45.0, 90.0, 135.0, 225.0, 270.0, 315.0 };
     private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
-    private static final String instanceName = "CmdAutoDeploy";
+    private static final String instanceName = "TaskAutoDeploy";
 
     private Robot robot;
     private TrcStateMachine<State> sm;
@@ -58,7 +58,7 @@ public class CmdAutoDeploy
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
 
-    public CmdAutoDeploy(Robot robot)
+    public TaskAutoDeploy(Robot robot)
     {
         this.robot = robot;
         alignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".alignTask", this::alignTask);
