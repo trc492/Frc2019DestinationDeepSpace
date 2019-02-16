@@ -47,7 +47,6 @@ public class Pickup
     private FrcPneumatic hatchDeployer;
     private FrcDigitalInput cargoSensor;
     private TrcDigitalTrigger cargoTrigger;
-    private TrcAnalogSensor currentSensor;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
     private Robot robot;
@@ -90,7 +89,7 @@ public class Pickup
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
 
-        currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
+        TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
             TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
 
