@@ -334,7 +334,7 @@ public class Robot extends FrcRobotBase
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
             setVisionEnabled(true);
-            driveBase.resetOdometry();
+            driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
             targetHeading = 0.0;
 

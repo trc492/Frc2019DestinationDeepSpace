@@ -161,7 +161,7 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_POWER             = 1.0;
     public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
 
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 0.00874986860034917173913043478261;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 0.0179162073;
     public static final double ENCODER_X_KP                     = 0.25;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.015;
