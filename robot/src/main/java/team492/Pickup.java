@@ -39,8 +39,7 @@ public class Pickup
 {
     private static final String instanceName = "Pickup";
 
-    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
-        RobotInfo.PICKUP_PICKUP_CURRENT };
+    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
 
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
@@ -93,7 +92,7 @@ public class Pickup
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
-            TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
+            TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent, false);
 
         timer = new TrcTimer(instanceName + ".timer");
     }
