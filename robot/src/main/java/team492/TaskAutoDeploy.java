@@ -185,11 +185,11 @@ public class TaskAutoDeploy
 
                 case ORIENT:
                     // We don't need an event for this, since it should be done by the time everything else finishes.
-                    //robot.pickup.setPickupAngle(RobotInfo.PICKUP_MAX_POS);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_MAX_POS);
 
                     TrcEvent elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
-                    //robot.elevator.setPosition(travelHeight, elevatorEvent);
+                    robot.elevator.setPosition(travelHeight, elevatorEvent);
 
                     if (USE_VISION_YAW)
                     {
@@ -201,7 +201,7 @@ public class TaskAutoDeploy
                     }
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
 
-                    //sm.addEvent(elevatorEvent);
+                    sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
                     State nextState = (!USE_VISION_YAW || REFRESH_VISION) ? State.REFRESH_VISION : State.ALIGN;
                     sm.waitForEvents(nextState, 0.0, true);
@@ -216,7 +216,7 @@ public class TaskAutoDeploy
                     break;
 
                 case ALIGN:
-                    //robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
+                    robot.elevator.setPosition(travelHeight); // Hold it, since the set with event doesn't hold it.
                     double x, y;
                     if (USE_VISION_YAW && !REFRESH_VISION)
                     {
@@ -239,9 +239,8 @@ public class TaskAutoDeploy
                     break;
 
                 case RAISE_ELEVATOR:
-                    //robot.elevator.setPosition(elevatorHeight, event);
-                    //sm.waitForSingleEvent(event, State.DEPLOY);
-                    sm.setState(State.DONE);
+                    robot.elevator.setPosition(elevatorHeight, event);
+                    sm.waitForSingleEvent(event, State.DEPLOY);
                     break;
 
                 case DEPLOY:
