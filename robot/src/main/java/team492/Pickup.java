@@ -66,7 +66,7 @@ public class Pickup
         pitchMotor = new FrcCANTalon("PickupPitchMotor", RobotInfo.CANID_PICKUP_PITCH);
         pitchMotor.setInverted(false);
         pitchMotor.setBrakeModeEnabled(true);
-        pitchMotor.motor.overrideLimitSwitchesEnable(false); // for debugging only
+        pitchMotor.motor.overrideLimitSwitchesEnable(true);
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
 
@@ -301,8 +301,9 @@ public class Pickup
      */
     public void setPitchPower(double power, boolean hold)
     {
-        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        pitchController.setPower(power, hold);
+        pitchMotor.set(power);
+        // power = TrcUtil.clipRange(power, -1.0, 1.0);
+        // pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)

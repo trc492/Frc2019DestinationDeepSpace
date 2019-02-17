@@ -106,6 +106,7 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
-        elevator.setPower(power, hold);
+        motor.set(power);
+        // elevator.setPower(power, hold);
     }
 }
