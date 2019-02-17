@@ -62,16 +62,16 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = true; // TODO: Tune camera matrix
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
-    // These are for the Logitech c920
-    private static final double CAMERA_FOV_X = 70.42; // 62.2; (for Raspi)
-    private static final double CAMERA_FOV_Y = 43.3; // 48.8;
+    // These are for the Raspberry Pi Camera v2
+    private static final double CAMERA_FOV_X = 62.2;
+    private static final double CAMERA_FOV_Y = 48.8;
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
@@ -331,11 +331,11 @@ public class RaspiVision
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
-            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
-            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
             // TODO: Should this be separate x and y focal lengths, or the average? test.
             if (APPROXIMATE_CAMERA_MATRIX)
             {
+                double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
+                double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
                 cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
             }
         }
