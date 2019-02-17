@@ -23,6 +23,7 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcDigitalInput;
 import frclib.FrcPneumatic;
 import trclib.TrcAnalogSensor;
@@ -73,7 +74,8 @@ public class Pickup
             RobotInfo.PICKUP_KI, RobotInfo.PICKUP_KD);
         TrcPidController pidController = new TrcPidController("PickupPidController", pidCoefficients,
             RobotInfo.PICKUP_TOLERANCE, this::getPickupAngle);
-        pitchController = new TrcPidActuator("PICKUPActuator", pitchMotor, pidController,
+        FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("PitchLowerSwitch", pitchMotor, false);
+        pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
             () -> RobotInfo.PICKUP_GRAVITY_COMP);   // CodeReview: TODO: This should not be a constant.
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
@@ -238,26 +240,47 @@ public class Pickup
         pitchController.zeroCalibrate();
     }
 
+    /**
+     * Get the angle of the pickup. The angle is relative to vertical.
+     *
+     * @return The angle in degrees.
+     */
     public double getPickupAngle()
     {
         return pitchController.getPosition();
     }
 
+    /**
+     * Set the angle of the pickup pitch. The angle is relative to vertical.
+     *
+     * @param angle The angle in degrees to set.
+     */
     public void setPickupAngle(double angle)
     {
+        angle = TrcUtil.clipRange(angle, RobotInfo.PICKUP_MIN_POS, RobotInfo.PICKUP_MAX_POS);
         pitchController.setTarget(angle, true);
     }
 
+    /**
+     * Set the power to the pitch motor. Positive power is a greater angle relative to vertical.
+     *
+     * @param power Power to set to the motor, in the range [-1,1].
+     */
     public void setPitchPower(double power)
     {
         setPitchPower(power, true);
     }
 
+    /**
+     * Set the power to the pitch motor. Positive power is a greater angle relative to vertical.
+     *
+     * @param power Power to set to the motor, in the range [-1,1].
+     * @param hold  True to hold the position when power is zero.
+     */
     public void setPitchPower(double power, boolean hold)
     {
-        pitchMotor.set(power);
-        //        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        //        pitchController.setPower(power, hold);
+        power = TrcUtil.clipRange(power, -1.0, 1.0);
+        pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)

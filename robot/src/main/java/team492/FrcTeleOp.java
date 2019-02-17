@@ -304,14 +304,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
+                robot.pickup.setManualOverrideEnabled(pressed);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
+                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? -0.75 : 0.0, false);
+                robot.pickup.setPitchPower(pressed ? -0.75 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
