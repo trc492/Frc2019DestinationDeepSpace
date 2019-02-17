@@ -95,8 +95,8 @@ public class PixyVision
         this.orientation = orientation;
         homographyMapper = new TrcHomographyMapper(
             // Camera coordinates: top left, top right, bottom left and bottom right
-            new Point(0.0, 0.0), new Point(RobotInfo.PIXYCAM_WIDTH, 0.0),
-            new Point(0.0, RobotInfo.PIXYCAM_HEIGHT), new Point(RobotInfo.PIXYCAM_WIDTH, RobotInfo.PIXYCAM_HEIGHT),
+            new Point(0.0, 0.0), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, 0.0),
+            new Point(0.0, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT),
             // World coordinates: top left, top right, bottom left and bottom right.
             new Point(RobotInfo.PIXYCAM_WORLD_TOPLEFT_X, RobotInfo.PIXYCAM_WORLD_TOPLEFT_Y),
             new Point(RobotInfo.PIXYCAM_WORLD_TOPRIGHT_X, RobotInfo.PIXYCAM_WORLD_TOPRIGHT_Y),
@@ -250,6 +250,11 @@ public class PixyVision
         Point p2 = homographyMapper.MapPoint(new Point(vector.x1, vector.y1));
         return getLineAngle(p1, p2) - 90.0;
     }   //getVectorAngle
+
+    public Point mapPoint(Point point)
+    {
+        return homographyMapper.MapPoint(point);
+    }
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have
