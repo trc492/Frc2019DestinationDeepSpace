@@ -69,7 +69,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_RASPI_VISION = true;
+    public static final boolean USE_RASPI_VISION = false;
     public static final boolean USE_PIXY_I2C = false;
     public static final boolean USE_PIXY_V2 = false;
     public static final boolean USE_PIXY_LINE_TARGET = false;
@@ -78,8 +78,8 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_DRIVE_BASE = false;
     private static final boolean DEBUG_PID_DRIVE = false;
     private static final boolean DEBUG_SUBSYSTEMS = false;
-    private static final boolean DEBUG_PIXY = true;
-    private static final boolean DEBUG_RASPI_VISION = true;
+    private static final boolean DEBUG_PIXY = false;
+    private static final boolean DEBUG_RASPI_VISION = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.

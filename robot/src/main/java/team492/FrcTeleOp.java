@@ -265,16 +265,16 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                // if (pressed)
-                // {
-                // robot.pickup.pickupCargo(null);
-                // }
-                // else
-                // {
-                // robot.pickup.cancel();
-                // }
-                // TODO: Test if pickupCargo works
-                robot.pickup.setPickupPower(pressed ? 0.5 : 0.0);
+//                if (pressed)
+//                {
+//                    robot.pickup.pickupCargo(null);
+//                }
+//                else
+//                {
+//                    robot.pickup.cancel();
+//                }
+                // TODO: Test if pickupCargo works, when the DIO gets connected
+                robot.pickup.setPickupPower(pressed ? RobotInfo.PICKUP_CARGO_PICKUP_POWER : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
@@ -289,16 +289,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                // if (pressed)
-                // {
-                // robot.pickup.deployCargo(null);
-                // }
-                // else
-                // {
-                // robot.pickup.cancel();
-                // }
-                // TODO: Test if deployCargo works.
-                robot.pickup.setPickupPower(pressed ? -0.5 : 0.0);
+                if (pressed)
+                {
+                    robot.pickup.deployCargo(null);
+                }
+                else
+                {
+                    robot.pickup.cancel();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -308,11 +306,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? -0.25 : 0.0, false);
+                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0, false);
+                robot.pickup.setPitchPower(pressed ? -0.75 : 0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:

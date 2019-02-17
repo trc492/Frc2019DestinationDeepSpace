@@ -379,47 +379,56 @@ public class FrcTest extends FrcTeleOp
         double driveBaseAverage = (lfPos + rfPos + lrPos + rrPos) / 4.0;
         robot.dashboard.displayPrintf(1, "Sensors Test (Batt=%.1f/%.1f):", robot.battery.getVoltage(),
             robot.battery.getLowestVoltage());
-        robot.dashboard.displayPrintf(2, "DriveBase: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfPos, rfPos, lrPos,
-            rrPos, driveBaseAverage);
-        robot.dashboard.displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f",
-            robot.driveBase.getXPosition(), robot.driveBase.getYPosition(), robot.driveBase.getHeading(),
-            robot.gyro.getZRotationRate().value);
+        robot.dashboard
+            .displayPrintf(2, "DriveBase: lf=%.3f,rf=%.3f,lr=%.3f,rr=%.3f,avg=%.3f", lfPos, rfPos, lrPos, rrPos,
+                driveBaseAverage);
+        robot.dashboard
+            .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
+                robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
-        if (robot.pixy != null)
+        robot.dashboard
+            .displayPrintf(5, "Elevator limit switches: bottom=%b,top=%b", robot.elevator.isLowerLimitSwitchActive(),
+                robot.elevator.isUpperLimitSwitchActive());
+        robot.dashboard
+            .displayPrintf(7, "Pickup limit switches: bottom=%b,top=%b", robot.pickup.isLowerLimitSwitchActive(),
+                robot.pickup.isUpperLimitSwitchActive());
+    if (robot.pixy != null)
+    {
+        if (Robot.USE_PIXY_LINE_TARGET)
         {
-            if (Robot.USE_PIXY_LINE_TARGET)
+            Vector vector = robot.pixy.getLineVector();
+            if (vector == null)
             {
-                Vector vector = robot.pixy.getLineVector();
-                if (vector == null)
-                {
-                    robot.dashboard.displayPrintf(6, "Pixy: line not found");
-                }
-                else
-                {
-                    robot.dashboard.displayPrintf(6, "Pixy: %s", vector);
-                }
+                robot.dashboard.displayPrintf(6, "Pixy: line not found");
             }
             else
             {
-                TargetInfo targetInfo = robot.pixy.getTargetInfo();
-                if (targetInfo == null)
-                {
-                    robot.dashboard.displayPrintf(6, "Pixy: target not found");
-                }
-                else
-                {
-                    robot.dashboard.displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance,
-                        targetInfo.yDistance, targetInfo.angle);
-                }
+                robot.dashboard.displayPrintf(6, "Pixy: %s", vector);
             }
         }
+        else
+        {
+            TargetInfo targetInfo = robot.pixy.getTargetInfo();
+            if (targetInfo == null)
+            {
+                robot.dashboard.displayPrintf(6, "Pixy: target not found");
+            }
+            else
+            {
+                robot.dashboard
+                    .displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
+                        targetInfo.angle);
+            }
+        }
+    }
         double lfSpeed = robot.leftFrontWheel.getVelocity();
         double rfSpeed = robot.rightFrontWheel.getVelocity();
         double lrSpeed = robot.leftRearWheel.getVelocity();
         double rrSpeed = robot.rightRearWheel.getVelocity();
         double avgSpeed = (lfSpeed + rfSpeed + lrSpeed + rrSpeed) / 4.0;
-        robot.dashboard.displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed,
-            lrSpeed, rrSpeed, avgSpeed);
+        robot.dashboard
+            .displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed, lrSpeed,
+                rrSpeed, avgSpeed);
 
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
@@ -429,8 +438,8 @@ public class FrcTest extends FrcTeleOp
             RaspiVision.RelativePose pose = robot.vision.getLastPose();
             if (pose != null)
             {
-                robot.dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
-                    pose.objectYaw);
+                robot.dashboard
+                    .displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y, pose.objectYaw);
             }
             else
             {

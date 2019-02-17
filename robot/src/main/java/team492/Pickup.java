@@ -131,6 +131,16 @@ public class Pickup
         }
     }
 
+    public boolean isUpperLimitSwitchActive()
+    {
+        return pitchMotor.isUpperLimitSwitchActive();
+    }
+
+    public boolean isLowerLimitSwitchActive()
+    {
+        return pitchMotor.isLowerLimitSwitchActive();
+    }
+
     public double getPickupCurrent()
     {
         return pickupMotor.motor.getOutputCurrent();
@@ -160,7 +170,7 @@ public class Pickup
         onFinishedEvent = event;
         cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
         currentTrigger.setEnabled(true);
-        setPickupPower(-0.7);
+        setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
     }
 
     public void deployHatch(TrcEvent event)

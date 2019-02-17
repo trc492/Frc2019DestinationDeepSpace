@@ -106,8 +106,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
-    public static final int SOL_HATCH_DEPLOYER_EXTEND           = 0;
-    public static final int SOL_HATCH_DEPLOYER_RETRACT          = 1;
+    public static final int SOL_HATCH_DEPLOYER_EXTEND           = 4;
+    public static final int SOL_HATCH_DEPLOYER_RETRACT          = 3;
 
     //
     // Vision subsystem.
@@ -168,7 +168,7 @@ public class RobotInfo
     public static final double ENCODER_X_KF                     = 0.0;
     public static final double ENCODER_X_TOLERANCE              = 1.0;
 
-    public static final double ENCODER_Y_INCHES_PER_COUNT       = 0.0176933159;
+    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.125436537;
     public static final double ENCODER_Y_KP                     = 0.01;
     public static final double ENCODER_Y_KI                     = 0.0;
     public static final double ENCODER_Y_KD                     = 0.003;
@@ -203,6 +203,8 @@ public class RobotInfo
     public static final double PICKUP_PICKUP_CURRENT            = 4.5;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
+    public static final double PICKUP_CARGO_PICKUP_POWER        = 0.7;
+    public static final double PICKUP_CARGO_DEPLOY_POWER        = -1.0;
 
     //
     // Elevator subsystem

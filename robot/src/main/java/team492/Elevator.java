@@ -80,6 +80,16 @@ public class Elevator
         elevator.setTarget(position, event, timeout);
     }
 
+    public boolean isUpperLimitSwitchActive()
+    {
+        return motor.isUpperLimitSwitchActive();
+    }
+
+    public boolean isLowerLimitSwitchActive()
+    {
+        return motor.isLowerLimitSwitchActive();
+    }
+
     public double getPosition()
     {
         return elevator.getPosition();
