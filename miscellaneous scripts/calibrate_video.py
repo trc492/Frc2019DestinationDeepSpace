@@ -13,6 +13,7 @@ imgpoints = [] # 2d points in image plane.
 video = cv2.VideoCapture('vid.mp4')
 success = True
 count = 0
+num_frames = int(video.get(int(cv2.CAP_PROP_FRAME_COUNT)))
 while success:
     success, img = video.read()
     if success:
@@ -20,21 +21,25 @@ while success:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (9,7), None)
+        count += 1
         # If found, add object points, image points (after refining them)
         if ret == True:
-            count += 1
             objpoints.append(objp)
             corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
             imgpoints.append(corners)
-        print('\rRead frame: %3d' % count, end='')
-        if count >= 100:
-            print('')
-            break
+        print('\rRead frame: %3d of %3d' % (count, num_frames), end='')
     else:
         print('Failed to read image!')
 
+print('\nChoosing 100 evenly spaced frames...')
+objectpoints = []
+imagepoints = []
+num_found = len(imgpoints)
+for i in range(0 , num_found, int(num_found/100)):
+    objectpoints.append(objpoints[i])
+    imagepoints.append(imgpoints[i])
 
 print('Calibrating camera...')
-ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
+ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objectpoints, imagepoints, gray.shape[::-1], None, None)
 
 print('Calibrated with RMSE: {:.2f}'.format(ret))
