@@ -201,6 +201,8 @@ public class RobotInfo
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
     public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
 
+    public static final double PICKUP_GROUND_COLLISION_POS      = 60.0; // The angle at which if the elevator is low, the pickup will hit the ground
+
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
     public static final double PICKUP_CARGO_PICKUP_POWER        = 0.7;
     public static final double PICKUP_CARGO_DEPLOY_POWER        = -1.0;
@@ -223,6 +225,8 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.3;
     public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
+
+    public static final double ELEVATOR_GROUND_CLEARANCE_POS    = ELEVATOR_MIN_POS + 2.0; // The height at which the end effector won't hit the gound
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 

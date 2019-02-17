@@ -286,6 +286,7 @@ public class Robot extends FrcRobotBase
         //
         elevator = new Elevator();
         pickup = new Pickup(this);
+        pickup.setGroundCollisionAvoidanceEnabled(true);
 
         //
         // AutoAssist commands.
