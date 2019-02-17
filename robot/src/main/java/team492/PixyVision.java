@@ -246,14 +246,14 @@ public class PixyVision
 
     public double getVectorAngle(Vector vector)
     {
-        Point p1 = homographyMapper.MapPoint(new Point(vector.x0, vector.y0));
-        Point p2 = homographyMapper.MapPoint(new Point(vector.x1, vector.y1));
+        Point p1 = homographyMapper.mapPoint(new Point(vector.x0, vector.y0));
+        Point p2 = homographyMapper.mapPoint(new Point(vector.x1, vector.y1));
         return getLineAngle(p1, p2) - 90.0;
     }   //getVectorAngle
 
     public Point mapPoint(Point point)
     {
-        return homographyMapper.MapPoint(point);
+        return homographyMapper.mapPoint(point);
     }
 
     /**
