@@ -23,6 +23,7 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import frclib.FrcCANTalonLimitSwitch;
 import trclib.TrcEvent;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
@@ -40,15 +41,17 @@ public class Elevator
         motor.configRevLimitSwitchNormallyOpen(false);
         motor.setInverted(true);
         motor.setBrakeModeEnabled(true);
-        motor.motor.overrideLimitSwitchesEnable(false); // debugging only
+        motor.motor.overrideLimitSwitchesEnable(true);
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,
             RobotInfo.ELEVATOR_KI, RobotInfo.ELEVATOR_KD);
         TrcPidController pidController = new TrcPidController("ElevatorPidController", pidCoefficients,
             RobotInfo.ELEVATOR_TOLERANCE, this::getPosition);
-        elevator = new TrcPidActuator("ElevatorActuator", motor, pidController, RobotInfo.ELEVATOR_CALIBRATE_POWER,
-            RobotInfo.ELEVATOR_PID_FLOOR, RobotInfo.ELEVATOR_PID_CEILING, () -> RobotInfo.ELEVATOR_GRAVITY_COMP);
+        FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("ElevatorLowerLimitSwitch", motor, false);
+        elevator = new TrcPidActuator("ElevatorActuator", motor, lowerLimitSwitch, pidController,
+            RobotInfo.ELEVATOR_CALIBRATE_POWER, RobotInfo.ELEVATOR_PID_FLOOR, RobotInfo.ELEVATOR_PID_CEILING,
+            () -> RobotInfo.ELEVATOR_GRAVITY_COMP);
         elevator.setPositionScale(RobotInfo.ELEVATOR_INCHES_PER_COUNT, RobotInfo.ELEVATOR_MIN_POS);
         elevator.setStallProtection(RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
             RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
@@ -77,6 +80,7 @@ public class Elevator
 
     public void setPosition(double position, TrcEvent event, double timeout)
     {
+        position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
         elevator.setTarget(position, event, timeout);
     }
 
@@ -102,7 +106,6 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
-        motor.set(power);
-        //elevator.setPower(power, hold);
+        elevator.setPower(power, hold);
     }
 }

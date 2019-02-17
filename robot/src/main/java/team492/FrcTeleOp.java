@@ -300,6 +300,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
+                robot.elevator.setManualOverrideEnabled(pressed);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
