@@ -269,9 +269,9 @@ public class FrcTest extends FrcTeleOp
                 */
 
             case PIXY_LINE_FOLLOW_TEST:
-                if (robot.lfu == null || robot.pixy == null)
+                if (robot.pixy == null)
                 {
-                    robot.dashboard.displayPrintf(2, "Error: LineFollowingUtils or PixyVision not initialized.");
+                    robot.dashboard.displayPrintf(2, "Error: PixyVision not initialized.");
                 }
                 else
                 {
@@ -282,19 +282,17 @@ public class FrcTest extends FrcTeleOp
                     }
                     else
                     {
+                        double angle = robot.pixy.getVectorAngle(lineVector);
                         robot.dashboard.displayPrintf(2, "Line found! line=%s", lineVector);
 
-                        Point origin = robot.lfu.getRWP(lineVector.x0, lineVector.y0);
-                        Point p2 = robot.lfu.getRWP(lineVector.x1, lineVector.y1);
-                        double rawangle = robot.lfu.getAngle(origin, p2);
-                        double degrees = robot.lfu.getTurnDegrees(rawangle);
+                        Point origin = robot.pixy.mapPoint(new Point(lineVector.x0, lineVector.y0));
+                        Point p2 = robot.pixy.mapPoint(new Point(lineVector.x1, lineVector.y1));
 
                         robot.dashboard.displayPrintf(3, "Vector origin: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x0,
                             lineVector.y0, origin.x, origin.y);
                         robot.dashboard.displayPrintf(4, "Vector vertex: 2D:(%d, %d) -> 3D:(%.2f, %.2f)", lineVector.x1,
                             lineVector.y1, p2.x, p2.y);
-                        robot.dashboard.displayPrintf(5, "Atan2(origin, vertex): %.2f°", rawangle);
-                        robot.dashboard.displayPrintf(6, "Target heading: %.2f°", degrees);
+                        robot.dashboard.displayPrintf(5, "Atan2(origin, vertex): %.2f°", angle);
                     }
                 }
                 break;

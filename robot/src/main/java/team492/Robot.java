@@ -69,10 +69,10 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_RASPI_VISION = false;
+    public static final boolean USE_RASPI_VISION = true;
     public static final boolean USE_PIXY_I2C = true;
     public static final boolean USE_PIXY_V2 = true;
-    public static final boolean USE_PIXY_LINE_TARGET = true;
+    public static final boolean USE_PIXY_LINE_TARGET = false;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -120,17 +120,18 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp = null;
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
-    //public AnalogInput pressureSensor = null;
+    public AnalogInput pressureSensor = null;
 
     //
     // Primary robot subystems
     //
-    //public Pickup pickup;
-    //public Elevator elevator;
+    /*
+    public Pickup pickup;
+    public Elevator elevator;
+    */
 
-    //public CmdAutoDeploy autoDeploy;
-    public LineFollowingUtils lfu;
-    public CmdRobotTargetAlign autoTargetAlign;
+    //public TaskAutoDeploy autoDeploy;
+    public TaskAlignTarget autoAlignTarget;
 
     //
     // VisionTargetPipeline subsystem.
@@ -152,6 +153,7 @@ public class Robot extends FrcRobotBase
     public FrcCANSparkMax rightFrontWheel;
     public FrcCANSparkMax rightRearWheel;
     public TrcMecanumDriveBase driveBase;
+    
 
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
@@ -194,14 +196,19 @@ public class Robot extends FrcRobotBase
         //
         // Sensors.
         //
+        
+
+
         pdp = new FrcPdp(RobotInfo.CANID_PDP);
         battery = new FrcRobotBattery(pdp);
         if (USE_NAV_X)
         {
             gyro = new FrcAHRSGyro("NavX", SPI.Port.kMXP);
         }
-        //pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
-
+        
+        /*
+        pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
+        */
         //
         // Vision subsystem.
         //
@@ -211,10 +218,12 @@ public class Robot extends FrcRobotBase
                 RobotInfo.PIXY_BRIGHTNESS, RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
         }
 
+        /*
         if (USE_RASPI_VISION)
         {
-            vision = new RaspiVision(this);
+            vision = new RaspiVision();
         }
+        */
 
         //
         // Miscellaneous subsystems.
@@ -240,11 +249,11 @@ public class Robot extends FrcRobotBase
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
+        */
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel");
-        */
 
         //
         // Initialize each drive motor controller.
@@ -293,15 +302,16 @@ public class Robot extends FrcRobotBase
         //
         // Create other hardware subsystems.
         //
-        //elevator = new Elevator();
-        //pickup = new Pickup(this);
-        lfu = new LineFollowingUtils();
+        /*
+        elevator = new Elevator();
+        pickup = new Pickup(this);
+        */
 
         //
         // AutoAssist commands.
         //
-        //autoDeploy = new CmdAutoDeploy(this);
-        autoTargetAlign = new CmdRobotTargetAlign(this);
+        //autoDeploy = new TaskAutoDeploy(this);
+        autoAlignTarget = new TaskAlignTarget(this);
 
         //
         // Create Robot Modes.
@@ -344,7 +354,10 @@ public class Robot extends FrcRobotBase
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
             setVisionEnabled(true);
-            //driveBase.resetOdometry();
+            /*
+            driveBase.resetOdometry(true, false);
+            driveBase.setOdometryEnabled(true);
+            */
             targetHeading = 0.0;
 
             dashboard.clearDisplay();
@@ -375,6 +388,8 @@ public class Robot extends FrcRobotBase
         if (runMode != RunMode.DISABLED_MODE)
         {
             setVisionEnabled(false);
+            //driveBase.setOdometryEnabled(false);
+            cancelAllAuto();
             pdp.setTaskEnabled(false);
             battery.setEnabled(false);
 
@@ -456,9 +471,9 @@ public class Robot extends FrcRobotBase
      */
     public void stopSubsystems()
     {
-       //pidDrive.cancel();
-       // driveBase.stop();
         /*
+        pidDrive.cancel();
+        driveBase.stop();
         elevator.setPower(0.0);
         pickup.setPitchPower(0.0);
         pickup.setPickupPower(0.0);
@@ -498,9 +513,9 @@ public class Robot extends FrcRobotBase
                 }
             }
 
-            /*
             if (DEBUG_DRIVE_BASE)
             {
+                /*
                 double xPos = driveBase.getXPosition();
                 double yPos = driveBase.getYPosition();
                 double heading = driveBase.getHeading();
@@ -530,8 +545,8 @@ public class Robot extends FrcRobotBase
                     encoderYPidCtrl.displayPidInfo(12);
                     gyroTurnPidCtrl.displayPidInfo(14);
                 }
+                */
             }
-            */
 
             if (DEBUG_SUBSYSTEMS)
             {
@@ -637,7 +652,27 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoTargetAlign.isActive(); //|| autoDeploy.isActive() || autoTargetAlign.isActive();
+        return autoMode.isAutoActive() || autoAlignTarget.isActive();//autoDeploy.isActive() || autoAlignTarget.isActive();
+    }
+
+    public void cancelAllAuto()
+    {
+        if (autoMode.isAutoActive())
+        {
+            autoMode.cancel();
+        }
+
+        /*
+        if (autoDeploy.isActive())
+        {
+            autoDeploy.cancel();
+        }
+        */
+
+        if (autoAlignTarget.isActive())
+        {
+            autoAlignTarget.cancel();
+        }
     }
 
     public void announceSafety()
@@ -662,11 +697,11 @@ public class Robot extends FrcRobotBase
         }
     }   //announceIdling
 
-    /*
     public void traceStateInfo(double elapsedTime, String stateName, double xDistance, double yDistance, double heading)
     {
         final String funcName = "traceStateInfo";
 
+        /*
         if (battery != null)
         {
             globalTracer.traceInfo(funcName,
@@ -680,19 +715,17 @@ public class Robot extends FrcRobotBase
                 elapsedTime, stateName, driveBase.getXPosition(), xDistance, driveBase.getYPosition(), yDistance,
                 driveBase.getHeading(), heading);
         }
+        */
     }   //traceStateInfo
-    */
 
     //
     // Getters for sensor data.
     //
 
-    /*
     public double getPressure()
     {
         return 50.0 * pressureSensor.getVoltage() - 25.0;
     }   //getPressure
-    */
 
     public Double getPixyTargetAngle()
     {

@@ -24,12 +24,14 @@ package team492;
 
 import java.util.ArrayList;
 
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import frclib.FrcPixyCam1;
 import frclib.FrcPixyCam2;
+import trclib.TrcHomographyMapper;
 import trclib.TrcPixyCam1;
 import trclib.TrcPixyCam2;
 import trclib.TrcPixyCam2.*;
@@ -77,6 +79,7 @@ public class PixyVision
 
     private FrcPixyCam1 pixyCamera1 = null;
     private FrcPixyCam2 pixyCamera2 = null;
+    private TrcHomographyMapper homographyMapper = null;
     private Robot robot;
     private int signature;
     private int brightness;
@@ -90,6 +93,15 @@ public class PixyVision
         this.signature = signature;
         this.brightness = brightness;
         this.orientation = orientation;
+        homographyMapper = new TrcHomographyMapper(
+            // Camera coordinates: top left, top right, bottom left and bottom right
+            new Point(0.0, 0.0), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, 0.0),
+            new Point(0.0, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT),
+            // World coordinates: top left, top right, bottom left and bottom right.
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPLEFT_X, RobotInfo.PIXYCAM_WORLD_TOPLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPRIGHT_X, RobotInfo.PIXYCAM_WORLD_TOPRIGHT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_Y));
     }   //commonInit
 
     public PixyVision(
@@ -220,6 +232,29 @@ public class PixyVision
 
         return lineVector;
     }   //getLineVector
+
+    private double getLineAngle(Point p1, Point p2)
+    {
+        double dx = p2.x - p1.x;
+        double dy = p2.y - p1.y;
+
+        double theta = Math.atan2(dy, dx);
+        theta = Math.toDegrees(theta);
+        theta = (theta + 360.0) % 360.0;
+        return theta;
+    }   //getLineAngle
+
+    public double getVectorAngle(Vector vector)
+    {
+        Point p1 = homographyMapper.MapPoint(new Point(vector.x0, vector.y0));
+        Point p2 = homographyMapper.MapPoint(new Point(vector.x1, vector.y1));
+        return getLineAngle(p1, p2) - 90.0;
+    }   //getVectorAngle
+
+    public Point mapPoint(Point point)
+    {
+        return homographyMapper.MapPoint(point);
+    }
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have

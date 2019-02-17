@@ -119,9 +119,26 @@ public class RobotInfo
     public static final PixyVision.Orientation PIXY_ORIENTATION = PixyVision.Orientation.NORMAL_LANDSCAPE;
     public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam1.DEF_I2C_ADDRESS;
     public static final int PIXY_TARGET_SIGNATURE               = 1;
+    //
+    // Pixy line following subsystem
+    // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
+    // Source: https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:line_api
+    //
+    public static final double PIXY2_LINE_TRACKING_HEIGHT       = 51.0; // in pixels.
+    public static final double PIXY2_LINE_TRACKING_WIDTH        = 78.0; // in pixels.
+    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
+    // TODO: Tune all of this
+    public static final double PIXYCAM_WORLD_TOPLEFT_X          = -46.5;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 59.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 26.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 65.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = -22.5;  // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMLEFT_Y       = 15.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 11.5;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 13.5;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = 3; // Inches from center of EE to center of camera, + = right
-    public static final double CAMERA_OFFSET                    = 4; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_DEPTH                     = 4; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_OFFSET                    = 0; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -144,7 +161,7 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_POWER             = 1.0;
     public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
 
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 0.00874986860034917173913043478261;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 0.0179162073;
     public static final double ENCODER_X_KP                     = 0.25;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.015;
@@ -182,7 +199,8 @@ public class RobotInfo
     public static final double PICKUP_STALL_MIN_POWER           = 0.3;
     public static final double PICKUP_STALL_TIMEOUT             = 0.5;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
-    public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
+    public static final double PICKUP_FREE_SPIN_CURRENT         = 1.5; // Free=1.5,startup=2-4,cargopickup=5.5
+    public static final double PICKUP_PICKUP_CURRENT            = 4.5;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
 
@@ -220,24 +238,6 @@ public class RobotInfo
 
     public static final double ELEVATOR_POS_CARGO_PICKUP        = ELEVATOR_POS_CARGO_ROCKET_LOW;
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
-
-    //
-    // Pixy line following subsystem
-    // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
-    // Source: https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:line_api
-    //
-    public static final double PIXY2_LINE_TRACKING_HEIGHT       = 51.0; // in pixels.
-    public static final double PIXY2_LINE_TRACKING_WIDTH        = 78.0; // in pixels.
-    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
-    // TODO: Tune all of this
-    public static final double PIXY2_TOP_LEFT_X                 = -46.5;   // in real-world units.
-    public static final double PIXY2_TOP_LEFT_Y                 = 59.0;   // in real-world units.
-    public static final double PIXY2_TOP_RIGHT_X                = 26.0;   // in real-world units.
-    public static final double PIXY2_TOP_RIGHT_Y                = 65.0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_LEFT_X              = -22.5;   // in real-world units.
-    public static final double PIXY2_BOTTOM_LEFT_Y              = 15.0;   // in real-world units.
-    public static final double PIXY2_BOTTOM_RIGHT_X             = 11.5;   // in real-world units.
-    public static final double PIXY2_BOTTOM_RIGHT_Y             = 13.5;   // in real-world units.
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
