@@ -59,7 +59,7 @@ public class Pickup
         this.robot = robot;
 
         pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
-        pickupMotor.setInverted(true);                         // Set opposite directions.
+        pickupMotor.setInverted(true);                          // Set opposite directions.
         pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
         pickupMotor.motor.overrideLimitSwitchesEnable(false);   // No limit switches, make sure they are disabled.
 

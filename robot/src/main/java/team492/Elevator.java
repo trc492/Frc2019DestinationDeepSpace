@@ -37,11 +37,11 @@ public class Elevator
     public Elevator()
     {
         motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
+        motor.setInverted(true);
+        motor.motor.overrideLimitSwitchesEnable(true);
         motor.configFwdLimitSwitchNormallyOpen(false);
         motor.configRevLimitSwitchNormallyOpen(false);
-        motor.setInverted(true);
         motor.setBrakeModeEnabled(true);
-        motor.motor.overrideLimitSwitchesEnable(true);
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,
