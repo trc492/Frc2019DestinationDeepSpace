@@ -150,10 +150,20 @@ public class Pickup
         }
     }
 
+    /**
+     * This method calculates the gravitation pull on the pickup endeffector in terms of percentage motor power.
+     * Meaning it will return a power value that will hold the endeffector suspend in any valid position. Since
+     * gravitational pull of the endeffector depends on its angle, this is proportional to the sine of the
+     * endeffector angle (endeffector is at zero degree when it is in the vertical position).
+     *  EndEffectorMaxTorqueAtFulcrum = EndEffectorWeight * EndEffectorCGDistanceFromFulcrum
+     *  PercentageMotorPower = sin(EndEffectorAngle) * EndEffectorMaxTorqueAtFulcrum /
+     *                         (MotorStallTorque * GearRatio)
+     *
+     * @return gravity compensation value.
+     */
     private double getGravityCompensation()
     {
-        return (Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_MASS * RobotInfo.PICKUP_CG)
-            / RobotInfo.PICKUP_MAX_TORQUE;
+        return Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
     }
 
     public void setGroundCollisionAvoidanceEnabled(boolean enabled)

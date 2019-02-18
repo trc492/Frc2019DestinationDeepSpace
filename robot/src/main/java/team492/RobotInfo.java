@@ -23,6 +23,7 @@
 package team492;
 
 import frclib.FrcPixyCam1;
+import trclib.TrcUtil;
 
 public class RobotInfo
 {
@@ -209,8 +210,13 @@ public class RobotInfo
     public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
 
     public static final double PICKUP_MASS                      = 4.08; // kilograms
-    public static final double PICKUP_CG                        = 0.286; // half of axle -> center of mass in meters
-    public static final double PICKUP_MAX_TORQUE                = 691.54; // Nm
+    public static final double PICKUP_WEIGHT                    = PICKUP_MASS * TrcUtil.EARTH_GRAVITATIONAL_CONSTANT;//N
+    public static final double PICKUP_CG_DISTANCE               = 0.286;// half of axle -> center of mass in meters
+    public static final double PITCH_MOTOR_STALL_TORQUE         = 0.71; // Nm
+    public static final double PITCH_MOTOR_GEAR_RATIO           = 974.0;
+    public static final double PITCH_MOTOR_SHAFT_MAX_TORQUE     = PITCH_MOTOR_STALL_TORQUE * PITCH_MOTOR_GEAR_RATIO;
+    public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE;
+    public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
     public static final double PICKUP_GROUND_COLLISION_POS      = 60.0; // The angle at which if the elevator is low, the pickup will hit the ground
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
