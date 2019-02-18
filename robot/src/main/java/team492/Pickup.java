@@ -78,7 +78,7 @@ public class Pickup
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("PitchLowerSwitch", pitchMotor, false);
         pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
-            () -> RobotInfo.PICKUP_GRAVITY_COMP);   // CodeReview: TODO: This should not be a constant.
+            this::getGravityCompensation);
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
         pitchController.setStallProtection(RobotInfo.PICKUP_STALL_MIN_POWER, RobotInfo.PICKUP_STALL_TIMEOUT,
             RobotInfo.PICKUP_STALL_RESET_TIMEOUT);
@@ -148,6 +148,12 @@ public class Pickup
             setPickupPower(0.0);
             cargoTrigger.setEnabled(false);
         }
+    }
+
+    private double getGravityCompensation()
+    {
+        return (Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_MASS * RobotInfo.PICKUP_CG)
+            / RobotInfo.PICKUP_MAX_TORQUE;
     }
 
     public void setGroundCollisionAvoidanceEnabled(boolean enabled)
@@ -315,9 +321,9 @@ public class Pickup
      */
     public void setPitchPower(double power, boolean hold)
     {
-//        pitchMotor.set(power);
-         power = TrcUtil.clipRange(power, -1.0, 1.0);
-         pitchController.setPower(power, hold);
+        //        pitchMotor.set(power);
+        power = TrcUtil.clipRange(power, -1.0, 1.0);
+        pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)

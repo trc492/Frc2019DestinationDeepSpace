@@ -41,6 +41,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
+    private double lastElevatorPower = 0.0;
 
     public FrcTeleOp(Robot robot)
     {
@@ -96,7 +97,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot.isAutoActive())
         {
             robot.cancelAllAuto();
-            robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
+            if (elevatorPower != lastElevatorPower)
+            {
+                robot.elevator.setPower(elevatorPower);
+                lastElevatorPower = elevatorPower;
+            }
             //
             // DriveBase operation.
             //
