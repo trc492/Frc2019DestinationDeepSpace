@@ -316,11 +316,6 @@ public class FrcTest extends FrcTeleOp
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
-                processedInput = true;
-                if (pressed)
-                {
-                    robot.autoDeploy.start(20.0, TaskAutoDeploy.DeployType.CARGO, null);
-                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
@@ -387,40 +382,42 @@ public class FrcTest extends FrcTeleOp
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
         robot.dashboard
-            .displayPrintf(5, "Elevator limit switches: bottom=%b,top=%b", robot.elevator.isLowerLimitSwitchActive(),
-                robot.elevator.isUpperLimitSwitchActive());
+            .displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f", robot.elevator.isLowerLimitSwitchActive(),
+                robot.elevator.isUpperLimitSwitchActive(), robot.elevator.getRawPosition(),
+                robot.elevator.getPosition());
         robot.dashboard
-            .displayPrintf(7, "Pickup limit switches: bottom=%b,top=%b", robot.pickup.isLowerLimitSwitchActive(),
-                robot.pickup.isUpperLimitSwitchActive());
-    if (robot.pixy != null)
-    {
-        if (Robot.USE_PIXY_LINE_TARGET)
+            .displayPrintf(7, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b", robot.pickup.isLowerLimitSwitchActive(),
+                robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
+                robot.pickup.getPickupAngle(), robot.pickup.cargoDetected());
+        if (robot.pixy != null)
         {
-            Vector vector = robot.pixy.getLineVector();
-            if (vector == null)
+            if (Robot.USE_PIXY_LINE_TARGET)
             {
-                robot.dashboard.displayPrintf(6, "Pixy: line not found");
+                Vector vector = robot.pixy.getLineVector();
+                if (vector == null)
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: line not found");
+                }
+                else
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: %s", vector);
+                }
             }
             else
             {
-                robot.dashboard.displayPrintf(6, "Pixy: %s", vector);
+                TargetInfo targetInfo = robot.pixy.getTargetInfo();
+                if (targetInfo == null)
+                {
+                    robot.dashboard.displayPrintf(6, "Pixy: target not found");
+                }
+                else
+                {
+                    robot.dashboard
+                        .displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
+                            targetInfo.angle);
+                }
             }
         }
-        else
-        {
-            TargetInfo targetInfo = robot.pixy.getTargetInfo();
-            if (targetInfo == null)
-            {
-                robot.dashboard.displayPrintf(6, "Pixy: target not found");
-            }
-            else
-            {
-                robot.dashboard
-                    .displayPrintf(6, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
-                        targetInfo.angle);
-            }
-        }
-    }
         double lfSpeed = robot.leftFrontWheel.getVelocity();
         double rfSpeed = robot.rightFrontWheel.getVelocity();
         double lrSpeed = robot.leftRearWheel.getVelocity();

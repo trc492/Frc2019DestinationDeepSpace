@@ -99,6 +99,11 @@ public class Elevator
         return elevator.getPosition();
     }
 
+    public double getRawPosition()
+    {
+        return motor.getPosition();
+    }
+
     public void setPower(double power)
     {
         setPower(power, true);
@@ -106,7 +111,7 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
-        motor.set(power);
-        // elevator.setPower(power, hold);
+        power = TrcUtil.clipRange(power, -1.0, 1.0);
+        elevator.setPower(power, hold);
     }
 }
