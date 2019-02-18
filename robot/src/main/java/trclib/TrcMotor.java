@@ -46,12 +46,6 @@ public abstract class TrcMotor implements TrcMotorController
     protected static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     protected TrcDbgTrace dbgTrace = null;
 
-    public void follow(TrcMotor motor)
-    {
-        throw new UnsupportedOperationException(
-            String.format("This motor does not support following motors of type: %s!", motor.getClass().toString()));
-    }
-
     /**
      * This method returns the motor position by reading the position sensor. The position sensor can be an encoder
      * or a potentiometer.
@@ -480,6 +474,17 @@ public abstract class TrcMotor implements TrcMotorController
     {
         resetPosition(false);
     }   //resetPosition
+
+    /**
+     * This method sets this motor to follow another motor. This method should be overridden by the subclass. If the
+     * subclass is not capable of following another motor, this method will be called instead and will throw an
+     * UnsupportedOperation exception.
+     */
+    public void follow(TrcMotor motor)
+    {
+        throw new UnsupportedOperationException(
+            String.format("This motor does not support following motors of type: %s!", motor.getClass().toString()));
+    }   //follow
 
     //
     // Implements the TrcMotorController interface.

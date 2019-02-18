@@ -82,6 +82,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
+        double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
@@ -92,7 +93,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             robot.pixy.getTargetInfo();
         }
 
-        if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY) || !robot.isAutoActive())
+        if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot.isAutoActive())
         {
             robot.cancelAllAuto();
             robot.elevator.setPower(elevatorPower, false); // For debugging purposes, leave it false.
@@ -114,7 +115,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
                 case ARCADE_MODE:
                     double drivePower = rightDriveY;
-                    double turnPower = robot.rightDriveStick.getTwistWithDeadband(true);
+                    double turnPower = rightTwist;
                     if (slowDriveOverride)
                     {
                         drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
@@ -126,7 +127,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 case MECANUM_MODE:
                     double x = leftDriveX;
                     double y = rightDriveY;
-                    double rot = robot.rightDriveStick.getTwistWithDeadband(true);
+                    double rot = rightTwist;
                     if (slowDriveOverride)
                     {
                         x /= RobotInfo.DRIVE_SLOW_XSCALE;
@@ -153,6 +154,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     // Implements TrcJoystick.ButtonHandler.
     //
 
+    // CodeReview: If Auto is active, you don't allow any button event through so you can't cancel auto on a button
+    // release???
     public void leftDriveStickButtonEvent(int button, boolean pressed)
     {
         robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");

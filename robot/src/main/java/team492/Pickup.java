@@ -42,6 +42,7 @@ public class Pickup
     private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
     private static double[] pickupAngleThresholds = new double[] { RobotInfo.PICKUP_GROUND_COLLISION_POS };
 
+    private Robot robot;
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
     private TrcPidActuator pitchController;
@@ -50,7 +51,6 @@ public class Pickup
     private TrcDigitalTrigger cargoTrigger;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
-    private Robot robot;
     private TrcTimer timer;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> groundCollisionTrigger;
 
@@ -58,7 +58,7 @@ public class Pickup
     {
         this.robot = robot;
 
-        pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
+        pickupMotor = new FrcCANTalon("PickupMotor", RobotInfo.CANID_PICKUP);
         pickupMotor.setInverted(true);                          // Set opposite directions.
         pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
         pickupMotor.motor.overrideLimitSwitchesEnable(false);   // No limit switches, make sure they are disabled.

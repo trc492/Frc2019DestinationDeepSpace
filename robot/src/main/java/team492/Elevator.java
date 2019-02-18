@@ -50,6 +50,7 @@ public class Elevator
         TrcPidController pidController = new TrcPidController("ElevatorPidController", pidCoefficients,
             RobotInfo.ELEVATOR_TOLERANCE, this::getPosition);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("ElevatorLowerLimitSwitch", motor, false);
+        // TODO: Need to determine the proper gravity compensation value.
         elevator = new TrcPidActuator("ElevatorActuator", motor, lowerLimitSwitch, pidController,
             RobotInfo.ELEVATOR_CALIBRATE_POWER, RobotInfo.ELEVATOR_PID_FLOOR, RobotInfo.ELEVATOR_PID_CEILING,
             () -> RobotInfo.ELEVATOR_GRAVITY_COMP);
@@ -68,10 +69,10 @@ public class Elevator
         elevator.zeroCalibrate();
     }
 
-    public void setPosition(double position)
+    public void setPosition(double position, TrcEvent event, double timeout)
     {
         position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
+        elevator.setTarget(position, event, timeout);
     }
 
     public void setPosition(double position, TrcEvent event)
@@ -79,10 +80,10 @@ public class Elevator
         setPosition(position, event, 0.0);
     }
 
-    public void setPosition(double position, TrcEvent event, double timeout)
+    public void setPosition(double position)
     {
         position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, event, timeout);
+        elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
     }
 
     public boolean isUpperLimitSwitchActive()

@@ -173,21 +173,7 @@ public class FrcCANTalon extends TrcMotor
                 dbgTrace.traceErr("CANTalonError", "ErrorCode=%s", errorCode);
             }
         }
-    } //recordResponseCode
-
-    @Override
-    public void follow(TrcMotor motor)
-    {
-        if (motor instanceof FrcCANTalon)
-        {
-            FrcCANTalon talon = (FrcCANTalon) motor;
-            this.motor.follow(talon.motor);
-        }
-        else
-        {
-            super.follow(motor);
-        }
-    }
+    }   //recordResponseCode
 
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
@@ -253,6 +239,23 @@ public class FrcCANTalon extends TrcMotor
 
         limitSwitchesSwapped = swapped;
     }   //setLimitSwitchesSwapped
+
+    /**
+     * This method sets this motor to follow another motor.
+     */
+    @Override
+    public void follow(TrcMotor motor)
+    {
+        if (motor instanceof FrcCANTalon)
+        {
+            FrcCANTalon talon = (FrcCANTalon) motor;
+            this.motor.follow(talon.motor);
+        }
+        else
+        {
+            super.follow(motor);
+        }
+    }   //follow
 
     //
     // Overriding CANTalon specific methods.
