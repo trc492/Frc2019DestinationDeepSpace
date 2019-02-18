@@ -59,6 +59,11 @@ public class Elevator
             RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
     }
 
+    public double getPower()
+    {
+        return motor.getPower();
+    }
+
     public void setManualOverrideEnabled(boolean enabled)
     {
         elevator.setManualOverride(enabled);
@@ -114,7 +119,6 @@ public class Elevator
     public void setPower(double power, boolean hold)
     {
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-        motor.set(power);
-        //elevator.setPower(power, hold);
+        elevator.setPower(power, hold);
     }
 }

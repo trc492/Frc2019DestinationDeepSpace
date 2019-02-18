@@ -385,9 +385,9 @@ public class FrcTest extends FrcTeleOp
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
         robot.dashboard
-            .displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f", robot.elevator.isLowerLimitSwitchActive(),
+            .displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f,Power=%.2f", robot.elevator.isLowerLimitSwitchActive(),
                 robot.elevator.isUpperLimitSwitchActive(), robot.elevator.getRawPosition(),
-                robot.elevator.getPosition());
+                robot.elevator.getPosition(), robot.elevator.getPower());
         robot.dashboard
             .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b", robot.pickup.isLowerLimitSwitchActive(),
                 robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
