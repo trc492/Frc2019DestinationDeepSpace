@@ -38,6 +38,7 @@ public class Elevator
     {
         motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
         motor.setInverted(true);
+        motor.setPositionSensorInverted(true);
         motor.motor.overrideLimitSwitchesEnable(true);
         motor.configFwdLimitSwitchNormallyOpen(false);
         motor.configRevLimitSwitchNormallyOpen(false);
@@ -112,6 +113,7 @@ public class Elevator
     public void setPower(double power, boolean hold)
     {
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-        elevator.setPower(power, hold);
+        motor.set(power);
+        //elevator.setPower(power, hold);
     }
 }

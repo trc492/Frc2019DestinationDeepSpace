@@ -6,6 +6,7 @@ import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Relay;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -17,6 +18,7 @@ public class RaspiVision
     private int maxAverageWindow = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
+    private Relay ringLight;
 
     public RaspiVision()
     {
@@ -25,6 +27,12 @@ public class RaspiVision
         gson = new Gson();
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        ringLight = new Relay(RobotInfo.RELAY_RINGLIGHT_POWER);
+    }
+
+    public void setRingLightEnabled(boolean enabled)
+    {
+        ringLight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
     }
 
     private void updateTargetInfo(EntryNotification event)

@@ -163,7 +163,7 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_POWER             = 1.0;
     public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
 
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 0.0179162073;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.305678722;
     public static final double ENCODER_X_KP                     = 0.25;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.015;
@@ -215,7 +215,7 @@ public class RobotInfo
     // Elevator subsystem
     //
     // TODO: Tune all of this
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 1.0;
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0019692482;
     public static final double ELEVATOR_KP                      = 0.02;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
