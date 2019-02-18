@@ -170,6 +170,11 @@ public class Pickup
         return pickupMotor.motor.getOutputCurrent();
     }
 
+    public boolean cargoDetected()
+    {
+        return cargoSensor.isActive();
+    }
+
     public void cancel()
     {
         setPickupPower(0.0);
@@ -213,7 +218,7 @@ public class Pickup
             event.clear();
         }
 
-        if (cargoSensor.isActive())
+        if (cargoDetected())
         {
             // Return early if we already have a cargo
             if (event != null)
@@ -223,13 +228,17 @@ public class Pickup
         }
         else
         {
-            // The timer will signal the event when it expires. This is a backup in case the sensor fails.
-            // Just call the trigger method when the timer expires.
-            timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+            if (event != null)
+            {
+                // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+                // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
+                timer.cancel();
+                timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+            }
             this.onFinishedEvent = event;
             currentTrigger.setEnabled(false); // make sure the current trigger is disabled
             cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
-            setPickupPower(1.0);
+            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
         }
     }
 
@@ -272,6 +281,11 @@ public class Pickup
         return pitchController.getPosition();
     }
 
+    public double getRawPickupAngle()
+    {
+        return pitchMotor.getPosition();
+    }
+
     /**
      * Set the angle of the pickup pitch. The angle is relative to vertical.
      *
@@ -301,9 +315,9 @@ public class Pickup
      */
     public void setPitchPower(double power, boolean hold)
     {
-        pitchMotor.set(power);
-        // power = TrcUtil.clipRange(power, -1.0, 1.0);
-        // pitchController.setPower(power, hold);
+//        pitchMotor.set(power);
+         power = TrcUtil.clipRange(power, -1.0, 1.0);
+         pitchController.setPower(power, hold);
     }
 
     public void setPickupPower(double power)

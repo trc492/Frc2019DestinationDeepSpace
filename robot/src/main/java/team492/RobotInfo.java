@@ -187,14 +187,14 @@ public class RobotInfo
     // Pickup subsystem
     //
     // TODO: Tune all of this
-    public static final double PICKUP_DEGREES_PER_COUNT         = 1.0;
-    public static final double PICKUP_KP                        = 0.0;
+    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0104700798;
+    public static final double PICKUP_KP                        = 0.015;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
     public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.0;
-    public static final double PICKUP_MIN_POS                   = 0.0; // Parallel to ground
-    public static final double PICKUP_MAX_POS                   = 90.0; // Perpendicular to ground
+    public static final double PICKUP_MIN_POS                   = 0.0; // Perpendicular to ground
+    public static final double PICKUP_MAX_POS                   = 90.0; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 2.0;
     public static final double PICKUP_GRAVITY_COMP              = 0.0;
@@ -204,9 +204,11 @@ public class RobotInfo
     public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
 
     public static final double PICKUP_GROUND_COLLISION_POS      = 60.0; // The angle at which if the elevator is low, the pickup will hit the ground
+    public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
+    public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
-    public static final double PICKUP_CARGO_PICKUP_POWER        = 0.7;
+    public static final double PICKUP_CARGO_PICKUP_POWER        = 1.0;
     public static final double PICKUP_CARGO_DEPLOY_POWER        = -1.0;
 
     //
@@ -214,12 +216,12 @@ public class RobotInfo
     //
     // TODO: Tune all of this
     public static final double ELEVATOR_INCHES_PER_COUNT        = 1.0;
-    public static final double ELEVATOR_KP                      = 0.0;
+    public static final double ELEVATOR_KP                      = 0.02;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.0;
-    public static final double ELEVATOR_MIN_POS                 = 6.0;
+    public static final double ELEVATOR_MIN_POS                 = 2.625;
     public static final double ELEVATOR_MAX_POS                 = 60.0;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
