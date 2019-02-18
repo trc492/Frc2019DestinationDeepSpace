@@ -106,8 +106,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
-    public static final int SOL_HATCH_DEPLOYER_EXTEND           = 0;
-    public static final int SOL_HATCH_DEPLOYER_RETRACT          = 1;
+    public static final int SOL_HATCH_DEPLOYER_EXTEND           = 2;
+    public static final int SOL_HATCH_DEPLOYER_RETRACT          = 3;
 
     //
     // Vision subsystem.
@@ -124,18 +124,20 @@ public class RobotInfo
     // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
     // Source: https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:line_api
     //
-    public static final double PIXY2_LINE_TRACKING_HEIGHT       = 51.0; // in pixels.
-    public static final double PIXY2_LINE_TRACKING_WIDTH        = 78.0; // in pixels.
+    public static final double PIXY2_LINE_TRACKING_HEIGHT        = 51.0; // in pixels.
+    public static final double PIXY2_LINE_TRACKING_WIDTH         = 78.0; // in pixels.
+    public static final double PIXY2_LINE_TRACK_MID_WIDTH_OFFST  = 0.0;  // in pixels.
+    public static final double PIXY2_LINE_TRACK_MID_HEIGHT_OFFST = 0.0;  // in pixels.
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // TODO: Tune all of this
-    public static final double PIXYCAM_WORLD_TOPLEFT_X          = -46.5;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 59.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 26.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 65.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = -22.5;  // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMLEFT_Y       = 15.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 11.5;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 13.5;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPLEFT_X          = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMLEFT_Y       = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 0;   // in real-world units.
 
     public static final double CAMERA_DEPTH                     = 4; // Inches from center of EE to center of camera, + = backward
     public static final double CAMERA_OFFSET                    = 0; // Inches from center of EE to center of camera, + = right
@@ -168,7 +170,7 @@ public class RobotInfo
     public static final double ENCODER_X_KF                     = 0.0;
     public static final double ENCODER_X_TOLERANCE              = 1.0;
 
-    public static final double ENCODER_Y_INCHES_PER_COUNT       = 0.0176933159;
+    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.125436537;
     public static final double ENCODER_Y_KP                     = 0.01;
     public static final double ENCODER_Y_KI                     = 0.0;
     public static final double ENCODER_Y_KD                     = 0.003;
@@ -185,36 +187,41 @@ public class RobotInfo
     // Pickup subsystem
     //
     // TODO: Tune all of this
-    public static final double PICKUP_DEGREES_PER_COUNT         = 1.0;
-    public static final double PICKUP_KP                        = 0.0;
+    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0104700798;
+    public static final double PICKUP_KP                        = 0.015;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
     public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.0;
-    public static final double PICKUP_MIN_POS                   = 0.0; // Parallel to ground
-    public static final double PICKUP_MAX_POS                   = 90.0; // Perpendicular to ground
+    public static final double PICKUP_MIN_POS                   = 0.0; // Perpendicular to ground
+    public static final double PICKUP_MAX_POS                   = 90.0; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 2.0;
     public static final double PICKUP_GRAVITY_COMP              = 0.0;
     public static final double PICKUP_STALL_MIN_POWER           = 0.3;
     public static final double PICKUP_STALL_TIMEOUT             = 0.5;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.5;
-    public static final double PICKUP_FREE_SPIN_CURRENT         = 1.5; // Free=1.5,startup=2-4,cargopickup=5.5
-    public static final double PICKUP_PICKUP_CURRENT            = 4.5;
+    public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
+
+    public static final double PICKUP_GROUND_COLLISION_POS      = 60.0; // The angle at which if the elevator is low, the pickup will hit the ground
+    public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
+    public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
+    public static final double PICKUP_CARGO_PICKUP_POWER        = 1.0;
+    public static final double PICKUP_CARGO_DEPLOY_POWER        = -1.0;
 
     //
     // Elevator subsystem
     //
     // TODO: Tune all of this
     public static final double ELEVATOR_INCHES_PER_COUNT        = 1.0;
-    public static final double ELEVATOR_KP                      = 0.0;
+    public static final double ELEVATOR_KP                      = 0.02;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.0;
-    public static final double ELEVATOR_MIN_POS                 = 6.0;
+    public static final double ELEVATOR_MIN_POS                 = 2.625;
     public static final double ELEVATOR_MAX_POS                 = 60.0;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
@@ -222,6 +229,8 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.3;
     public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
+
+    public static final double ELEVATOR_GROUND_CLEARANCE_POS    = ELEVATOR_MIN_POS + 2.0; // The height at which the end effector won't hit the gound
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 

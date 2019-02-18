@@ -200,6 +200,9 @@ public class PixyVision
 
         if (vectors != null && vectors.length > 0)
         {
+
+            /*
+            // Disregard this code and the following two comments for now, we are going to find the centermost vector instead.
             // - Ideally, the best line should be the longest line.
             // - This is mostly to filter out any remaining interference that the Pixy might pick up.
             double maxLen = 0.0;
@@ -216,12 +219,33 @@ public class PixyVision
                     lineVector = vectors[i];
                 }
             }
+            */
+
+            // - Ideally, the best line should be the center-most line.
+            // - This is to filter out remaining interference that the Pixy might pick up
+            //   and maximize the chances of returning the line that our robot wants to align with.
+            double centerDistance = Double.MAX_VALUE;
+
+            for (int i = 0; i < vectors.length; i++)
+            {
+                double lineCenterX = (vectors[i].x1 + vectors[i].x0) / 2.0;
+                double lineCenterY = (vectors[i].y1 + vectors[i].y0) / 2.0;
+                double dx = lineCenterX - ((RobotInfo.PIXY2_LINE_TRACKING_WIDTH / 2.0) + RobotInfo.PIXY2_LINE_TRACK_MID_WIDTH_OFFST);
+                double dy = lineCenterY - ((RobotInfo.PIXY2_LINE_TRACKING_HEIGHT / 2.0) + RobotInfo.PIXY2_LINE_TRACK_MID_HEIGHT_OFFST);
+                double centerDist = Math.sqrt(dx * dx + dy * dy);
+                if (centerDist < centerDistance)
+                {
+                    centerDistance = centerDist;
+                    lineVector = vectors[i];
+                }
+            }
 
             if (debugEnabled)
             {
                 if (lineVector != null)
                 {
-                    robot.globalTracer.traceInfo(funcName, "Line found (len=%.2f): %s", maxLen, lineVector);
+                    // robot.globalTracer.traceInfo(funcName, "Line found (len=%.2f): %s", maxLen, lineVector);
+                    robot.globalTracer.traceInfo(funcName, "Line found (distanceCenter=%.2f): %s", centerDistance, lineVector);
                 }
                 else
                 {
@@ -246,14 +270,14 @@ public class PixyVision
 
     public double getVectorAngle(Vector vector)
     {
-        Point p1 = homographyMapper.MapPoint(new Point(vector.x0, vector.y0));
-        Point p2 = homographyMapper.MapPoint(new Point(vector.x1, vector.y1));
+        Point p1 = homographyMapper.mapPoint(new Point(vector.x0, vector.y0));
+        Point p2 = homographyMapper.mapPoint(new Point(vector.x1, vector.y1));
         return getLineAngle(p1, p2) - 90.0;
     }   //getVectorAngle
 
     public Point mapPoint(Point point)
     {
-        return homographyMapper.MapPoint(point);
+        return homographyMapper.mapPoint(point);
     }
 
     /**

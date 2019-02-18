@@ -83,7 +83,7 @@ public class TrcHomographyMapper
      * @param srcPoint specifies the source point.
      * @return the mapped destination point.
      */
-    public Point MapPoint(Point srcPoint)
+    public Point mapPoint(Point srcPoint)
     {
         double[][] pmat = new double[3][1];
         pmat[0][0] = srcPoint.x;
@@ -109,7 +109,7 @@ public class TrcHomographyMapper
         }
 
         return new Point(result[0][0], result[1][0]);
-    }   //MapPoint
+    }   //mapPoint
 
     /**
      * This method multiplies two matrixes. The multiply in Core.gemm is not functioning correctly for the job.
