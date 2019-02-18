@@ -24,14 +24,17 @@ package team492;
 
 import java.util.ArrayList;
 
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import frclib.FrcPixyCam1;
 import frclib.FrcPixyCam2;
+import trclib.TrcHomographyMapper;
 import trclib.TrcPixyCam1;
 import trclib.TrcPixyCam2;
+import trclib.TrcPixyCam2.*;
 import trclib.TrcUtil;
 
 public class PixyVision
@@ -76,6 +79,7 @@ public class PixyVision
 
     private FrcPixyCam1 pixyCamera1 = null;
     private FrcPixyCam2 pixyCamera2 = null;
+    private TrcHomographyMapper homographyMapper = null;
     private Robot robot;
     private int signature;
     private int brightness;
@@ -89,6 +93,15 @@ public class PixyVision
         this.signature = signature;
         this.brightness = brightness;
         this.orientation = orientation;
+        homographyMapper = new TrcHomographyMapper(
+            // Camera coordinates: top left, top right, bottom left and bottom right
+            new Point(0.0, 0.0), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, 0.0),
+            new Point(0.0, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT), new Point(RobotInfo.PIXY2_LINE_TRACKING_WIDTH, RobotInfo.PIXY2_LINE_TRACKING_HEIGHT),
+            // World coordinates: top left, top right, bottom left and bottom right.
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPLEFT_X, RobotInfo.PIXYCAM_WORLD_TOPLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_TOPRIGHT_X, RobotInfo.PIXYCAM_WORLD_TOPRIGHT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMLEFT_Y),
+            new Point(RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_X, RobotInfo.PIXYCAM_WORLD_BOTTOMRIGHT_Y));
     }   //commonInit
 
     public PixyVision(
@@ -146,15 +159,15 @@ public class PixyVision
         return pixyCamera1 != null ? pixyCamera1.isEnabled() : pixyCamera2 != null ? pixyCamera2.isEnabled() : false;
     }   //isEnabled
 
-    public TrcPixyCam2.Vector[] getLineVectors()
+    private Vector[] getFeatureVectors()
     {
-        final String funcName = "getLineVectors";
-        TrcPixyCam2.Vector[] vectors = null;
+        final String funcName = "getFeatureVectors";
+        Vector[] vectors = null;
 
         if (pixyCamera2 != null)
         {
             double startTime = TrcUtil.getCurrentTime();
-            TrcPixyCam2.Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
+            Feature[] features = pixyCamera2.getMainFeatures(TrcPixyCam2.PIXY2_FEATURES_VECTOR);
             double elapsedTime = TrcUtil.getCurrentTime() - startTime;
 
             if (features != null)
@@ -169,16 +182,103 @@ public class PixyVision
 
                     if (features[i].type == TrcPixyCam2.PIXY2_FEATURES_VECTOR)
                     {
-                        vectors = ((TrcPixyCam2.FeatureVectors) features[i]).vectors;
+                        vectors = ((FeatureVectors) features[i]).vectors;
                         break;
                     }
                 }
             }
-
         }
 
         return vectors;
     }   //getFeatureVectors
+
+    public Vector getLineVector()
+    {
+        final String funcName = "getLineVector";
+        Vector lineVector = null;
+        Vector[] vectors = getFeatureVectors();
+
+        if (vectors != null && vectors.length > 0)
+        {
+
+            /*
+            // Disregard this code and the following two comments for now, we are going to find the centermost vector instead.
+            // - Ideally, the best line should be the longest line.
+            // - This is mostly to filter out any remaining interference that the Pixy might pick up.
+            double maxLen = 0.0;
+
+            for (int i = 0; i < vectors.length; i++)
+            {
+                double dx = vectors[i].x1 - vectors[i].x0;
+                double dy = vectors[i].y1 - vectors[i].y0;
+                double lineLen = Math.sqrt(dx * dx + dy * dy);
+
+                if (lineLen > maxLen)
+                {
+                    maxLen = lineLen;
+                    lineVector = vectors[i];
+                }
+            }
+            */
+
+            // - Ideally, the best line should be the center-most line.
+            // - This is to filter out remaining interference that the Pixy might pick up
+            //   and maximize the chances of returning the line that our robot wants to align with.
+            double centerDistance = Double.MAX_VALUE;
+
+            for (int i = 0; i < vectors.length; i++)
+            {
+                double lineCenterX = (vectors[i].x1 + vectors[i].x0) / 2.0;
+                double lineCenterY = (vectors[i].y1 + vectors[i].y0) / 2.0;
+                double dx = lineCenterX - ((RobotInfo.PIXY2_LINE_TRACKING_WIDTH / 2.0) + RobotInfo.PIXY2_LINE_TRACK_MID_WIDTH_OFFST);
+                double dy = lineCenterY - ((RobotInfo.PIXY2_LINE_TRACKING_HEIGHT / 2.0) + RobotInfo.PIXY2_LINE_TRACK_MID_HEIGHT_OFFST);
+                double centerDist = Math.sqrt(dx * dx + dy * dy);
+                if (centerDist < centerDistance)
+                {
+                    centerDistance = centerDist;
+                    lineVector = vectors[i];
+                }
+            }
+
+            if (debugEnabled)
+            {
+                if (lineVector != null)
+                {
+                    // robot.globalTracer.traceInfo(funcName, "Line found (len=%.2f): %s", maxLen, lineVector);
+                    robot.globalTracer.traceInfo(funcName, "Line found (distanceCenter=%.2f): %s", centerDistance, lineVector);
+                }
+                else
+                {
+                    robot.globalTracer.traceInfo(funcName, "Line not found!");
+                }
+            }
+        }
+
+        return lineVector;
+    }   //getLineVector
+
+    private double getLineAngle(Point p1, Point p2)
+    {
+        double dx = p2.x - p1.x;
+        double dy = p2.y - p1.y;
+
+        double theta = Math.atan2(dy, dx);
+        theta = Math.toDegrees(theta);
+        theta = (theta + 360.0) % 360.0;
+        return theta;
+    }   //getLineAngle
+
+    public double getVectorAngle(Vector vector)
+    {
+        Point p1 = homographyMapper.mapPoint(new Point(vector.x0, vector.y0));
+        Point p2 = homographyMapper.mapPoint(new Point(vector.x1, vector.y1));
+        return getLineAngle(p1, p2) - 90.0;
+    }   //getVectorAngle
+
+    public Point mapPoint(Point point)
+    {
+        return homographyMapper.mapPoint(point);
+    }
 
     /**
      * This method gets the rectangle of the last detected target from the camera. If the camera does not have
@@ -308,7 +408,7 @@ public class PixyVision
     {
         final String funcName = "getV2TargetRect";
         Rect targetRect = null;
-        TrcPixyCam2.Block[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
+        Block[] detectedObjects = pixyCamera2.getBlocks((byte) 255, (byte) 255);
         double currTime = TrcUtil.getCurrentTime();
 
         if (debugEnabled)

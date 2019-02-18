@@ -81,6 +81,24 @@ public class TrcAnalogTrigger<D>
         final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
         final double[] triggerPoints, final TriggerHandler triggerHandler)
     {
+        this(instanceName, sensor, index, dataType, triggerPoints, triggerHandler, true);
+    }
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param sensor specifies the sensor that is used to detect the trigger.
+     * @param index specifies the data index of the sensor to read the sensor value.
+     * @param dataType specifies the data type of the sensor to read the sensor value.
+     * @param triggersOrThresholds if providedTriggerPoints is true, this is an array of data value trigger points.
+     *                             If providedTriggerPoints is false, these are directly the thresholds to measure against.
+     * @param triggerHandler specifies the object to handle the trigger event.
+     */
+    public TrcAnalogTrigger(
+        final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
+        final double[] triggersOrThresholds, final TriggerHandler triggerHandler, boolean providedTriggerPoints)
+    {
         if (debugEnabled)
         {
             dbgTrace = useGlobalTracer?
@@ -93,7 +111,14 @@ public class TrcAnalogTrigger<D>
             throw new NullPointerException("Sensor/TriggerHandler cannot be null");
         }
 
-        setTriggerPoints(triggerPoints);
+        if (providedTriggerPoints)
+        {
+            setTriggerPoints(triggersOrThresholds);
+        }
+        else
+        {
+            setThresholds(triggersOrThresholds);
+        }
         this.instanceName = instanceName;
         this.sensor = sensor;
         this.index = index;
@@ -148,6 +173,33 @@ public class TrcAnalogTrigger<D>
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Arrays.toString(thresholds));
         }
     }   //setTriggerPoints
+
+    public synchronized void setThresholds(double[] thresholds)
+    {
+        final String funcName = "setThresholds";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "thresholds=%s", Arrays.toString(thresholds));
+        }
+
+        if (thresholds == null)
+        {
+            throw new NullPointerException("thresholds cannot be null");
+        }
+
+        if (thresholds.length == 0)
+        {
+            throw new IllegalArgumentException("thresholds cannot be empty");
+        }
+
+        this.thresholds = Arrays.copyOf(thresholds, thresholds.length);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Arrays.toString(thresholds));
+        }
+    }
 
     /**
      * This method enables/disables the task that monitors the sensor value.

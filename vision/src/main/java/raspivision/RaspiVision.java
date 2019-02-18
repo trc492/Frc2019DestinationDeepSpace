@@ -44,9 +44,10 @@ import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.DoubleUnaryOperator;
+import java.util.List;
 
 public class RaspiVision
 {
@@ -56,21 +57,21 @@ public class RaspiVision
     }
 
     private static final int TEAM_NUMBER = 492;
-    private static final boolean SERVER = true; // true for debugging only
+    private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = true; // TODO: Tune camera matrix
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
     private static final int DEFAULT_WIDTH = 320;
     private static final int DEFAULT_HEIGHT = 240;
 
-    // These are for the Logitech c920
-    private static final double CAMERA_FOV_X = 70.42; // 62.2; (for Raspi)
-    private static final double CAMERA_FOV_Y = 43.3; // 48.8;
+    // These are for the Raspberry Pi Camera v2
+    private static final double CAMERA_FOV_X = 62.2;
+    private static final double CAMERA_FOV_Y = 48.8;
 
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
@@ -79,12 +80,12 @@ public class RaspiVision
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
 
     // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 250.22788401, 0.0, 177.6591477, 0.0, 249.78546762,
-        119.9751127, 0.0, 0.0, 0.5 };
+    private static double[] CAMERA_MATRIX = new double[] { 279.23728868, 0.0, 154.82842703, 0.0, 281.04311504,
+        116.78960534, 0.0, 0.0, 1.0 };
 
     // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.21809204, -0.76028143, -0.00155715, 0.02590141,
-        0.21755087 };
+    private static double[] DISTORTION_MATRIX = new double[] { 0.07558564, -0.2477479, 0.00454396, -0.0029934,
+        0.42422577 };
 
     public static void main(String[] args)
     {
@@ -118,7 +119,7 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private MatOfDouble dist = null;
+    private MatOfDouble dist;
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
     private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
     private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
@@ -128,10 +129,6 @@ public class RaspiVision
     private MatOfPoint2f projectedPoints = new MatOfPoint2f();
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
-
-    // Screw it the yaw is off by a pretty linear amount to just map it using a best line fit.
-    // This was calculated using measurements and comparing to solvePNP output.
-    private DoubleUnaryOperator yawMapper = yaw -> yaw * 1.6677 + 2.95847;
 
     public RaspiVision()
     {
@@ -257,9 +254,10 @@ public class RaspiVision
             }
             else
             {
-                System.err.println(sink.getError());
+                System.err.println("Camera Error: " + sink.getError());
             }
         }
+        sink.close();
     }
 
     private void visionProcessingThread()
@@ -333,11 +331,11 @@ public class RaspiVision
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
-            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
-            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
             // TODO: Should this be separate x and y focal lengths, or the average? test.
             if (APPROXIMATE_CAMERA_MATRIX)
             {
+                double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
+                double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
                 cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
             }
         }
@@ -430,9 +428,9 @@ public class RaspiVision
         if (FLIP_Y_AXIS)
         {
             // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
-            for (int i = 0; i < points.length; i++)
+            for (Point point : points)
             {
-                points[i].y = height - points[i].y;
+                point.y = height - point.y;
             }
         }
 
@@ -471,10 +469,12 @@ public class RaspiVision
             // Draw the contours first, so the corners get put on top
             if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
             {
+                List<MatOfPoint> contours = new ArrayList<>();
                 contourPoints.fromArray(data.leftTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                contours.add(contourPoints);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
                 contourPoints.fromArray(data.rightTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
             }
 
             // Draw the left and right target corners. First you have to re-flip the y coordinate
