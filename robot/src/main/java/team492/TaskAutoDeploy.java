@@ -57,6 +57,7 @@ public class TaskAutoDeploy
     private double travelHeight;
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
+    private boolean alignOnly = false;
 
     public TaskAutoDeploy(Robot robot)
     {
@@ -111,6 +112,11 @@ public class TaskAutoDeploy
             }
             stop();
         }
+    }
+
+    public void setAlignOnly(boolean alignOnly)
+    {
+        this.alignOnly = alignOnly;
     }
 
     private void stop()
@@ -245,26 +251,33 @@ public class TaskAutoDeploy
 
                 case DEPLOY:
                     robot.elevator.setPosition(elevatorHeight); // Hold it at that height
-                    event.clear();
-                    switch (deployType)
+                    if (alignOnly)
                     {
-                        case CARGO:
-                            robot.pickup.deployCargo(event);
-                            break;
-
-                        case HATCH:
-                            robot.pickup.deployHatch(event);
-                            break;
-
-                        case PICKUP_CARGO:
-                            robot.pickup.pickupCargo(event);
-                            break;
-
-                        case PICKUP_HATCH:
-                            robot.pickup.pickupHatch(event);
-                            break;
+                        sm.setState(State.DONE);
                     }
-                    sm.waitForSingleEvent(event, State.DONE);
+                    else
+                    {
+                        event.clear();
+                        switch (deployType)
+                        {
+                            case CARGO:
+                                robot.pickup.deployCargo(event);
+                                break;
+
+                            case HATCH:
+                                robot.pickup.deployHatch(event);
+                                break;
+
+                            case PICKUP_CARGO:
+                                robot.pickup.pickupCargo(event);
+                                break;
+
+                            case PICKUP_HATCH:
+                                robot.pickup.pickupHatch(event);
+                                break;
+                        }
+                        sm.waitForSingleEvent(event, State.DONE);
+                    }
                     break;
 
                 default:
