@@ -29,7 +29,6 @@ import com.ctre.phoenix.motorcontrol.LimitSwitchNormal;
 import com.ctre.phoenix.motorcontrol.LimitSwitchSource;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
-
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import trclib.TrcDbgTrace;
@@ -162,7 +161,7 @@ public class FrcCANTalon extends TrcMotor
      *
      * @param errorCode specifies the error code returned by the motor controller.
      */
-    private void recordResponseCode(ErrorCode errorCode)
+    private ErrorCode recordResponseCode(ErrorCode errorCode)
     {
         lastError = errorCode;
         if (errorCode != null && !errorCode.equals(ErrorCode.OK))
@@ -173,6 +172,7 @@ public class FrcCANTalon extends TrcMotor
                 dbgTrace.traceErr("CANTalonError", "ErrorCode=%s", errorCode);
             }
         }
+        return errorCode;
     }   //recordResponseCode
 
     /**
@@ -571,16 +571,14 @@ public class FrcCANTalon extends TrcMotor
         {
             if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
             {
-                recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 0));
-                while (motor.getSensorCollection().getQuadraturePosition() != 0)
+                while (recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 10)) != ErrorCode.OK)
                 {
                     Thread.yield();
                 }
             }
             else
             {
-                recordResponseCode(motor.setSelectedSensorPosition(0, 0, 0));
-                while (motor.getSelectedSensorPosition(0) != 0)
+                while(recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10)) != ErrorCode.OK)
                 {
                     Thread.yield();
                 }
