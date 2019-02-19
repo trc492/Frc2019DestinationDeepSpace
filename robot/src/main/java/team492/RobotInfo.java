@@ -214,8 +214,8 @@ public class RobotInfo
     public static final double PICKUP_CG_DISTANCE               = 0.286;// half of axle -> center of mass in meters
     public static final double PITCH_MOTOR_STALL_TORQUE         = 0.71; // Nm
     public static final double PITCH_MOTOR_GEAR_RATIO           = 974.0;
-    public static final double PITCH_MOTOR_SHAFT_MAX_TORQUE     = PITCH_MOTOR_STALL_TORQUE * PITCH_MOTOR_GEAR_RATIO;
-    public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE;
+    public static final double PITCH_MOTOR_SHAFT_MAX_TORQUE     = PITCH_MOTOR_STALL_TORQUE * PITCH_MOTOR_GEAR_RATIO; // Max torque available from motor
+    public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE; // Max torque required to hold up
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
