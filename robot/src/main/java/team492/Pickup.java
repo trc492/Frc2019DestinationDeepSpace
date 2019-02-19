@@ -51,6 +51,7 @@ public class Pickup
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
+    private boolean manualOverrideEnabled;
 
     public Pickup(Robot robot)
     {
@@ -185,13 +186,16 @@ public class Pickup
 
     public void deployCargo(TrcEvent event)
     {
-        if (event != null)
+        if (!manualOverrideEnabled)
         {
-            event.clear();
+            if (event != null)
+            {
+                event.clear();
+            }
+            onFinishedEvent = event;
+            cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
+            currentTrigger.setEnabled(true);
         }
-        onFinishedEvent = event;
-        cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
-        currentTrigger.setEnabled(true);
         setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
     }
 
@@ -206,32 +210,39 @@ public class Pickup
 
     public void pickupCargo(TrcEvent event)
     {
-        if (event != null)
+        if (manualOverrideEnabled)
         {
-            event.clear();
-        }
-
-        if (cargoDetected())
-        {
-            // Return early if we already have a cargo
-            if (event != null)
-            {
-                event.set(true);
-            }
+            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
         }
         else
         {
             if (event != null)
             {
-                // The timer will signal the event when it expires. This is a backup in case the sensor fails.
-                // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
-                timer.cancel();
-                timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                event.clear();
             }
-            this.onFinishedEvent = event;
-            currentTrigger.setEnabled(false); // make sure the current trigger is disabled
-            cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
-            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+
+            if (cargoDetected())
+            {
+                // Return early if we already have a cargo
+                if (event != null)
+                {
+                    event.set(true);
+                }
+            }
+            else
+            {
+                if (event != null)
+                {
+                    // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+                    // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
+                    timer.cancel();
+                    timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                }
+                this.onFinishedEvent = event;
+                currentTrigger.setEnabled(false); // make sure the current trigger is disabled
+                cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
+                setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+            }
         }
     }
 
@@ -256,6 +267,7 @@ public class Pickup
 
     public void setManualOverrideEnabled(boolean enabled)
     {
+        this.manualOverrideEnabled = enabled;
         pitchController.setManualOverride(enabled);
     }
 
