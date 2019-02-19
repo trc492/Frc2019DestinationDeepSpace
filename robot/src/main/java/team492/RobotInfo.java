@@ -218,7 +218,6 @@ public class RobotInfo
     public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE;
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
-    public static final double PICKUP_GROUND_COLLISION_POS      = 60.0; // The angle at which if the elevator is low, the pickup will hit the ground
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
@@ -244,8 +243,6 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.3;
     public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
-
-    public static final double ELEVATOR_GROUND_CLEARANCE_POS    = ELEVATOR_MIN_POS + 2.0; // The height at which the end effector won't hit the gound
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
