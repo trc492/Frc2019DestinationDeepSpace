@@ -240,9 +240,7 @@ public class PixyVision
         Vector[] vectors = getFeatureVectorsFiltered();
 
         if (vectors != null && vectors.length > 0)
-        {
-
-            
+        {   
             // - Ideally, the best line should be the longest line.
             // - This is mostly to filter out any remaining interference that the Pixy might pick up.
             double maxLen = 0.0;
