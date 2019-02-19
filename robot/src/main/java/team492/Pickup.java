@@ -331,9 +331,10 @@ public class Pickup
      */
     public void setPitchPower(double power, boolean hold)
     {
-        //        pitchMotor.set(power);
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-        pitchController.setPower(power, hold);
+//        pitchController.setPower(power, hold);
+        // TODO: figure this out
+        pitchMotor.set(power);
     }
 
     public void setPickupPower(double power)

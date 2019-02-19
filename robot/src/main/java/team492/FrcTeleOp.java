@@ -97,11 +97,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot.isAutoActive())
         {
             robot.cancelAllAuto();
-            if (elevatorPower != lastElevatorPower)
-            {
-                robot.elevator.setPower(elevatorPower);
-                lastElevatorPower = elevatorPower;
-            }
+            robot.elevator.setPower(elevatorPower);
+            // TODO: Test if this works
+//            if (elevatorPower != lastElevatorPower)
+//            {
+//                robot.elevator.setPower(elevatorPower);
+//                lastElevatorPower = elevatorPower;
+//            }
             //
             // DriveBase operation.
             //
@@ -148,6 +150,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private boolean shouldCancelAuto(double... joystickValues)
     {
         return Arrays.stream(joystickValues).anyMatch(d -> d != 0.0);
+    }
+
+    private void setAllManualOverrideEnabled(boolean enabled)
+    {
+        robot.elevator.setManualOverrideEnabled(enabled);
+        robot.pickup.setManualOverrideEnabled(enabled);
     }
 
     @Override
@@ -322,28 +330,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                setAllManualOverrideEnabled(pressed);
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
                 if (pressed)
                 {
                     robot.pickup.setPickupAngle(0.0);
                 }
                 break;
 
-            case FrcJoystick.LOGITECH_BUTTON9:
+            case FrcJoystick.LOGITECH_BUTTON11:
                 if (pressed)
                 {
                     robot.pickup.setPickupAngle(90.0);
                 }
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON10:
-                if (pressed)
-                {
-                    // Lower right button on joystick base.
-                    robot.autoAlignTarget.start(null);
-                }
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON11:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON12:
