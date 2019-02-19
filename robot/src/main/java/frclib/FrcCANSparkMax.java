@@ -24,6 +24,7 @@ package frclib;
 
 import com.revrobotics.CANDigitalInput;
 import com.revrobotics.CANEncoder;
+import com.revrobotics.CANError;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel;
@@ -444,8 +445,7 @@ public class FrcCANSparkMax extends TrcMotor
 
         if (hardware)
         {
-            encoder.setPosition(0.0);
-            while (encoder.getPosition() != 0)
+            while (encoder.setPosition(0.0) != CANError.kOK)
             {
                 Thread.yield();
             }
