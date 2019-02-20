@@ -37,7 +37,7 @@ public class TaskAutoDeploy
 
     public enum DeployType
     {
-        CARGO, HATCH, PICKUP_CARGO, PICKUP_HATCH
+        CARGO, HATCH, PICKUP_HATCH // Intentionally missing cargo pickup
     }
 
     private static final boolean USE_VISION_YAW = false;
@@ -142,7 +142,7 @@ public class TaskAutoDeploy
 
     private double getTargetRotation(DeployType deployType)
     {
-        if (deployType == DeployType.PICKUP_CARGO || deployType == DeployType.PICKUP_HATCH)
+        if (deployType == DeployType.PICKUP_HATCH)
         {
             return 180.0;
         }
@@ -266,10 +266,6 @@ public class TaskAutoDeploy
 
                             case HATCH:
                                 robot.pickup.deployHatch(event);
-                                break;
-
-                            case PICKUP_CARGO:
-                                robot.pickup.pickupCargo(event);
                                 break;
 
                             case PICKUP_HATCH:
