@@ -204,8 +204,8 @@ public class RobotInfo
     public static final double PICKUP_MAX_POS                   = 90.0; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 2.0;
-    public static final double PICKUP_STALL_MIN_POWER           = 0.6;
-    public static final double PICKUP_STALL_TIMEOUT             = 0.8;
+    public static final double PICKUP_STALL_MIN_POWER           = 0.8;
+    public static final double PICKUP_STALL_TIMEOUT             = 1.0;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.2;
     public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
 
@@ -240,8 +240,8 @@ public class RobotInfo
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
     public static final double ELEVATOR_GRAVITY_COMP            = 0.0;
-    public static final double ELEVATOR_STALL_MIN_POWER         = 0.3;
-    public static final double ELEVATOR_STALL_TIMEOUT           = 0.5;
+    public static final double ELEVATOR_STALL_MIN_POWER         = 0.8;
+    public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
