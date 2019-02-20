@@ -37,7 +37,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     protected Robot robot;
 
-    private boolean slowDriveOverride = false;
+    private boolean slowDriveOverride = true;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
@@ -68,6 +68,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.operatorStick.setYInverted(false);
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
+
+        slowDriveOverride = true;
     } // startMode
 
     @Override
@@ -99,11 +101,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             robot.cancelAllAuto();
             robot.elevator.setPower(elevatorPower);
             // TODO: Test if this works
-//            if (elevatorPower != lastElevatorPower)
-//            {
-//                robot.elevator.setPower(elevatorPower);
-//                lastElevatorPower = elevatorPower;
-//            }
+            //            if (elevatorPower != lastElevatorPower)
+            //            {
+            //                robot.elevator.setPower(elevatorPower);
+            //                lastElevatorPower = elevatorPower;
+            //            }
             //
             // DriveBase operation.
             //
@@ -114,8 +116,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double rightPower = rightDriveY;
                     if (slowDriveOverride)
                     {
-                        leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                        leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                        rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
                     }
                     robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
                     break;
@@ -125,8 +127,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double turnPower = rightTwist;
                     if (slowDriveOverride)
                     {
-                        drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                        turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                     }
                     robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
                     break;
@@ -137,9 +139,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double rot = rightTwist;
                     if (slowDriveOverride)
                     {
-                        x /= RobotInfo.DRIVE_SLOW_XSCALE;
-                        y /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                        y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                        rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                     }
                     robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
                     break;
@@ -198,6 +200,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
+                slowDriveOverride = !slowDriveOverride;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
@@ -228,7 +231,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                slowDriveOverride = pressed;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
@@ -363,98 +365,36 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             return;
         }
 
-        /*
-        Button mappings:
-        1 = rocket hatch high
-        2 = rocket hatch med
-        3 = rocket hatch low
-        4 = rocket cargo high
-        5 = rocket cargo med
-        6 = rocket cargo low
-        7 = ship cargo
-        8 = ship hatch
-        9 = pickup cargo
-        10 = pickup hatch
-         */
-        // TODO: this could maybe be cut down by automatically detecting which gamepiece is being held
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, TaskAutoDeploy.DeployType.HATCH, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, TaskAutoDeploy.DeployType.HATCH, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, TaskAutoDeploy.DeployType.HATCH, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, TaskAutoDeploy.DeployType.CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, TaskAutoDeploy.DeployType.CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, TaskAutoDeploy.DeployType.CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
-                if (pressed)
-                {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, TaskAutoDeploy.DeployType.CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
-                if (pressed)
-                {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, TaskAutoDeploy.DeployType.HATCH, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, TaskAutoDeploy.DeployType.PICKUP_CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, TaskAutoDeploy.DeployType.PICKUP_HATCH, null);
-                }
                 break;
         }
     } // operatorStickButtonEvent

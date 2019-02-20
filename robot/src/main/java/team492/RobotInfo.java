@@ -153,9 +153,9 @@ public class RobotInfo
     // DriveBase subsystem.
     //
     public static final double DRIVE_STALL_TIMEOUT              = 0.5;
-    public static final double DRIVE_SLOW_XSCALE                = 3.0;
-    public static final double DRIVE_SLOW_YSCALE                = 3.0;
-    public static final double DRIVE_SLOW_TURNSCALE             = 3.0;
+    public static final double DRIVE_SLOW_XSCALE                = 0.7;
+    public static final double DRIVE_SLOW_YSCALE                = 0.7;
+    public static final double DRIVE_SLOW_TURNSCALE             = 0.9;
 
     public static final double DRIVE_GYRO_ASSIST_KP             = 1.5;
     public static final double DRIVE_MAX_ROTATION_RATE          = 6.5;      //radians per second
