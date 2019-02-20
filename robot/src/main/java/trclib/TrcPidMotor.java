@@ -978,7 +978,7 @@ public class TrcPidMotor
             // the setPower or setMotorPower because they do not handle zero calibration mode.
             //
             motor.set(0.0);
-            motor.resetPosition(true);
+            motor.resetPosition(false);
         }
         else
         {
