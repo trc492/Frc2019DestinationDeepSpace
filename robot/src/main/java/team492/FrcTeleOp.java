@@ -26,6 +26,8 @@ import frclib.FrcJoystick;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
+import java.util.Arrays;
+
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     private enum DriveMode
@@ -93,9 +95,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             robot.pixy.getTargetInfo();
         }
 
-        // Give drivers control only if no auto active. Auto is cancelled only by operator or completion.
-        if (!robot.isAutoActive())
+        // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
+        // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
+        if (!robot.autoDeploy.isActive() && (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot
+            .isAutoActive()))
         {
+            // Cancel any autos running
+            robot.cancelAllAuto();
             // TODO: Test if this works
             if (elevatorPower != robot.elevator.getPower())
             {
@@ -143,6 +149,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             }
         }
     } // runPeriodic
+
+    private boolean shouldCancelAuto(double... joystickValues)
+    {
+        return Arrays.stream(joystickValues).anyMatch(d -> d != 0.0);
+    }
 
     private void setAllManualOverrideEnabled(boolean enabled)
     {
