@@ -32,7 +32,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
@@ -86,18 +85,6 @@ public class RaspiVision
     // Calculated by calibrating the camera
     private static double[] DISTORTION_MATRIX = new double[] { 0.07558564, -0.2477479, 0.00454396, -0.0029934,
         0.42422577 };
-
-    public static void main(String[] args)
-    {
-        // Load the C++ native code
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
-        RaspiVision vision = new RaspiVision(0);
-        vision.start();
-
-        DriverCamera driverCamera = new DriverCamera(1);
-        driverCamera.start();
-    }
 
     private Gson gson;
     private Thread visionThread;
