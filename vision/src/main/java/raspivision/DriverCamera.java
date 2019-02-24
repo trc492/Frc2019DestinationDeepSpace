@@ -22,77 +22,26 @@
 
 package raspivision;
 
-import edu.wpi.cscore.CvSink;
-import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
-import org.opencv.core.Mat;
 
 public class DriverCamera
 {
     private static final int DEFAULT_WIDTH = 640;
     private static final int DEFAULT_HEIGHT = 480;
 
-    private Thread captureThread;
-    private UsbCamera camera;
-    private CvSink sink;
-    private CvSource display;
-    private Mat image;
-    private boolean running;
+    private int cameraIndex;
 
     public DriverCamera(int cameraIndex)
     {
-        image = new Mat();
-        camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
-        camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        display = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
-        sink = new CvSink("DriverCamera");
-        sink.setSource(camera);
+        this.cameraIndex = cameraIndex;
     }
 
     public void start()
     {
-        if (running)
-        {
-            return;
-        }
-        running = true;
-        captureThread = new Thread(this::captureTask);
-        captureThread.start();
-    }
-
-    public void stop()
-    {
-        if (!running)
-        {
-            return;
-        }
-        running = false;
-        captureThread.interrupt();
-        try
-        {
-            captureThread.join();
-        }
-        catch (InterruptedException e)
-        {
-            e.printStackTrace();
-        }
-    }
-
-    private void captureTask()
-    {
-        while (!Thread.interrupted())
-        {
-            long response = sink.grabFrame(image);
-            if (response != 0L)
-            {
-                display.putFrame(image);
-            }
-            else
-            {
-                System.err.println("Camera Error: " + sink.getError());
-            }
-        }
-        sink.close();
+        // WPILib automatically handles streaming the video
+        UsbCamera camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", cameraIndex);
+        camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        camera.setFPS(30);
     }
 }
