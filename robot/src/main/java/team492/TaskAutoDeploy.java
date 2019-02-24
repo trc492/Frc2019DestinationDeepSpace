@@ -42,7 +42,7 @@ public class TaskAutoDeploy
 
     public enum DeployLevel
     {
-        LOW(0), MEDIUM(1), HIGH(2); // For rocket. Low is cargo ship hatch.
+        LOW(0), MEDIUM(1), HIGH(2); // For rocket (cargo and hatch). Low is also cargo ship hatch.
 
         private int index;
 
