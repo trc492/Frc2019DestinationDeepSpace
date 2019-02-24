@@ -61,7 +61,7 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = true; // TODO: Tune camera matrix
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
@@ -79,12 +79,12 @@ public class RaspiVision
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
 
     // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 279.23728868, 0.0, 154.82842703, 0.0, 281.04311504,
-        116.78960534, 0.0, 0.0, 1.0 };
+    private static double[] CAMERA_MATRIX = new double[] { 223.01258757, 0.0, 153.16212363, 0.0, 222.23760939,
+        126.9374426, 0.0, 0.0, 1.0 };
 
     // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.07558564, -0.2477479, 0.00454396, -0.0029934,
-        0.42422577 };
+    private static double[] DISTORTION_MATRIX = new double[] { 0.21826744, -0.60425638, 0.00453213, -0.00482952,
+        0.40065646 };
 
     private Gson gson;
     private Thread visionThread;
