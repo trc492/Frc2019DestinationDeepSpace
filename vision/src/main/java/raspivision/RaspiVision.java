@@ -92,8 +92,11 @@ public class RaspiVision
         // Load the C++ native code
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        RaspiVision vision = new RaspiVision();
+        RaspiVision vision = new RaspiVision(0);
         vision.start();
+
+        DriverCamera driverCamera = new DriverCamera(1);
+        driverCamera.start();
     }
 
     private Gson gson;
@@ -130,7 +133,7 @@ public class RaspiVision
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
 
-    public RaspiVision()
+    public RaspiVision(int cameraIndex)
     {
         gson = new Gson();
 
@@ -181,7 +184,7 @@ public class RaspiVision
         cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
 
-        camera = CameraServer.getInstance().startAutomaticCapture();
+        camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
         camera.setBrightness(40);
         pipeline = new VisionTargetPipeline();
