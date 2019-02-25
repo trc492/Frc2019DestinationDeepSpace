@@ -266,7 +266,7 @@ public class RaspiVision
                     image = this.image;
                 }
                 pipeline.process(image);
-                processImage(pipeline);
+                processImage(image, pipeline);
                 // I don't need the image anymore, so release the memory
                 image.release();
             }
@@ -313,15 +313,14 @@ public class RaspiVision
         }
     }
 
-    private void processImage(VisionTargetPipeline pipeline)
+    private void processImage(Mat frame, VisionTargetPipeline pipeline)
     {
         // If the resolution changed, update the camera data network tables entry
-        if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
+        if (width != frame.width() || height != frame.height())
         {
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
-            // TODO: Should this be separate x and y focal lengths, or the average? test.
             if (APPROXIMATE_CAMERA_MATRIX)
             {
                 double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
@@ -349,6 +348,7 @@ public class RaspiVision
     {
         Mat image;
         Scalar color = new Scalar(0, 255, 0);
+        boolean release = false;
         if (DEBUG_DISPLAY == DebugDisplayType.MASK)
         {
             image = pipeline.getHslThresholdOutput();
@@ -360,6 +360,7 @@ public class RaspiVision
         }
         if (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX)
         {
+            release = true; // Release the image later if we clone it.
             image = image.clone();
             for (TargetData data : pipeline.getDetectedTargets())
             {
@@ -374,6 +375,10 @@ public class RaspiVision
             }
         }
         dashboardDisplay.putFrame(image);
+        if (release)
+        {
+            image.release();
+        }
     }
 
     private void measureFps()
