@@ -24,6 +24,7 @@ package team492;
 
 import frclib.FrcJoystick;
 import hallib.HalDashboard;
+import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -36,12 +37,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         MECANUM_MODE, ARCADE_MODE, TANK_MODE
     } // enum DriveMode
 
+    public static final boolean DEBUG_LOOP_TIME = true;
+
     protected Robot robot;
 
     private boolean slowDriveOverride = true;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
+    private TrcLoopTimeCounter loopTimeCounter;
 
     public FrcTeleOp(Robot robot)
     {
@@ -70,6 +74,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
 
         slowDriveOverride = true;
+
+        if (DEBUG_LOOP_TIME)
+        {
+            loopTimeCounter = new TrcLoopTimeCounter(1.0);
+        }
     } // startMode
 
     @Override
@@ -171,6 +180,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
         HalDashboard.putBoolean("Status/CargoDetected", robot.pickup.cargoDetected());
         HalDashboard.putBoolean("Status/TurboEnabled", !slowDriveOverride);
+
+        if (DEBUG_LOOP_TIME)
+        {
+            loopTimeCounter.update();
+            robot.dashboard
+                .displayPrintf(1, "Period: %.3f/%.3f/%3f, Frequency: %.2f/%.2f/%.2f", loopTimeCounter.getMinPeriod(),
+                    loopTimeCounter.getPeriod(), loopTimeCounter.getMaxPeriod(), loopTimeCounter.getMinFrequency(),
+                    loopTimeCounter.getFrequency(), loopTimeCounter.getMaxFrequency());
+        }
     } // runContinuous
 
     //
