@@ -27,7 +27,7 @@ import org.opencv.core.Core;
 public class Main
 {
     private static final boolean USE_RASPI_VISION = true;
-    private static final boolean USE_DRIVER_CAMERA = false;
+    private static final boolean USE_DRIVER_CAMERA = true;
 
     public static void main(String[] args)
     {
