@@ -165,7 +165,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runContinuous(double elapsedTime)
     {
-        HalDashboard.putBoolean("Status/TapeDetected", robot.vision.getAveragePose(5, true) != null);
+        if (Robot.USE_RASPI_VISION)
+        {
+            HalDashboard.putBoolean("Status/TapeDetected", robot.vision.getAveragePose(5, true) != null);
+        }
         HalDashboard.putBoolean("Status/CargoDetected", robot.pickup.cargoDetected());
         HalDashboard.putBoolean("Status/TurboEnabled", !slowDriveOverride);
     } // runContinuous
