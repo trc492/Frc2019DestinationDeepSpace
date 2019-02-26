@@ -140,8 +140,8 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 16.5;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = 4; // Inches from center of EE to center of camera, + = backward
-    public static final double CAMERA_OFFSET                    = 0; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_DEPTH                     = 14.5; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -235,8 +235,8 @@ public class RobotInfo
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.2;
-    public static final double ELEVATOR_MIN_POS                 = 2.625;
-    public static final double ELEVATOR_MAX_POS                 = 60.0;
+    public static final double ELEVATOR_MIN_POS                 = 6.75;
+    public static final double ELEVATOR_MAX_POS                 = 69.25;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
     public static final double ELEVATOR_GRAVITY_COMP            = 0.0;
@@ -246,22 +246,20 @@ public class RobotInfo
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
-    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 20.0; // I'm just spitballing here, man.
-    public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 40.0;
-    public static final double ELEVATOR_POS_CARGO_ROCKET_HIGH   = 60.0;
+    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 13.125; // I'm just spitballing here, man.
+    public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
+    public static final double ELEVATOR_POS_CARGO_ROCKET_HIGH   = ELEVATOR_MAX_POS;
     public static final double[] ELEVATOR_CARGO_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_CARGO_ROCKET_LOW,
         ELEVATOR_POS_CARGO_ROCKET_MED, ELEVATOR_POS_CARGO_ROCKET_HIGH };
 
-    public static final double ELEVATOR_POS_HATCH_ROCKET_LOW    = 20.0;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 40.0;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 60.0;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_LOW    = ELEVATOR_MIN_POS;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 32.5;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 61.875;
     public static final double[] ELEVATOR_HATCH_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_HATCH_ROCKET_LOW,
         ELEVATOR_POS_HATCH_ROCKET_MED, ELEVATOR_POS_HATCH_ROCKET_HIGH };
 
-    public static final double ELEVATOR_POS_CARGO_SHIP          = ELEVATOR_POS_CARGO_ROCKET_LOW;
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
-    public static final double ELEVATOR_POS_CARGO_PICKUP        = ELEVATOR_POS_CARGO_ROCKET_LOW;
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
