@@ -389,6 +389,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     } // operatorStickButtonEvent
 
+    private void setElevatorHeight(TaskAutoDeploy.DeployLevel level)
+    {
+        boolean cargo = robot.pickup.cargoDetected();
+        if (cargo)
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_CARGO_ROCKET_POSITIONS[level.getIndex()]);
+        }
+        else
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_HATCH_ROCKET_POSITIONS[level.getIndex()]);
+        }
+    }
+
     public void buttonPanelButtonEvent(int button, boolean pressed)
     {
         boolean isAutoActive = robot.isAutoActive();
@@ -461,12 +474,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
+                if (pressed)
+                {
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
+                if (pressed)
+                {
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
+                if (pressed)
+                {
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
