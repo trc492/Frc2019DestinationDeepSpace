@@ -76,6 +76,7 @@ public class TrcLoopTimeCounter
         {
             timeSum -= periodQueue.remove();
         }
+        lastTime = currTime;
     }
 
     public double getPeriod()
