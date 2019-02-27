@@ -504,21 +504,21 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.PANEL_BUTTON5:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
                 }
                 break;
 
