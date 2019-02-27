@@ -41,7 +41,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     protected Robot robot;
 
-    private boolean slowDriveOverride = true;
+    private enum DriveSpeed
+    {
+        SLOW, REGULAR, FAST
+    }
+
+    private DriveSpeed driveSpeed = DriveSpeed.REGULAR;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
@@ -73,7 +78,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
 
-        slowDriveOverride = true;
+        driveSpeed = DriveSpeed.REGULAR;
 
         if (DEBUG_LOOP_TIME)
         {
@@ -125,10 +130,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 case TANK_MODE:
                     double leftPower = leftDriveY;
                     double rightPower = rightDriveY;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                        case SLOW:
+                            leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            break;
+
+                        case FAST:
+                            leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            break;
                     }
                     robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
                     break;
@@ -136,10 +148,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 case ARCADE_MODE:
                     double drivePower = rightDriveY;
                     double turnPower = rightTwist;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        case SLOW:
+                            drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                            break;
+
+                        case FAST:
+                            drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                            break;
                     }
                     robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
                     break;
@@ -148,11 +167,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double x = leftDriveX;
                     double y = rightDriveY;
                     double rot = rightTwist;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                        y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        case SLOW:
+                            x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                            y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                            break;
+
+                        case FAST:
+                            x *= RobotInfo.DRIVE_FAST_XSCALE;
+                            y *= RobotInfo.DRIVE_FAST_YSCALE;
+                            rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                            break;
                     }
                     robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
                     break;
@@ -179,7 +206,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             HalDashboard.putBoolean("Status/TapeDetected", robot.vision.getAveragePose(5, true) != null);
         }
         HalDashboard.putBoolean("Status/CargoDetected", robot.pickup.cargoDetected());
-        HalDashboard.putBoolean("Status/TurboEnabled", !slowDriveOverride);
+        HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
 
         if (DEBUG_LOOP_TIME)
         {
@@ -214,6 +241,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                driveSpeed = pressed ? DriveSpeed.FAST : DriveSpeed.REGULAR;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -226,7 +254,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                slowDriveOverride = !slowDriveOverride;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
@@ -260,6 +287,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
+                driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.REGULAR;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
@@ -356,11 +384,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
+                robot.pickup.setPitchPower(pressed ? -0.75 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON7:
-                robot.pickup.setPitchPower(pressed ? -0.75 : 0.0);
+                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
@@ -373,14 +401,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON10:
                 if (pressed)
                 {
-                    robot.pickup.setPickupAngle(0.0);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_GROUND_CARGO_POS);
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON11:
                 if (pressed)
                 {
-                    robot.pickup.setPickupAngle(90.0);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_HATCH_PICKUP_POS);
                 }
                 break;
 

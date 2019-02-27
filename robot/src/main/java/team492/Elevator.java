@@ -118,8 +118,9 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
+        elevator.cancel();
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-//        elevator.setPower(power, hold);
+        // elevator.setPower(power, hold);
         // TODO: figure this out
         motor.set(power);
     }

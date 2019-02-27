@@ -153,9 +153,14 @@ public class RobotInfo
     // DriveBase subsystem.
     //
     public static final double DRIVE_STALL_TIMEOUT              = 0.5;
-    public static final double DRIVE_SLOW_XSCALE                = 0.7;
-    public static final double DRIVE_SLOW_YSCALE                = 0.7;
-    public static final double DRIVE_SLOW_TURNSCALE             = 0.9;
+
+    public static final double DRIVE_SLOW_XSCALE                = 0.5;
+    public static final double DRIVE_SLOW_YSCALE                = 0.5;
+    public static final double DRIVE_SLOW_TURNSCALE             = 0.6;
+
+    public static final double DRIVE_FAST_XSCALE                = 1.0;
+    public static final double DRIVE_FAST_YSCALE                = 1.0;
+    public static final double DRIVE_FAST_TURNSCALE             = 1.0;
 
     public static final double DRIVE_GYRO_ASSIST_KP             = 1.5;
     public static final double DRIVE_MAX_ROTATION_RATE          = 6.5;      //radians per second
@@ -207,7 +212,7 @@ public class RobotInfo
     public static final double PICKUP_STALL_MIN_POWER           = 0.8;
     public static final double PICKUP_STALL_TIMEOUT             = 1.0;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.2;
-    public static final double PICKUP_CURRENT_THRESHOLD         = 2.5; // Free=1.5,startup=2-4,cargopickup=5.5
+    public static final double PICKUP_CURRENT_THRESHOLD         = 3.0; // Free=2.6,startup=7,cargopickup=5.5
 
     public static final double PICKUP_MASS                      = 4.08; // kilograms
     public static final double PICKUP_WEIGHT                    = PICKUP_MASS * TrcUtil.EARTH_GRAVITATIONAL_CONSTANT;//N
@@ -218,6 +223,8 @@ public class RobotInfo
     public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE; // Max torque required to hold up
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
+    public static final double PICKUP_HATCH_PICKUP_POS          = 15.3;
+    public static final double PICKUP_GROUND_CARGO_POS          = 68.3;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
