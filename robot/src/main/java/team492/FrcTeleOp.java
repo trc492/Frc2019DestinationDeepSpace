@@ -80,6 +80,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         driveSpeed = DriveSpeed.REGULAR;
 
+        if (Robot.USE_RASPI_VISION)
+        {
+            robot.vision.setRingLightEnabled(true);
+        }
+
         if (DEBUG_LOOP_TIME)
         {
             loopTimeCounter = new TrcLoopTimeCounter(1.0);
@@ -89,6 +94,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
+        if (Robot.USE_RASPI_VISION)
+        {
+            robot.vision.setRingLightEnabled(false);
+        }
     } // stopMode
 
     @Override

@@ -77,7 +77,7 @@ public class Elevator
     public void setPosition(double position, TrcEvent event, double timeout)
     {
         position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, event, timeout);
+        //elevator.setTarget(position, event, timeout);
     }
 
     public void setPosition(double position, TrcEvent event)
@@ -88,7 +88,7 @@ public class Elevator
     public void setPosition(double position)
     {
         position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
+        //elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
     }
 
     public boolean isUpperLimitSwitchActive()

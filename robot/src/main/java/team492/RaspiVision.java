@@ -7,6 +7,8 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Relay;
+import edu.wpi.first.wpilibj.Relay.Direction;
+import trclib.TrcDbgTrace;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,7 +29,8 @@ public class RaspiVision
         gson = new Gson();
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
-        ringLight = new Relay(RobotInfo.RELAY_RINGLIGHT_POWER);
+        ringLight = new Relay(0);
+        ringLight.setDirection(Direction.kForward);
     }
 
     public void setRingLightEnabled(boolean enabled)
