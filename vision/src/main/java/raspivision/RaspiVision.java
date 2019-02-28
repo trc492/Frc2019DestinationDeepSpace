@@ -180,20 +180,20 @@ public class RaspiVision
 
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
 
-        hueHigh.setDouble(pipeline.hslThresholdHue[1]);
-        hueHigh.addListener(event -> pipeline.hslThresholdHue[1] = event.value.getDouble(), flag);
-        hueLow.setDouble(pipeline.hslThresholdHue[0]);
-        hueLow.addListener(event -> pipeline.hslThresholdHue[0] = event.value.getDouble(), flag);
+        hueHigh.setDouble(pipeline.hsvThresholdHue[1]);
+        hueHigh.addListener(event -> pipeline.hsvThresholdHue[1] = event.value.getDouble(), flag);
+        hueLow.setDouble(pipeline.hsvThresholdHue[0]);
+        hueLow.addListener(event -> pipeline.hsvThresholdHue[0] = event.value.getDouble(), flag);
 
-        satHigh.setDouble(pipeline.hslThresholdSaturation[1]);
-        satHigh.addListener(event -> pipeline.hslThresholdSaturation[1] = event.value.getDouble(), flag);
-        satLow.setDouble(pipeline.hslThresholdSaturation[0]);
-        satLow.addListener(event -> pipeline.hslThresholdSaturation[0] = event.value.getDouble(), flag);
+        satHigh.setDouble(pipeline.hsvThresholdSaturation[1]);
+        satHigh.addListener(event -> pipeline.hsvThresholdSaturation[1] = event.value.getDouble(), flag);
+        satLow.setDouble(pipeline.hsvThresholdSaturation[0]);
+        satLow.addListener(event -> pipeline.hsvThresholdSaturation[0] = event.value.getDouble(), flag);
 
-        luminanceHigh.setDouble(pipeline.hslThresholdLuminance[1]);
-        luminanceHigh.addListener(event -> pipeline.hslThresholdLuminance[1] = event.value.getDouble(), flag);
-        luminanceLow.setDouble(pipeline.hslThresholdLuminance[0]);
-        luminanceLow.addListener(event -> pipeline.hslThresholdLuminance[0] = event.value.getDouble(), flag);
+        luminanceHigh.setDouble(pipeline.hsvThresholdLuminance[1]);
+        luminanceHigh.addListener(event -> pipeline.hsvThresholdLuminance[1] = event.value.getDouble(), flag);
+        luminanceLow.setDouble(pipeline.hsvThresholdLuminance[0]);
+        luminanceLow.addListener(event -> pipeline.hsvThresholdLuminance[0] = event.value.getDouble(), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
@@ -351,7 +351,7 @@ public class RaspiVision
         boolean release = false;
         if (DEBUG_DISPLAY == DebugDisplayType.MASK)
         {
-            image = pipeline.getHslThresholdOutput();
+            image = pipeline.getHsvThresholdOutput();
             color = new Scalar(255);
         }
         else
