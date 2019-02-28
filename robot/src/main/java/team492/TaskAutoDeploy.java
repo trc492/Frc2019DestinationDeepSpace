@@ -195,6 +195,7 @@ public class TaskAutoDeploy
         robot.stopSubsystems();
         onFinishedEvent = null;
         setEnabled(false);
+        robot.setHalfBrakeModeEnabled(true, robot.driveInverted);
     }
 
     private void setEnabled(boolean enabled)
@@ -245,6 +246,7 @@ public class TaskAutoDeploy
             switch (state)
             {
                 case START:
+                    robot.setHalfBrakeModeEnabled(false, false);
                     if (USE_VISION_YAW)
                     {
                         pose = robot.vision.getAveragePose(5, true);

@@ -90,6 +90,8 @@ public class Robot extends FrcRobotBase
 
     public double targetHeading = 0.0;
 
+    public boolean driveInverted = false;
+
     private double nextUpdateTime = TrcUtil.getCurrentTime();
 
     // FMS provided the following info:
@@ -236,11 +238,8 @@ public class Robot extends FrcRobotBase
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
-        // TODO: set this to karkeys' preferred style (front coast, rear brake)
-        leftFrontWheel.setBrakeModeEnabled(true);
-        rightFrontWheel.setBrakeModeEnabled(true);
-        leftRearWheel.setBrakeModeEnabled(true);
-        rightRearWheel.setBrakeModeEnabled(true);
+        setHalfBrakeModeEnabled(true, false); // Karkeys prefers front coast, back brake
+
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
@@ -690,6 +689,24 @@ public class Robot extends FrcRobotBase
                 driveBase.getHeading(), heading);
         }
     }   //traceStateInfo
+
+    public void setHalfBrakeModeEnabled(boolean enabled, boolean inverted)
+    {
+        if (enabled)
+        {
+            leftFrontWheel.setBrakeModeEnabled(inverted);
+            rightFrontWheel.setBrakeModeEnabled(inverted);
+            leftRearWheel.setBrakeModeEnabled(!inverted);
+            rightRearWheel.setBrakeModeEnabled(!inverted);
+        }
+        else
+        {
+            leftFrontWheel.setBrakeModeEnabled(true);
+            rightFrontWheel.setBrakeModeEnabled(true);
+            leftRearWheel.setBrakeModeEnabled(true);
+            rightRearWheel.setBrakeModeEnabled(true);
+        }
+    }
 
     //
     // Getters for sensor data.
