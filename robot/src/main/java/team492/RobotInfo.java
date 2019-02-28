@@ -131,13 +131,13 @@ public class RobotInfo
     public static final double PIXY2_LINE_TRACK_MID_HEIGHT_OFFST = 0.0;  // in pixels.
     // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
     // TODO: Tune all of this
-    public static final double PIXYCAM_WORLD_TOPLEFT_X          = -54.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 74.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 29.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 74.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = -38.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPLEFT_X          = -61.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 83.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 33.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 83.0;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = -39.5;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMLEFT_Y       = 19.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 16.5;   // in real-world units.
+    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
     public static final double CAMERA_DEPTH                     = 4; // Inches from center of EE to center of camera, + = backward
