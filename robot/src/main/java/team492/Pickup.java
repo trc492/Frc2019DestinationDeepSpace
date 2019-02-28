@@ -40,7 +40,6 @@ public class Pickup
     private static final String instanceName = "Pickup";
 
     private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
-    private static double[] pickupAngleThresholds = new double[] { RobotInfo.PICKUP_GROUND_COLLISION_POS };
 
     private Robot robot;
     private FrcCANTalon pickupMotor;
@@ -52,7 +51,7 @@ public class Pickup
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
-    private TrcAnalogTrigger<TrcAnalogSensor.DataType> groundCollisionTrigger;
+    private boolean manualOverrideEnabled;
 
     public Pickup(Robot robot)
     {
@@ -96,23 +95,7 @@ public class Pickup
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
             TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent, false);
 
-        TrcAnalogSensor pickupPositionSensor = new TrcAnalogSensor(instanceName + ".pickupSensor",
-            this::getPickupAngle);
-        groundCollisionTrigger = new TrcAnalogTrigger<>(instanceName + ".groundCollisionTrigger", pickupPositionSensor,
-            0, TrcAnalogSensor.DataType.RAW_DATA, pickupAngleThresholds, this::groundCollisionEvent, false);
-
         timer = new TrcTimer(instanceName + ".timer");
-    }
-
-    private void groundCollisionEvent(int currZone, int prevZone, double value)
-    {
-        robot.globalTracer.traceInfo(instanceName + ".groundCollisionEvent",
-            "Ground collision edge event detected! currZone=%d,prevZone=%d,value=%.2f", currZone, prevZone, value);
-        if (currZone == 1 && currZone > prevZone
-            && robot.elevator.getPosition() <= RobotInfo.ELEVATOR_GROUND_CLEARANCE_POS)
-        {
-            robot.elevator.setPosition(RobotInfo.ELEVATOR_GROUND_CLEARANCE_POS + 2.0);
-        }
     }
 
     private void currentTriggerEvent(int currZone, int prevZone, double value)
@@ -166,11 +149,6 @@ public class Pickup
         return Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
     }
 
-    public void setGroundCollisionAvoidanceEnabled(boolean enabled)
-    {
-        groundCollisionTrigger.setEnabled(enabled);
-    }
-
     public boolean isUpperLimitSwitchActive()
     {
         return pitchMotor.isUpperLimitSwitchActive();
@@ -208,13 +186,16 @@ public class Pickup
 
     public void deployCargo(TrcEvent event)
     {
-        if (event != null)
+        if (!manualOverrideEnabled)
         {
-            event.clear();
+            if (event != null)
+            {
+                event.clear();
+            }
+            onFinishedEvent = event;
+            cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
+            currentTrigger.setEnabled(true);
         }
-        onFinishedEvent = event;
-        cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
-        currentTrigger.setEnabled(true);
         setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
     }
 
@@ -229,32 +210,39 @@ public class Pickup
 
     public void pickupCargo(TrcEvent event)
     {
-        if (event != null)
+        if (manualOverrideEnabled)
         {
-            event.clear();
-        }
-
-        if (cargoDetected())
-        {
-            // Return early if we already have a cargo
-            if (event != null)
-            {
-                event.set(true);
-            }
+            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
         }
         else
         {
             if (event != null)
             {
-                // The timer will signal the event when it expires. This is a backup in case the sensor fails.
-                // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
-                timer.cancel();
-                timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                event.clear();
             }
-            this.onFinishedEvent = event;
-            currentTrigger.setEnabled(false); // make sure the current trigger is disabled
-            cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
-            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+
+            if (cargoDetected())
+            {
+                // Return early if we already have a cargo
+                if (event != null)
+                {
+                    event.set(true);
+                }
+            }
+            else
+            {
+                if (event != null)
+                {
+                    // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+                    // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
+                    timer.cancel();
+                    timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                }
+                this.onFinishedEvent = event;
+                currentTrigger.setEnabled(false); // make sure the current trigger is disabled
+                cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
+                setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+            }
         }
     }
 
@@ -279,6 +267,7 @@ public class Pickup
 
     public void setManualOverrideEnabled(boolean enabled)
     {
+        this.manualOverrideEnabled = enabled;
         pitchController.setManualOverride(enabled);
     }
 
@@ -331,9 +320,11 @@ public class Pickup
      */
     public void setPitchPower(double power, boolean hold)
     {
-        //        pitchMotor.set(power);
+        pitchController.cancel();
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-        pitchController.setPower(power, hold);
+//        pitchController.setPower(power, hold);
+        // TODO: figure this out
+        pitchMotor.set(power);
     }
 
     public void setPickupPower(double power)

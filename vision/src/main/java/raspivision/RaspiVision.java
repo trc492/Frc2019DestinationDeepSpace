@@ -32,7 +32,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
@@ -62,7 +61,7 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = true; // TODO: Tune camera matrix
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
@@ -80,21 +79,12 @@ public class RaspiVision
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
 
     // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 279.23728868, 0.0, 154.82842703, 0.0, 281.04311504,
-        116.78960534, 0.0, 0.0, 1.0 };
+    private static double[] CAMERA_MATRIX = new double[] { 223.01258757, 0.0, 153.16212363, 0.0, 222.23760939,
+        126.9374426, 0.0, 0.0, 1.0 };
 
     // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.07558564, -0.2477479, 0.00454396, -0.0029934,
-        0.42422577 };
-
-    public static void main(String[] args)
-    {
-        // Load the C++ native code
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
-        RaspiVision vision = new RaspiVision();
-        vision.start();
-    }
+    private static double[] DISTORTION_MATRIX = new double[] { 0.21826744, -0.60425638, 0.00453213, -0.00482952,
+        0.40065646 };
 
     private Gson gson;
     private Thread visionThread;
@@ -130,7 +120,7 @@ public class RaspiVision
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
 
-    public RaspiVision()
+    public RaspiVision(int cameraIndex)
     {
         gson = new Gson();
 
@@ -181,7 +171,7 @@ public class RaspiVision
         cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
 
-        camera = CameraServer.getInstance().startAutomaticCapture();
+        camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
         camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
         camera.setBrightness(40);
         pipeline = new VisionTargetPipeline();
@@ -276,7 +266,7 @@ public class RaspiVision
                     image = this.image;
                 }
                 pipeline.process(image);
-                processImage(pipeline);
+                processImage(image, pipeline);
                 // I don't need the image anymore, so release the memory
                 image.release();
             }
@@ -323,15 +313,14 @@ public class RaspiVision
         }
     }
 
-    private void processImage(VisionTargetPipeline pipeline)
+    private void processImage(Mat frame, VisionTargetPipeline pipeline)
     {
         // If the resolution changed, update the camera data network tables entry
-        if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
+        if (width != frame.width() || height != frame.height())
         {
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
             cameraData.setDoubleArray(new double[] { width, height });
-            // TODO: Should this be separate x and y focal lengths, or the average? test.
             if (APPROXIMATE_CAMERA_MATRIX)
             {
                 double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
@@ -359,6 +348,7 @@ public class RaspiVision
     {
         Mat image;
         Scalar color = new Scalar(0, 255, 0);
+        boolean release = false;
         if (DEBUG_DISPLAY == DebugDisplayType.MASK)
         {
             image = pipeline.getHslThresholdOutput();
@@ -370,6 +360,7 @@ public class RaspiVision
         }
         if (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX)
         {
+            release = true; // Release the image later if we clone it.
             image = image.clone();
             for (TargetData data : pipeline.getDetectedTargets())
             {
@@ -384,6 +375,10 @@ public class RaspiVision
             }
         }
         dashboardDisplay.putFrame(image);
+        if (release)
+        {
+            image.release();
+        }
     }
 
     private void measureFps()

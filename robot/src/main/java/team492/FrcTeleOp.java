@@ -23,6 +23,8 @@
 package team492;
 
 import frclib.FrcJoystick;
+import hallib.HalDashboard;
+import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -35,13 +37,20 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         MECANUM_MODE, ARCADE_MODE, TANK_MODE
     } // enum DriveMode
 
+    public static final boolean DEBUG_LOOP_TIME = true;
+
     protected Robot robot;
 
-    private boolean slowDriveOverride = false;
+    private enum DriveSpeed
+    {
+        SLOW, REGULAR, FAST
+    }
+
+    private DriveSpeed driveSpeed = DriveSpeed.REGULAR;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean driveInverted = false;
     private boolean gyroAssist = false;
-    private double lastElevatorPower = 0.0;
+    private TrcLoopTimeCounter loopTimeCounter;
 
     public FrcTeleOp(Robot robot)
     {
@@ -68,6 +77,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.operatorStick.setYInverted(false);
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
+
+        driveSpeed = DriveSpeed.REGULAR;
+
+        if (DEBUG_LOOP_TIME)
+        {
+            loopTimeCounter = new TrcLoopTimeCounter(1.0);
+        }
     } // startMode
 
     @Override
@@ -94,13 +110,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             robot.pixy.getTargetInfo();
         }
 
-        if (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot.isAutoActive())
+        // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
+        // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
+        if (!robot.autoDeploy.isActive() && (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot
+            .isAutoActive()))
         {
+            // Cancel any autos running
             robot.cancelAllAuto();
-            if (elevatorPower != lastElevatorPower)
+            // TODO: Test if this works
+            if (elevatorPower != robot.elevator.getPower())
             {
                 robot.elevator.setPower(elevatorPower);
-                lastElevatorPower = elevatorPower;
             }
             //
             // DriveBase operation.
@@ -110,10 +130,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 case TANK_MODE:
                     double leftPower = leftDriveY;
                     double rightPower = rightDriveY;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
+                        case SLOW:
+                            leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            break;
+
+                        case FAST:
+                            leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            break;
                     }
                     robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
                     break;
@@ -121,10 +148,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 case ARCADE_MODE:
                     double drivePower = rightDriveY;
                     double turnPower = rightTwist;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        case SLOW:
+                            drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                            break;
+
+                        case FAST:
+                            drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
+                            turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                            break;
                     }
                     robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
                     break;
@@ -133,11 +167,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double x = leftDriveX;
                     double y = rightDriveY;
                     double rot = rightTwist;
-                    if (slowDriveOverride)
+                    switch (driveSpeed)
                     {
-                        x /= RobotInfo.DRIVE_SLOW_XSCALE;
-                        y /= RobotInfo.DRIVE_SLOW_YSCALE;
-                        rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                        case SLOW:
+                            x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                            y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                            break;
+
+                        case FAST:
+                            x *= RobotInfo.DRIVE_FAST_XSCALE;
+                            y *= RobotInfo.DRIVE_FAST_YSCALE;
+                            rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                            break;
                     }
                     robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
                     break;
@@ -150,23 +192,44 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         return Arrays.stream(joystickValues).anyMatch(d -> d != 0.0);
     }
 
+    private void setAllManualOverrideEnabled(boolean enabled)
+    {
+        robot.elevator.setManualOverrideEnabled(enabled);
+        robot.pickup.setManualOverrideEnabled(enabled);
+    }
+
     @Override
     public void runContinuous(double elapsedTime)
     {
+        if (Robot.USE_RASPI_VISION)
+        {
+            HalDashboard.putBoolean("Status/TapeDetected", robot.vision.getAveragePose(5, true) != null);
+        }
+        HalDashboard.putBoolean("Status/CargoDetected", robot.pickup.cargoDetected());
+        HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
+
+        if (DEBUG_LOOP_TIME)
+        {
+            loopTimeCounter.update();
+            robot.dashboard
+                .displayPrintf(1, "Period: %.3f/%.3f/%3f, Frequency: %.2f/%.2f/%.2f", loopTimeCounter.getMinPeriod(),
+                    loopTimeCounter.getPeriod(), loopTimeCounter.getMaxPeriod(), loopTimeCounter.getMinFrequency(),
+                    loopTimeCounter.getFrequency(), loopTimeCounter.getMaxFrequency());
+        }
     } // runContinuous
 
     //
     // Implements TrcJoystick.ButtonHandler.
     //
-
-    // CodeReview: If Auto is active, you don't allow any button event through so you can't cancel auto on a button
-    // release???
     public void leftDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, " LeftDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-        if (robot.isAutoActive())
+        boolean isAutoActive = robot.isAutoActive();
+        robot.dashboard
+            .displayPrintf(8, " LeftDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
+        if (isAutoActive)
         {
-            return;
+            return; // Auto can ony be cancelled by operator
         }
 
         switch (button)
@@ -178,6 +241,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                driveSpeed = pressed ? DriveSpeed.FAST : DriveSpeed.REGULAR;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -211,16 +275,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void rightDriveStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "RightDriveStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-        if (robot.isAutoActive())
+        boolean isAutoActive = robot.isAutoActive();
+        robot.dashboard
+            .displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
+        if (isAutoActive)
         {
-            return;
+            return; // Auto can only be cancelled by operator
         }
 
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                slowDriveOverride = pressed;
+                driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.REGULAR;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
@@ -264,8 +331,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-        if (robot.isAutoActive())
+        boolean isAutoActive = robot.isAutoActive();
+        robot.dashboard
+            .displayPrintf(8, "  OperatorStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
+        if (isAutoActive)
         {
             return;
         }
@@ -314,36 +384,32 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
-                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
-                break;
-
-            case FrcJoystick.LOGITECH_BUTTON7:
                 robot.pickup.setPitchPower(pressed ? -0.75 : 0.0);
                 break;
 
+            case FrcJoystick.LOGITECH_BUTTON7:
+                robot.pickup.setPitchPower(pressed ? 0.6 : 0.0);
+                break;
+
             case FrcJoystick.LOGITECH_BUTTON8:
-                if (pressed)
-                {
-                    robot.pickup.setPickupAngle(0.0);
-                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                if (pressed)
-                {
-                    robot.pickup.setPickupAngle(90.0);
-                }
+                setAllManualOverrideEnabled(pressed);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
                 if (pressed)
                 {
-                    // Lower right button on joystick base.
-                    robot.autoAlignTarget.start(null);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_GROUND_CARGO_POS);
                 }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON11:
+                if (pressed)
+                {
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_HATCH_PICKUP_POS);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON12:
@@ -351,106 +417,118 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     } // operatorStickButtonEvent
 
+    private void setElevatorHeight(TaskAutoDeploy.DeployLevel level)
+    {
+        boolean cargo = robot.pickup.cargoDetected();
+        if (cargo)
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_CARGO_ROCKET_POSITIONS[level.getIndex()]);
+        }
+        else
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_HATCH_ROCKET_POSITIONS[level.getIndex()]);
+        }
+    }
+
     public void buttonPanelButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
-        if (robot.isAutoActive())
+        boolean isAutoActive = robot.isAutoActive();
+        robot.dashboard
+            .displayPrintf(8, "  OperatorStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                isAutoActive);
+
+        if (isAutoActive && (pressed || (button != FrcJoystick.PANEL_BUTTON1 && button != FrcJoystick.PANEL_BUTTON2
+            && button != FrcJoystick.PANEL_BUTTON3 && button != FrcJoystick.PANEL_BUTTON4)))
         {
             return;
         }
 
-        /*
-        Button mappings:
-        1 = rocket hatch high
-        2 = rocket hatch med
-        3 = rocket hatch low
-        4 = rocket cargo high
-        5 = rocket cargo med
-        6 = rocket cargo low
-        7 = ship cargo
-        8 = ship hatch
-        9 = pickup cargo
-        10 = pickup hatch
-         */
-        // TODO: this could maybe be cut down by automatically detecting which gamepiece is being held
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
-                if (pressed)
+                if (Robot.USE_RASPI_VISION)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_HIGH, TaskAutoDeploy.DeployType.HATCH, null);
+                    if (pressed)
+                    {
+                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.HIGH);
+                    }
+                    else
+                    {
+                        robot.autoDeploy.cancel();
+                    }
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
-                if (pressed)
+                if (Robot.USE_RASPI_VISION)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_MED, TaskAutoDeploy.DeployType.HATCH, null);
+                    if (pressed)
+                    {
+                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.MEDIUM);
+                    }
+                    else
+                    {
+                        robot.autoDeploy.cancel();
+                    }
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
-                if (pressed)
+                if (Robot.USE_RASPI_VISION)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_ROCKET_LOW, TaskAutoDeploy.DeployType.HATCH, null);
+                    if (pressed)
+                    {
+                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW);
+                    }
+                    else
+                    {
+                        robot.autoDeploy.cancel();
+                    }
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
-                if (pressed)
+                if (Robot.USE_RASPI_VISION)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_HIGH, TaskAutoDeploy.DeployType.CARGO, null);
+                    if (pressed)
+                    {
+                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW, TaskAutoDeploy.DeployType.PICKUP_HATCH);
+                    }
+                    else
+                    {
+                        robot.autoDeploy.cancel();
+                    }
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
                 if (pressed)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_MED, TaskAutoDeploy.DeployType.CARGO, null);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
                 if (pressed)
                 {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_ROCKET_LOW, TaskAutoDeploy.DeployType.CARGO, null);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
                 if (pressed)
                 {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_CARGO_SHIP, TaskAutoDeploy.DeployType.CARGO, null);
+                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON8:
-                if (pressed)
-                {
-                    robot.autoDeploy.start(RobotInfo.ELEVATOR_POS_HATCH_SHIP, TaskAutoDeploy.DeployType.HATCH, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_CARGO_PICKUP, TaskAutoDeploy.DeployType.PICKUP_CARGO, null);
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
-                if (pressed)
-                {
-                    robot.autoDeploy
-                        .start(RobotInfo.ELEVATOR_POS_HATCH_PICKUP, TaskAutoDeploy.DeployType.PICKUP_HATCH, null);
-                }
                 break;
         }
     } // operatorStickButtonEvent

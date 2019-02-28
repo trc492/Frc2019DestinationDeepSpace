@@ -236,6 +236,11 @@ public class Robot extends FrcRobotBase
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
+        // TODO: set this to karkeys' preferred style (front coast, rear brake)
+        leftFrontWheel.setBrakeModeEnabled(true);
+        rightFrontWheel.setBrakeModeEnabled(true);
+        leftRearWheel.setBrakeModeEnabled(true);
+        rightRearWheel.setBrakeModeEnabled(true);
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
@@ -286,7 +291,6 @@ public class Robot extends FrcRobotBase
         //
         elevator = new Elevator();
         pickup = new Pickup(this);
-        pickup.setGroundCollisionAvoidanceEnabled(true);
 
         //
         // AutoAssist commands.

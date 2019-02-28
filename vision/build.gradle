@@ -18,7 +18,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'raspivision.RaspiVision'
+        attributes 'Main-Class': 'raspivision.Main'
     }
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }

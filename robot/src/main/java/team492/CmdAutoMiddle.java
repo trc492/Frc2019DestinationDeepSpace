@@ -45,7 +45,6 @@ public class CmdAutoMiddle implements TrcRobot.RobotCommand
     private TrcEvent event;
     private Robot robot;
     private boolean rightSide;
-    private boolean hatch;
 
     public CmdAutoMiddle(Robot robot)
     {
@@ -55,10 +54,9 @@ public class CmdAutoMiddle implements TrcRobot.RobotCommand
         event = new TrcEvent(instanceName + ".event");
     }
 
-    public void start(boolean rightSide, boolean hatch)
+    public void start(boolean rightSide)
     {
         this.rightSide = rightSide;
-        this.hatch = hatch;
         sm.start(State.START);
     }
 
@@ -92,19 +90,7 @@ public class CmdAutoMiddle implements TrcRobot.RobotCommand
                     break;
 
                 case DEPLOY:
-                    TaskAutoDeploy.DeployType deployType;
-                    double elevatorHeight;
-                    if (hatch)
-                    {
-                        deployType = TaskAutoDeploy.DeployType.HATCH;
-                        elevatorHeight = RobotInfo.ELEVATOR_POS_HATCH_SHIP;
-                    }
-                    else
-                    {
-                        deployType = TaskAutoDeploy.DeployType.CARGO;
-                        elevatorHeight = RobotInfo.ELEVATOR_POS_CARGO_SHIP;
-                    }
-                    robot.autoDeploy.start(elevatorHeight, deployType, event);
+                    robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 

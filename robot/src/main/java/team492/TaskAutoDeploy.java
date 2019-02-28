@@ -37,7 +37,24 @@ public class TaskAutoDeploy
 
     public enum DeployType
     {
-        CARGO, HATCH, PICKUP_CARGO, PICKUP_HATCH
+        CARGO, HATCH, PICKUP_HATCH // Intentionally missing cargo pickup
+    }
+
+    public enum DeployLevel
+    {
+        LOW(0), MEDIUM(1), HIGH(2); // For rocket (cargo and hatch). Low is also cargo ship hatch.
+
+        private int index;
+
+        DeployLevel(int i)
+        {
+            this.index = i;
+        }
+
+        public int getIndex()
+        {
+            return index;
+        }
     }
 
     private static final boolean USE_VISION_YAW = false;
@@ -57,6 +74,7 @@ public class TaskAutoDeploy
     private double travelHeight;
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
+    private boolean alignOnly = false;
 
     public TaskAutoDeploy(Robot robot)
     {
@@ -69,23 +87,76 @@ public class TaskAutoDeploy
     }
 
     /**
+     * Automatically align and optionally deploy the hatch/cargo. If you want to pickup a hatch, you must use the other
+     * start method.
+     *
+     * @param level The level to deploy to.
+     */
+    public void start(DeployLevel level)
+    {
+        start(level, robot.pickup.cargoDetected() ? DeployType.CARGO : DeployType.HATCH, null);
+    }
+
+    /**
+     * Automatically align and optionally deploy the hatch/cargo. If you want to pickup a hatch, you must use the other
+     * start method.
+     *
+     * @param level The level to deploy to.
+     * @param event The event to signal when done.
+     */
+    public void start(DeployLevel level, TrcEvent event)
+    {
+        start(level, robot.pickup.cargoDetected() ? DeployType.CARGO : DeployType.HATCH, event);
+    }
+
+    /**
      * Automatically drive to the nearest hatch/cargo port and raise the elevator to the required height.
      *
-     * @param elevatorHeight The height to raise the elevator to.
-     * @param deployType     The type of deployment.
-     * @param event          The event to signal when done.
+     * @param level      The level (low medium high) to deploy to. Irrelevant if deployType is CARGO_PICKUP
+     * @param deployType The type of deployment.
      */
-    public void start(double elevatorHeight, DeployType deployType, TrcEvent event)
+    public void start(DeployLevel level, DeployType deployType)
     {
+        start(level, deployType, null);
+    }
+
+    /**
+     * Automatically drive to the nearest hatch/cargo port and raise the elevator to the required height.
+     *
+     * @param level      The level (low medium high) to deploy to. Irrelevant if deployType is CARGO_PICKUP
+     * @param deployType The type of deployment.
+     * @param event      The event to signal when done.
+     */
+    public void start(DeployLevel level, DeployType deployType, TrcEvent event)
+    {
+        if (deployType == DeployType.PICKUP_HATCH)
+        {
+            level = DeployLevel.LOW;
+        }
+
         if (event != null)
         {
             event.clear();
         }
 
-        this.elevatorHeight = elevatorHeight;
+        this.elevatorHeight = getElevatorHeight(level, deployType);
         this.deployType = deployType;
         this.onFinishedEvent = event;
         setEnabled(true);
+    }
+
+    private double getElevatorHeight(DeployLevel level, DeployType deployType)
+    {
+        switch (deployType)
+        {
+            case PICKUP_HATCH:
+            case HATCH:
+                return RobotInfo.ELEVATOR_HATCH_ROCKET_POSITIONS[level.getIndex()];
+
+            default:
+            case CARGO:
+                return RobotInfo.ELEVATOR_CARGO_ROCKET_POSITIONS[level.getIndex()];
+        }
     }
 
     /**
@@ -113,6 +184,11 @@ public class TaskAutoDeploy
         }
     }
 
+    public void setAlignOnly(boolean alignOnly)
+    {
+        this.alignOnly = alignOnly;
+    }
+
     private void stop()
     {
         sm.stop();
@@ -136,7 +212,7 @@ public class TaskAutoDeploy
 
     private double getTargetRotation(DeployType deployType)
     {
-        if (deployType == DeployType.PICKUP_CARGO || deployType == DeployType.PICKUP_HATCH)
+        if (deployType == DeployType.PICKUP_HATCH)
         {
             return 180.0;
         }
@@ -245,26 +321,29 @@ public class TaskAutoDeploy
 
                 case DEPLOY:
                     robot.elevator.setPosition(elevatorHeight); // Hold it at that height
-                    event.clear();
-                    switch (deployType)
+                    if (alignOnly)
                     {
-                        case CARGO:
-                            robot.pickup.deployCargo(event);
-                            break;
-
-                        case HATCH:
-                            robot.pickup.deployHatch(event);
-                            break;
-
-                        case PICKUP_CARGO:
-                            robot.pickup.pickupCargo(event);
-                            break;
-
-                        case PICKUP_HATCH:
-                            robot.pickup.pickupHatch(event);
-                            break;
+                        sm.setState(State.DONE);
                     }
-                    sm.waitForSingleEvent(event, State.DONE);
+                    else
+                    {
+                        event.clear();
+                        switch (deployType)
+                        {
+                            case CARGO:
+                                robot.pickup.deployCargo(event);
+                                break;
+
+                            case HATCH:
+                                robot.pickup.deployHatch(event);
+                                break;
+
+                            case PICKUP_HATCH:
+                                robot.pickup.pickupHatch(event);
+                                break;
+                        }
+                        sm.waitForSingleEvent(event, State.DONE);
+                    }
                     break;
 
                 default:

@@ -29,7 +29,7 @@ while success:
             imgpoints.append(corners)
         print('\rRead frame: %3d of %3d' % (count, num_frames), end='')
     else:
-        print('Failed to read image!')
+        print('\nFailed to read image!')
 
 print('\nChoosing 100 evenly spaced frames...')
 objectpoints = []
