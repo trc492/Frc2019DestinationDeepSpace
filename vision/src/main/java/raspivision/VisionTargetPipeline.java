@@ -49,7 +49,7 @@ public class VisionTargetPipeline implements VisionPipeline
 
     public double[] hsvThresholdHue = { 50.0, 90.0 };
     public double[] hsvThresholdSaturation = { 40, 255 };
-    public double[] hsvThresholdLuminance = { 50, 255 };
+    public double[] hsvThresholdValue = { 50, 255 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
@@ -67,7 +67,7 @@ public class VisionTargetPipeline implements VisionPipeline
             source0.copyTo(input);
             // Step HSV_Threshold0:
             Mat hsvThresholdInput = source0;
-            hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdLuminance,
+            hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
                 hsvThresholdOutput);
 
             // Step Find_Contours0:

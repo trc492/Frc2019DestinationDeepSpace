@@ -157,8 +157,8 @@ public class RaspiVision
         NetworkTableEntry hueHigh = table.getEntry("HueHigh");
         NetworkTableEntry satLow = table.getEntry("SatLow");
         NetworkTableEntry satHigh = table.getEntry("SatHigh");
-        NetworkTableEntry luminanceLow = table.getEntry("LuminanceLow");
-        NetworkTableEntry luminanceHigh = table.getEntry("LuminanceHigh");
+        NetworkTableEntry valueLow = table.getEntry("ValueLow");
+        NetworkTableEntry valueHigh = table.getEntry("ValueHigh");
 
         cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
 
@@ -199,10 +199,10 @@ public class RaspiVision
         satLow.setDouble(pipeline.hsvThresholdSaturation[0]);
         satLow.addListener(event -> pipeline.hsvThresholdSaturation[0] = event.value.getDouble(), flag);
 
-        luminanceHigh.setDouble(pipeline.hsvThresholdLuminance[1]);
-        luminanceHigh.addListener(event -> pipeline.hsvThresholdLuminance[1] = event.value.getDouble(), flag);
-        luminanceLow.setDouble(pipeline.hsvThresholdLuminance[0]);
-        luminanceLow.addListener(event -> pipeline.hsvThresholdLuminance[0] = event.value.getDouble(), flag);
+        valueHigh.setDouble(pipeline.hsvThresholdValue[1]);
+        valueHigh.addListener(event -> pipeline.hsvThresholdValue[1] = event.value.getDouble(), flag);
+        valueLow.setDouble(pipeline.hsvThresholdValue[0]);
+        valueLow.addListener(event -> pipeline.hsvThresholdValue[0] = event.value.getDouble(), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
