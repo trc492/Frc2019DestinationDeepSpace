@@ -123,16 +123,6 @@ public class Robot extends FrcRobotBase
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
     public AnalogInput pressureSensor = null;
-
-    //
-    // Primary robot subystems
-    //
-    public Pickup pickup;
-    public Elevator elevator;
-
-    public TaskAutoDeploy autoDeploy;
-    public TaskAlignTarget autoAlignTarget;
-
     //
     // VisionTargetPipeline subsystem.
     //
@@ -157,6 +147,14 @@ public class Robot extends FrcRobotBase
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
+    //
+    // Primary robot subystems
+    //
+    public Pickup pickup;
+    public Elevator elevator;
+
+    public TaskAutoDeploy autoDeploy;
+    public TaskAlignTarget autoAlignTarget;
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
@@ -369,11 +367,11 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
-            setVisionEnabled(false);
             driveBase.setOdometryEnabled(false);
+            setVisionEnabled(false);
             cancelAllAuto();
-            pdp.setTaskEnabled(false);
             battery.setEnabled(false);
+            pdp.setTaskEnabled(false);
 
             for (int i = 0; i < FrcPdp.kPDPChannels; i++)
             {
@@ -714,7 +712,8 @@ public class Robot extends FrcRobotBase
 
     public double getPressure()
     {
-        return 50.0 * pressureSensor.getVoltage() - 25.0;
+        return (pressureSensor.getVoltage() - 0.5) * 50.0;
+//        return pressureSensor.getScaledValue();
     }   //getPressure
 
     public Double getPixyTargetAngle()
