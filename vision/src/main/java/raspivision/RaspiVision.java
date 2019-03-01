@@ -134,7 +134,16 @@ public class RaspiVision
         else
         {
             System.out.print("Connecting to server...");
-            instance.startClientTeam(TEAM_NUMBER);
+            boolean done = false;
+            while (!done)
+            {
+                instance.startClient("10.4.92.2");
+                done = instance.isConnected();
+                if (!done)
+                {
+                    System.out.print("\nConnection failed! Retrying...");
+                }
+            }
             System.out.println("Done!");
         }
 
