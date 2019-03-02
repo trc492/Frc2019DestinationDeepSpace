@@ -43,12 +43,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     private enum DriveSpeed
     {
-        SLOW, REGULAR, FAST
+        SLOW, MEDIUM, FAST
     }
 
-    private DriveSpeed driveSpeed = DriveSpeed.REGULAR;
+    private DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
-    private boolean driveInverted = false;
     private boolean gyroAssist = false;
     private TrcLoopTimeCounter loopTimeCounter;
 
@@ -78,7 +77,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
 
-        driveSpeed = DriveSpeed.REGULAR;
+        driveSpeed = DriveSpeed.MEDIUM;
 
         if (Robot.USE_RASPI_VISION)
         {
@@ -146,12 +145,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
                             break;
 
+                        case MEDIUM:
+                            leftPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                            rightPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                            break;
+
                         case FAST:
                             leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
                             rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
                             break;
                     }
-                    robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
+                    robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
                     break;
 
                 case ARCADE_MODE:
@@ -164,12 +168,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                             break;
 
+                        case MEDIUM:
+                            drivePower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                            turnPower *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                            break;
+
                         case FAST:
                             drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
                             turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
                             break;
                     }
-                    robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
+                    robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
                     break;
 
                 case MECANUM_MODE:
@@ -184,13 +193,19 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
                             break;
 
+                        case MEDIUM:
+                            x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
+                            y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                            rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                            break;
+
                         case FAST:
                             x *= RobotInfo.DRIVE_FAST_XSCALE;
                             y *= RobotInfo.DRIVE_FAST_YSCALE;
                             rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
                             break;
                     }
-                    robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+                    robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
                     break;
             }
         }
@@ -244,13 +259,15 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                robot.driveInverted = pressed;
+                robot.setHalfBrakeModeEnabled(true, robot.driveInverted);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
-                driveSpeed = pressed ? DriveSpeed.FAST : DriveSpeed.REGULAR;
+                driveSpeed = pressed ? DriveSpeed.FAST : DriveSpeed.MEDIUM;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
@@ -296,7 +313,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.SIDEWINDER_TRIGGER:
-                driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.REGULAR;
+                driveSpeed = pressed ? DriveSpeed.SLOW : DriveSpeed.MEDIUM;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:

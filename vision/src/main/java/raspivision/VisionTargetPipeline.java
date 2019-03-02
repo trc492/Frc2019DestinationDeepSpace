@@ -40,16 +40,16 @@ public class VisionTargetPipeline implements VisionPipeline
 
     //Outputs
     private Mat input = new Mat();
-    private Mat hslThresholdOutput = new Mat();
+    private Mat hsvThresholdOutput = new Mat();
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> convexHullsOutput = new ArrayList<>();
     private List<TargetData> detectedTargets = new ArrayList<>();
     private TargetData selectedTarget = null;
 
-    public double[] hslThresholdHue = { 50.0, 90.0 };
-    public double[] hslThresholdSaturation = { 40, 255 };
-    public double[] hslThresholdLuminance = { 50, 255 };
+    public double[] hsvThresholdHue = { 50.0, 90.0 };
+    public double[] hsvThresholdSaturation = { 40, 255 };
+    public double[] hsvThresholdValue = { 50, 255 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
@@ -65,13 +65,13 @@ public class VisionTargetPipeline implements VisionPipeline
             selectedTarget = null;
 
             source0.copyTo(input);
-            // Step HSL_Threshold0:
-            Mat hslThresholdInput = source0;
-            hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
-                hslThresholdOutput);
+            // Step HSV_Threshold0:
+            Mat hsvThresholdInput = source0;
+            hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
+                hsvThresholdOutput);
 
             // Step Find_Contours0:
-            Mat findContoursInput = hslThresholdOutput;
+            Mat findContoursInput = hsvThresholdOutput;
             findContours(findContoursInput, true, findContoursOutput);
 
             // Step Filter_Contours0:
@@ -147,9 +147,9 @@ public class VisionTargetPipeline implements VisionPipeline
         }
     }
 
-    public Mat getHslThresholdOutput()
+    public Mat getHsvThresholdOutput()
     {
-        return hslThresholdOutput;
+        return hsvThresholdOutput;
     }
 
     public TargetData getSelectedTarget()
@@ -180,16 +180,16 @@ public class VisionTargetPipeline implements VisionPipeline
     /**
      * Segment an image based on hue, saturation, and luminance ranges.
      *
-     * @param input The image on which to perform the HSL threshold.
+     * @param input The image on which to perform the HSV threshold.
      * @param hue   The min and max hue
      * @param sat   The min and max saturation
-     * @param lum   The min and max luminance
+     * @param val   The min and max value
      * @param out   The image in which to store the output.
      */
-    private void hslThreshold(Mat input, double[] hue, double[] sat, double[] lum, Mat out)
+    private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val, Mat out)
     {
-        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
-        Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]), new Scalar(hue[1], lum[1], sat[1]), out);
+        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
+        Core.inRange(out, new Scalar(hue[0], val[0], sat[0]), new Scalar(hue[1], val[1], sat[1]), out);
     }
 
     private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours)

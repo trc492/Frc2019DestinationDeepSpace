@@ -156,11 +156,15 @@ public class RobotInfo
 
     public static final double DRIVE_SLOW_XSCALE                = 0.5;
     public static final double DRIVE_SLOW_YSCALE                = 0.5;
-    public static final double DRIVE_SLOW_TURNSCALE             = 0.6;
+    public static final double DRIVE_SLOW_TURNSCALE             = 0.4;
+
+    public static final double DRIVE_MEDIUM_XSCALE              = 0.75;
+    public static final double DRIVE_MEDIUM_YSCALE              = 0.75;
+    public static final double DRIVE_MEDIUM_TURNSCALE           = 0.6;
 
     public static final double DRIVE_FAST_XSCALE                = 1.0;
     public static final double DRIVE_FAST_YSCALE                = 1.0;
-    public static final double DRIVE_FAST_TURNSCALE             = 1.0;
+    public static final double DRIVE_FAST_TURNSCALE             = 0.8;
 
     public static final double DRIVE_GYRO_ASSIST_KP             = 1.5;
     public static final double DRIVE_MAX_ROTATION_RATE          = 6.5;      //radians per second

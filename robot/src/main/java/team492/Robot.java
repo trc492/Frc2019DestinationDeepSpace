@@ -90,6 +90,8 @@ public class Robot extends FrcRobotBase
 
     public double targetHeading = 0.0;
 
+    public boolean driveInverted = false;
+
     private double nextUpdateTime = TrcUtil.getCurrentTime();
 
     // FMS provided the following info:
@@ -121,16 +123,6 @@ public class Robot extends FrcRobotBase
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
     public AnalogInput pressureSensor = null;
-
-    //
-    // Primary robot subystems
-    //
-    public Pickup pickup;
-    public Elevator elevator;
-
-    public TaskAutoDeploy autoDeploy;
-    public TaskAlignTarget autoAlignTarget;
-
     //
     // VisionTargetPipeline subsystem.
     //
@@ -155,6 +147,14 @@ public class Robot extends FrcRobotBase
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
+    //
+    // Primary robot subystems
+    //
+    public Pickup pickup;
+    public Elevator elevator;
+
+    public TaskAutoDeploy autoDeploy;
+    public TaskAlignTarget autoAlignTarget;
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
@@ -236,11 +236,8 @@ public class Robot extends FrcRobotBase
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
-        // TODO: set this to karkeys' preferred style (front coast, rear brake)
-        leftFrontWheel.setBrakeModeEnabled(true);
-        rightFrontWheel.setBrakeModeEnabled(true);
-        leftRearWheel.setBrakeModeEnabled(true);
-        rightRearWheel.setBrakeModeEnabled(true);
+        setHalfBrakeModeEnabled(true, false); // Karkeys prefers front coast, back brake
+
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
@@ -370,11 +367,11 @@ public class Robot extends FrcRobotBase
 
         if (runMode != RunMode.DISABLED_MODE)
         {
-            setVisionEnabled(false);
             driveBase.setOdometryEnabled(false);
+            setVisionEnabled(false);
             cancelAllAuto();
-            pdp.setTaskEnabled(false);
             battery.setEnabled(false);
+            pdp.setTaskEnabled(false);
 
             for (int i = 0; i < FrcPdp.kPDPChannels; i++)
             {
@@ -691,13 +688,32 @@ public class Robot extends FrcRobotBase
         }
     }   //traceStateInfo
 
+    public void setHalfBrakeModeEnabled(boolean enabled, boolean inverted)
+    {
+        if (enabled)
+        {
+            leftFrontWheel.setBrakeModeEnabled(inverted);
+            rightFrontWheel.setBrakeModeEnabled(inverted);
+            leftRearWheel.setBrakeModeEnabled(!inverted);
+            rightRearWheel.setBrakeModeEnabled(!inverted);
+        }
+        else
+        {
+            leftFrontWheel.setBrakeModeEnabled(true);
+            rightFrontWheel.setBrakeModeEnabled(true);
+            leftRearWheel.setBrakeModeEnabled(true);
+            rightRearWheel.setBrakeModeEnabled(true);
+        }
+    }
+
     //
     // Getters for sensor data.
     //
 
     public double getPressure()
     {
-        return 50.0 * pressureSensor.getVoltage() - 25.0;
+        return (pressureSensor.getVoltage() - 0.5) * 50.0;
+//        return pressureSensor.getScaledValue();
     }   //getPressure
 
     public Double getPixyTargetAngle()
