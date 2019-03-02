@@ -257,7 +257,7 @@ public class RobotInfo
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
-    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 13.125; // I'm just spitballing here, man.
+    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 13.125;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
     public static final double ELEVATOR_POS_CARGO_ROCKET_HIGH   = ELEVATOR_MAX_POS;
     public static final double[] ELEVATOR_CARGO_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_CARGO_ROCKET_LOW,
@@ -272,6 +272,8 @@ public class RobotInfo
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
+
+    public static final double ROCKET_SIDE_ANGLE                = 61.23; // Angle in degrees between side wall and angled rocket side.
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;

@@ -59,7 +59,9 @@ public class TaskAutoDeploy
 
     private static final boolean USE_VISION_YAW = false;
     private static final boolean REFRESH_VISION = false; // Only applicable if using vision yaw.
-    private static final double[] HATCH_YAWS = new double[] { 0.0, 45.0, 90.0, 135.0, 225.0, 270.0, 315.0 };
+    private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
+        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
+        270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
     private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
     private static final String instanceName = "TaskAutoDeploy";
@@ -71,7 +73,6 @@ public class TaskAutoDeploy
     private TrcEvent onFinishedEvent;
     private TrcTaskMgr.TaskObject alignmentTask;
     private double elevatorHeight;
-    private double travelHeight;
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
     private boolean alignOnly = false;
@@ -289,7 +290,7 @@ public class TaskAutoDeploy
 
                 case ALIGN:
                     TrcEvent elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
-                    travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
+                    double travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
 
                     double x, y;
