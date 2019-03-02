@@ -140,7 +140,7 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = 14.5; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_DEPTH                     = 8; // Inches from center of EE to center of camera, + = backward
     public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
 
     //

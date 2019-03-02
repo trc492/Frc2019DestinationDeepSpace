@@ -59,7 +59,7 @@ public class RaspiVision
     private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
 
     private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
     private static final boolean FLIP_Y_AXIS = true;
@@ -138,6 +138,14 @@ public class RaspiVision
             while (!done)
             {
                 instance.startClient("10.4.92.2");
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
                 done = instance.isConnected();
                 if (!done)
                 {

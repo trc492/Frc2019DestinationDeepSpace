@@ -460,7 +460,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         boolean isAutoActive = robot.isAutoActive();
         robot.dashboard
-            .displayPrintf(8, "  OperatorStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+            .displayPrintf(8, "  ButtonPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
 
         if (isAutoActive && (pressed || (button != FrcJoystick.PANEL_BUTTON1 && button != FrcJoystick.PANEL_BUTTON2
