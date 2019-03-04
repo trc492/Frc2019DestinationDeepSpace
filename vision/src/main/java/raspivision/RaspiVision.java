@@ -91,6 +91,7 @@ public class RaspiVision
     private Thread calcThread;
     private Thread cameraThread;
 
+    private NetworkTableInstance instance;
     private NetworkTableEntry visionData;
     private NetworkTableEntry cameraData;
 
@@ -124,7 +125,7 @@ public class RaspiVision
     {
         gson = new Gson();
 
-        NetworkTableInstance instance = NetworkTableInstance.getDefault();
+        instance = NetworkTableInstance.getDefault();
         if (SERVER)
         {
             System.out.print("Initializing server...");
@@ -316,6 +317,7 @@ public class RaspiVision
                     dataString = gson.toJson(pose);
                 }
                 visionData.setString(dataString);
+                instance.flush(); // Write all the network table data
                 // If fps counter is enabled, calculate fps
                 // TODO: Measure fps even if data is null, since null data isn't fresh, so the fps seems to drop.
                 if (MEASURE_FPS)
