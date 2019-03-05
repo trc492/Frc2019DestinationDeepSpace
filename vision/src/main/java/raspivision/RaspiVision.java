@@ -61,7 +61,7 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
     private static final boolean FLIP_Y_AXIS = true;
 
     // Default image resolution, in pixels
@@ -168,6 +168,8 @@ public class RaspiVision
         NetworkTableEntry satHigh = table.getEntry("SatHigh");
         NetworkTableEntry valueLow = table.getEntry("ValueLow");
         NetworkTableEntry valueHigh = table.getEntry("ValueHigh");
+        NetworkTableEntry ratioLow = table.getEntry("RatioLow");
+        NetworkTableEntry ratioHigh = table.getEntry("RatioHigh");
 
         cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
 
@@ -212,6 +214,12 @@ public class RaspiVision
         valueHigh.addListener(event -> pipeline.hsvThresholdValue[1] = event.value.getDouble(), flag);
         valueLow.setDouble(pipeline.hsvThresholdValue[0]);
         valueLow.addListener(event -> pipeline.hsvThresholdValue[0] = event.value.getDouble(), flag);
+
+        ratioLow.setDouble(pipeline.rotatedRectRatioMin);
+        ratioLow.addListener(event -> pipeline.rotatedRectRatioMin = event.value.getDouble(), flag);
+
+        ratioHigh.setDouble(pipeline.rotatedRectRatioMax);
+        ratioHigh.addListener(event -> pipeline.rotatedRectRatioMax = event.value.getDouble(), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);

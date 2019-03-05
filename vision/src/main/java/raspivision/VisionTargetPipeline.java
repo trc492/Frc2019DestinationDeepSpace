@@ -35,8 +35,8 @@ import org.opencv.imgproc.*;
 
 public class VisionTargetPipeline implements VisionPipeline
 {
-    private static final double ROTATED_RECT_RATIO_MIN = 0.7 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
-    private static final double ROTATED_RECT_RATIO_MAX = 1.3 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
+    public double rotatedRectRatioMin = 0.5 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
+    public double rotatedRectRatioMax = 1.3 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
 
     //Outputs
     private Mat input = new Mat();
@@ -85,12 +85,9 @@ public class VisionTargetPipeline implements VisionPipeline
             double[] filterContoursSolidity = { 50, 100 };
             double filterContoursMaxVertices = 1000000.0;
             double filterContoursMinVertices = 0.0;
-            double filterContoursMinRatio = 0.55;
-            double filterContoursMaxRatio = 0.85;
             filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter,
                 filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
-                filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
-                filterContoursMaxRatio, filterContoursOutput);
+                filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursOutput);
 
             // Step Convex_Hulls0:
             ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
@@ -223,12 +220,10 @@ public class VisionTargetPipeline implements VisionPipeline
      * @param solidity       the minimum and maximum solidity of a contour
      * @param minVertexCount minimum vertex Count of the contours
      * @param maxVertexCount maximum vertex Count
-     * @param minRatio       minimum ratio of width to height
-     * @param maxRatio       maximum ratio of width to height
      */
     private void filterContours(List<MatOfPoint> inputContours, double minArea, double minPerimeter, double minWidth,
         double maxWidth, double minHeight, double maxHeight, double[] solidity, double maxVertexCount,
-        double minVertexCount, double minRatio, double maxRatio, List<MatOfPoint> output)
+        double minVertexCount, List<MatOfPoint> output)
     {
         final MatOfInt hull = new MatOfInt();
         output.clear();
@@ -259,9 +254,6 @@ public class VisionTargetPipeline implements VisionPipeline
             if (solid < solidity[0] || solid > solidity[1])
                 continue;
             if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount)
-                continue;
-            final double ratio = bb.width / (double) bb.height;
-            if (ratio < minRatio || ratio > maxRatio)
                 continue;
             output.add(contour);
         }
@@ -355,7 +347,7 @@ public class VisionTargetPipeline implements VisionPipeline
     private boolean isValidRect(RotatedRect rect)
     {
         double ratio = Math.min(rect.size.width, rect.size.height) / Math.max(rect.size.width, rect.size.height);
-        return ROTATED_RECT_RATIO_MIN <= ratio && ratio <= ROTATED_RECT_RATIO_MAX;
+        return rotatedRectRatioMin <= ratio && ratio <= rotatedRectRatioMax;
     }
 
     private VisionTarget mapContourToVisionTarget(MatOfPoint m)

@@ -49,6 +49,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean gyroAssist = false;
+    private double lastElevatorPower;
     private TrcLoopTimeCounter loopTimeCounter;
 
     public FrcTeleOp(Robot robot)
@@ -88,6 +89,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         {
             loopTimeCounter = new TrcLoopTimeCounter(1.0);
         }
+
+        lastElevatorPower = 0.0;
     } // startMode
 
     @Override
@@ -126,9 +129,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             // Cancel any autos running
             robot.cancelAllAuto();
             // TODO: Test if this works
-            if (elevatorPower != robot.elevator.getPower())
+            if (elevatorPower != lastElevatorPower)
             {
                 robot.elevator.setPower(elevatorPower);
+                lastElevatorPower = elevatorPower;
             }
             //
             // DriveBase operation.
@@ -530,21 +534,21 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.PANEL_BUTTON5:
                 if (pressed)
                 {
-                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
                 if (pressed)
                 {
-                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
                 if (pressed)
                 {
-                    //setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
+                    setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
                 }
                 break;
 

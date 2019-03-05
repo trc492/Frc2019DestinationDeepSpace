@@ -140,8 +140,8 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = 8; // Inches from center of EE to center of camera, + = backward
-    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_DEPTH                     = 16; // Inches from center of EE to center of camera, + = backward
+    public static final double CAMERA_OFFSET                    = 2; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -169,11 +169,11 @@ public class RobotInfo
     public static final double DRIVE_GYRO_ASSIST_KP             = 1.5;
     public static final double DRIVE_MAX_ROTATION_RATE          = 6.5;      //radians per second
 
-    public static final double DRIVE_MAX_XPID_POWER             = 0.5;
-    public static final double DRIVE_MAX_YPID_POWER             = 0.7;
-    public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
+    public static final double DRIVE_MAX_XPID_POWER             = 0.4;
+    public static final double DRIVE_MAX_YPID_POWER             = 0.3;
+    public static final double DRIVE_MAX_TURNPID_POWER          = 0.7;
 
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.305678722;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.971078567;
     public static final double ENCODER_X_KP                     = 0.05;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.0;
@@ -183,10 +183,10 @@ public class RobotInfo
     public static final double ENCODER_X_KP_SMALL               = 0.06;
     public static final double ENCODER_X_KI_SMALL               = 0.0;
     public static final double ENCODER_X_KD_SMALL               = 0.0;
-    public static final double ENCODER_X_KF_SMALL_              = 0.0;
-    public static final double ENCODER_X_TOLERANCE_SMALL        = 1.0;
+    public static final double ENCODER_X_KF_SMALL               = 0.0;
+    public static final double ENCODER_X_TOLERANCE_SMALL        = 0.8;
 
-    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.125436537;
+    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.360546194;
     public static final double ENCODER_Y_KP                     = 0.02;
     public static final double ENCODER_Y_KI                     = 0.0;
     public static final double ENCODER_Y_KD                     = 0.0016;

@@ -266,8 +266,8 @@ public class Robot extends FrcRobotBase
         // Create PID controllers for DriveBase PID drive.
         //
         encoderXPidCtrl = new TrcPidController("encoderXPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD,
-                RobotInfo.ENCODER_X_KF), RobotInfo.ENCODER_X_TOLERANCE, driveBase::getXPosition);
+            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL, RobotInfo.ENCODER_X_KD_SMALL,
+                RobotInfo.ENCODER_X_KF_SMALL), RobotInfo.ENCODER_X_TOLERANCE_SMALL, driveBase::getXPosition);
         encoderYPidCtrl = new TrcPidController("encoderYPidCtrl",
             new PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD,
                 RobotInfo.ENCODER_Y_KF), RobotInfo.ENCODER_Y_TOLERANCE, driveBase::getYPosition);
