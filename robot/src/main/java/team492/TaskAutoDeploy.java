@@ -32,7 +32,7 @@ public class TaskAutoDeploy
 {
     private enum State
     {
-        START, ORIENT, REFRESH_VISION, ALIGN, RAISE_ELEVATOR, DEPLOY, DONE
+        START, ORIENT, REFRESH_VISION, ALIGN, ALIGN_X, ALIGN_Y, RAISE_ELEVATOR, DEPLOY, DONE
     }
 
     public enum DeployType
@@ -59,6 +59,7 @@ public class TaskAutoDeploy
 
     private static final boolean USE_VISION_YAW = false;
     private static final boolean REFRESH_VISION = false; // Only applicable if using vision yaw.
+    private static final boolean ALIGN_BOTH = false; // if true, align x and y axis at the same time
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
         270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
@@ -73,9 +74,11 @@ public class TaskAutoDeploy
     private TrcEvent onFinishedEvent;
     private TrcTaskMgr.TaskObject alignmentTask;
     private double elevatorHeight;
+    private double travelHeight;
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
     private boolean alignOnly = false;
+    private State afterRefreshVision;
 
     public TaskAutoDeploy(Robot robot)
     {
@@ -197,6 +200,8 @@ public class TaskAutoDeploy
         onFinishedEvent = null;
         setEnabled(false);
         robot.setHalfBrakeModeEnabled(true, robot.driveInverted);
+        afterRefreshVision = null;
+        robot.pickup.retractHatchDeployer();
     }
 
     private void setEnabled(boolean enabled)
@@ -244,6 +249,10 @@ public class TaskAutoDeploy
         {
             robot.globalTracer.traceInfo("AlignTask", "Curr State: %s", state.toString());
             robot.dashboard.displayPrintf(12, "State: %s", state.toString());
+
+            TrcEvent elevatorEvent;
+            double x, y;
+
             switch (state)
             {
                 case START:
@@ -276,7 +285,12 @@ public class TaskAutoDeploy
                     }
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
 
-                    State nextState = (!USE_VISION_YAW || REFRESH_VISION) ? State.REFRESH_VISION : State.ALIGN;
+                    State nextState = State.ALIGN;
+                    if (!USE_VISION_YAW || REFRESH_VISION || !ALIGN_BOTH)
+                    {
+                        afterRefreshVision = ALIGN_BOTH ? State.ALIGN : State.ALIGN_X;
+                        nextState = State.REFRESH_VISION;
+                    }
                     sm.waitForSingleEvent(event, nextState);
                     break;
 
@@ -284,16 +298,15 @@ public class TaskAutoDeploy
                     pose = robot.vision.getAveragePose(5, true);
                     if (pose != null)
                     {
-                        sm.setState(State.ALIGN);
+                        sm.setState(afterRefreshVision != null ? afterRefreshVision : State.DONE);
                     }
                     break;
 
                 case ALIGN:
-                    TrcEvent elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
-                    double travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
+                    elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
+                    travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
 
-                    double x, y;
                     if (USE_VISION_YAW && !REFRESH_VISION)
                     {
                         // Vision data was taken BEFORE the ORIENT state, so we need to transform it to match robot coords.
@@ -314,6 +327,35 @@ public class TaskAutoDeploy
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(event);
                     sm.waitForEvents(State.RAISE_ELEVATOR, 0.0, true);
+                    break;
+
+                case ALIGN_X:
+                    elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
+                    travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
+                    robot.elevator.setPosition(travelHeight, elevatorEvent);
+
+                    x = pose.x + RobotInfo.CAMERA_OFFSET;
+                    y = 0.0;
+
+                    robot.globalTracer
+                        .traceInfo("DeployTask", "State=ALIGN_X, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
+                    robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
+                    sm.addEvent(elevatorEvent);
+                    sm.addEvent(event);
+                    sm.waitForEvents(State.REFRESH_VISION, 0.0, true);
+                    afterRefreshVision = State.ALIGN_Y;
+                    break;
+
+                case ALIGN_Y:
+                    robot.elevator.setPosition(travelHeight);
+
+                    x = pose.x + RobotInfo.CAMERA_OFFSET;
+                    y = pose.y - RobotInfo.CAMERA_DEPTH;
+
+                    robot.globalTracer
+                        .traceInfo("DeployTask", "State=ALIGN_Y, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
+                    robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
+                    sm.waitForSingleEvent(event, State.DEPLOY);
                     break;
 
                 case RAISE_ELEVATOR:
