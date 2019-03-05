@@ -169,9 +169,13 @@ public class RobotInfo
     public static final double DRIVE_GYRO_ASSIST_KP             = 1.5;
     public static final double DRIVE_MAX_ROTATION_RATE          = 6.5;      //radians per second
 
-    public static final double DRIVE_MAX_XPID_POWER             = 0.4;
-    public static final double DRIVE_MAX_YPID_POWER             = 0.3;
-    public static final double DRIVE_MAX_TURNPID_POWER          = 0.7;
+    public static final double DRIVE_MAX_XPID_POWER             = 0.5;
+    public static final double DRIVE_MAX_YPID_POWER             = 0.6;
+    public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
+
+    public static final double DRIVE_MAX_XPID_RAMP_RATE         = 0.5;
+    public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
+    public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
     public static final double ENCODER_X_INCHES_PER_COUNT       = 1.971078567;
     public static final double ENCODER_X_KP                     = 0.05;
