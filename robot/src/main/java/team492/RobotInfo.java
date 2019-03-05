@@ -227,8 +227,8 @@ public class RobotInfo
     public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE; // Max torque required to hold up
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
-    public static final double PICKUP_HATCH_PICKUP_POS          = 11.77;
-    public static final double PICKUP_GROUND_CARGO_POS          = 68.3;
+    public static final double PICKUP_HATCH_PICKUP_POS          = 0.4;
+    public static final double PICKUP_GROUND_CARGO_POS          = 62.21;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
