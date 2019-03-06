@@ -604,6 +604,12 @@ public abstract class TrcMotor implements TrcMotorController
                 Boolean.toString(active));
         }
 
+        double pos = getPosition();
+        if (instanceName.equals("PickupActuator") && pos > (20/0.0111609546))
+        {
+            TrcDbgTrace.getGlobalTracer().traceInfo("triggerEvent", "Spurious reset! pos=%.2f", pos);
+        }
+
         resetPosition(false);
 
         if (debugEnabled)
