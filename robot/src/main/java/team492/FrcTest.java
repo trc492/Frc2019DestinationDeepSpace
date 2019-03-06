@@ -349,8 +349,6 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                processedInput = true;
-                robot.vision.setRingLightEnabled(pressed);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:

@@ -244,13 +244,13 @@ public class RobotInfo
     // Elevator subsystem
     //
     // TODO: Tune all of this
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0019692482;
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0019605117;
     public static final double ELEVATOR_KP                      = 0.4;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.2;
-    public static final double ELEVATOR_MIN_POS                 = 6.75;
+    public static final double ELEVATOR_MIN_POS                 = 5.125;
     public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
@@ -261,7 +261,7 @@ public class RobotInfo
 
     public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
-    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 13.125;
+    public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 14.5;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
     public static final double ELEVATOR_POS_CARGO_ROCKET_HIGH   = ELEVATOR_MAX_POS;
     public static final double[] ELEVATOR_CARGO_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_CARGO_ROCKET_LOW,
