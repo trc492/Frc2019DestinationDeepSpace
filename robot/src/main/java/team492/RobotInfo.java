@@ -232,7 +232,7 @@ public class RobotInfo
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
     public static final double PICKUP_HATCH_PICKUP_POS          = 0.4;
-    public static final double PICKUP_GROUND_CARGO_POS          = 62.21;
+    public static final double PICKUP_GROUND_CARGO_POS          = 54;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
 
@@ -251,10 +251,10 @@ public class RobotInfo
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.2;
     public static final double ELEVATOR_MIN_POS                 = 6.75;
-    public static final double ELEVATOR_MAX_POS                 = 69.25;
+    public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
-    public static final double ELEVATOR_GRAVITY_COMP            = 0.0;
+    public static final double ELEVATOR_GRAVITY_COMP            = 0.1;
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.8;
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
@@ -268,8 +268,8 @@ public class RobotInfo
         ELEVATOR_POS_CARGO_ROCKET_MED, ELEVATOR_POS_CARGO_ROCKET_HIGH };
 
     public static final double ELEVATOR_POS_HATCH_ROCKET_LOW    = ELEVATOR_MIN_POS;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 32.5;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 61.875;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 35.5;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 64.875;
     public static final double[] ELEVATOR_HATCH_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_HATCH_ROCKET_LOW,
         ELEVATOR_POS_HATCH_ROCKET_MED, ELEVATOR_POS_HATCH_ROCKET_HIGH };
 

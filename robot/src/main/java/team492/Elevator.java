@@ -55,8 +55,8 @@ public class Elevator
             RobotInfo.ELEVATOR_CALIBRATE_POWER, RobotInfo.ELEVATOR_PID_FLOOR, RobotInfo.ELEVATOR_PID_CEILING,
             () -> RobotInfo.ELEVATOR_GRAVITY_COMP);
         elevator.setPositionScale(RobotInfo.ELEVATOR_INCHES_PER_COUNT, RobotInfo.ELEVATOR_MIN_POS);
-        elevator.setStallProtection(RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
-            RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
+        // elevator.setStallProtection(RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
+        //     RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
     }
 
     public double getPower()
