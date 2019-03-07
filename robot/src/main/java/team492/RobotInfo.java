@@ -141,7 +141,7 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
     public static final double CAMERA_DEPTH                     = 16; // Inches from center of EE to center of camera, + = backward
-    public static final double CAMERA_OFFSET                    = 2; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -178,28 +178,30 @@ public class RobotInfo
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
     public static final double ENCODER_X_INCHES_PER_COUNT       = 1.971078567;
-    public static final double ENCODER_X_KP                     = 0.05;
+    public static final double ENCODER_X_KP                     = 0.012;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.0;
     public static final double ENCODER_X_KF                     = 0.0;
     public static final double ENCODER_X_TOLERANCE              = 1.0;
 
-    public static final double ENCODER_X_KP_SMALL               = 0.06;
+    public static final double ENCODER_X_KP_SMALL               = 0.024;
     public static final double ENCODER_X_KI_SMALL               = 0.0;
     public static final double ENCODER_X_KD_SMALL               = 0.0;
     public static final double ENCODER_X_KF_SMALL               = 0.0;
-    public static final double ENCODER_X_TOLERANCE_SMALL        = 0.8;
+    public static final double ENCODER_X_TOLERANCE_SMALL        = 1.0;
 
+    // comp robot: 0.02/0.0/0.0016
     public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.360546194;
-    public static final double ENCODER_Y_KP                     = 0.02;
+    public static final double ENCODER_Y_KP                     = 0.01;
     public static final double ENCODER_Y_KI                     = 0.0;
-    public static final double ENCODER_Y_KD                     = 0.0016;
+    public static final double ENCODER_Y_KD                     = 0.001;
     public static final double ENCODER_Y_KF                     = 0.0;
     public static final double ENCODER_Y_TOLERANCE              = 2.0;
 
-    public static final double GYRO_TURN_KP                     = 0.015;
+    // Comp robot: 0.015/0.0/0.001
+    public static final double GYRO_TURN_KP                     = 0.008;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.001;
+    public static final double GYRO_TURN_KD                     = 0.0007;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
@@ -254,12 +256,10 @@ public class RobotInfo
     public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
-    public static final double ELEVATOR_GRAVITY_COMP            = 0.1;
+    public static final double ELEVATOR_GRAVITY_COMP            = 0.07;
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.8;
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
-
-    public static final double ELEVATOR_DRIVE_POS               = 20.0;
 
     public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 14.5;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
@@ -272,6 +272,8 @@ public class RobotInfo
     public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 64.875;
     public static final double[] ELEVATOR_HATCH_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_HATCH_ROCKET_LOW,
         ELEVATOR_POS_HATCH_ROCKET_MED, ELEVATOR_POS_HATCH_ROCKET_HIGH };
+
+    public static final double ELEVATOR_DRIVE_POS               = ELEVATOR_POS_HATCH_ROCKET_MED;
 
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 

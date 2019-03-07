@@ -266,8 +266,9 @@ public class Robot extends FrcRobotBase
         // Create PID controllers for DriveBase PID drive.
         //
         encoderXPidCtrl = new TrcPidController("encoderXPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL, RobotInfo.ENCODER_X_KD_SMALL,
-                RobotInfo.ENCODER_X_KF_SMALL), RobotInfo.ENCODER_X_TOLERANCE_SMALL, driveBase::getXPosition);
+            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL,
+                RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL), RobotInfo.ENCODER_X_TOLERANCE_SMALL,
+            driveBase::getXPosition);
         encoderYPidCtrl = new TrcPidController("encoderYPidCtrl",
             new PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD,
                 RobotInfo.ENCODER_Y_KF), RobotInfo.ENCODER_Y_TOLERANCE, driveBase::getYPosition);
@@ -448,6 +449,22 @@ public class Robot extends FrcRobotBase
         {
             globalTracer.setTraceLogEnabled(enabled);
         }
+    }
+
+    public void enableSmallGains()
+    {
+        encoderXPidCtrl.setPidCoefficients(
+            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL,
+                RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL));
+        encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE_SMALL);
+    }
+
+    public void enableBigGains()
+    {
+        encoderXPidCtrl.setPidCoefficients(
+            new PidCoefficients(RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD,
+                RobotInfo.ENCODER_X_KF));
+        encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE);
     }
 
     /**
@@ -717,7 +734,7 @@ public class Robot extends FrcRobotBase
     public double getPressure()
     {
         return (pressureSensor.getVoltage() - 0.5) * 50.0;
-//        return pressureSensor.getScaledValue();
+        //        return pressureSensor.getScaledValue();
     }   //getPressure
 
     public Double getPixyTargetAngle()

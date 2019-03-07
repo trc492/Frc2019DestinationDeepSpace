@@ -117,6 +117,12 @@ public class FrcTest extends FrcTeleOp
         robot.gyroTurnPidCtrl.setNoOscillation(false);
         robot.gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE);
 
+        if (test != Test.SUBSYSTEMS_TEST)
+        {
+            robot.setHalfBrakeModeEnabled(false, false);
+            robot.driveBase.resetOdometry(true, false);
+        }
+
         boolean liveWindowEnabled = false;
         switch (test)
         {

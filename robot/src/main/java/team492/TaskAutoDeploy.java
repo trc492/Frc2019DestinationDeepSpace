@@ -59,7 +59,7 @@ public class TaskAutoDeploy
 
     private static final boolean USE_VISION_YAW = false;
     private static final boolean REFRESH_VISION = false; // Only applicable if using vision yaw.
-    private static final boolean ALIGN_BOTH = false; // if true, align x and y axis at the same time
+    private static final boolean ALIGN_BOTH = true; // if true, align x and y axis at the same time
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
         270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
@@ -241,6 +241,22 @@ public class TaskAutoDeploy
         return targetYaw;
     }
 
+    private double getXDistance()
+    {
+        return pose.x + RobotInfo.CAMERA_OFFSET;
+    }
+
+    private double getYDistance()
+    {
+        double y = pose.y - RobotInfo.CAMERA_DEPTH;
+        if (deployType == DeployType.PICKUP_HATCH)
+        {
+            y += 8;
+        }
+
+        return y;
+    }
+
     private void alignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
     {
         State state = sm.checkReadyAndGetState();
@@ -257,6 +273,7 @@ public class TaskAutoDeploy
             {
                 case START:
                     robot.setHalfBrakeModeEnabled(false, false);
+                    robot.enableSmallGains();
                     if (USE_VISION_YAW)
                     {
                         pose = robot.vision.getAveragePose(5, true);
@@ -318,8 +335,8 @@ public class TaskAutoDeploy
                     else
                     {
                         // Vision data was taken AFTER the ORIENT state, so no transformation required.
-                        x = pose.x + RobotInfo.CAMERA_OFFSET;
-                        y = pose.y - RobotInfo.CAMERA_DEPTH;
+                        x = getXDistance();
+                        y = getYDistance();
                     }
                     robot.globalTracer
                         .traceInfo("DeployTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
@@ -334,7 +351,7 @@ public class TaskAutoDeploy
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight, elevatorEvent);
 
-                    x = pose.x + RobotInfo.CAMERA_OFFSET;
+                    x = getXDistance();
                     y = 0.0;
 
                     robot.globalTracer
@@ -349,8 +366,8 @@ public class TaskAutoDeploy
                 case ALIGN_Y:
                     robot.elevator.setPosition(travelHeight);
 
-                    x = pose.x + RobotInfo.CAMERA_OFFSET;
-                    y = pose.y - RobotInfo.CAMERA_DEPTH;
+                    x = getXDistance();
+                    y = getYDistance();
 
                     robot.globalTracer
                         .traceInfo("DeployTask", "State=ALIGN_Y, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
