@@ -27,57 +27,28 @@ import trclib.TrcRevBlinkin.LEDPattern;
 
 public class LEDIndicator
 {
-    private LEDPattern normalPattern = LEDPattern.FixedFireMedium;
-    private LEDPattern cargoPattern = LEDPattern.SolidOrange;
-    private LEDPattern visionPattern = LEDPattern.SolidAqua;
+    private final LEDPattern normalPattern = LEDPattern.FixedFireMedium;
+    private final LEDPattern cargoPattern = LEDPattern.SolidOrange;
+    private final LEDPattern visionPattern = LEDPattern.SolidAqua;
     private final LEDPattern[] patterns = new LEDPattern[] { normalPattern, cargoPattern, visionPattern };
-    private boolean[] enabledPatterns = new boolean[patterns.length];
 
     private FrcRevBlinkin blinkin;
+
     public LEDIndicator()
     {
         blinkin = new FrcRevBlinkin("LEDIndicator", RobotInfo.PWM_REV_BLINKIN);
         blinkin.setPatternPriorities(patterns);
-        enabledPatterns[0] = true;
+        blinkin.setPatternState(normalPattern, true);
     }
 
     public void signalCargoDetected(boolean detected)
     {
-        enablePattern(cargoPattern, detected);
+        blinkin.setPatternState(cargoPattern, detected);
     }
 
     public void signalVisionDetected(boolean detected)
     {
-        enablePattern(visionPattern, detected);
+        blinkin.setPatternState(visionPattern, detected);
     }
 
-    private void enablePattern(LEDPattern pattern, boolean detected)
-    {
-        int index = getIndex(pattern);
-        enabledPatterns[index] = detected;
-        updateLED();
-    }
-
-    private void updateLED()
-    {
-        for (int i = patterns.length - 1; i >= 0; i--)
-        {
-            if (enabledPatterns[i])
-            {
-                blinkin.setPattern(patterns[i]);
-            }
-        }
-    }
-
-    private int getIndex(LEDPattern pattern)
-    {
-        for (int i = 0; i < patterns.length; i++)
-        {
-            if (patterns[i] == pattern)
-            {
-                return i;
-            }
-        }
-        return -1;
-    }
 }

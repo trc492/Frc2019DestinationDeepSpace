@@ -190,8 +190,40 @@ public abstract class TrcRevBlinkin
 
     }   //enum LEDPattern
 
+    /**
+     * This class implements the LED pattern state.
+     */
+    private class PatternState
+    {
+        final LEDPattern pattern;
+        boolean enabled;
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param pattern specifies the LED pattern.
+         * @param enabled specifies the initial state of the pattern.
+         */
+        PatternState(LEDPattern pattern, boolean enabled)
+        {
+            this.pattern = pattern;
+            this.enabled = enabled;
+        }   //PatternState
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param pattern specifies the LED pattern.
+         */
+        PatternState(LEDPattern pattern)
+        {
+            this(pattern, false);
+        }   //PatternState
+
+    }   //class PatternState
+
     private final String instanceName;
-    private LEDPattern[] patternPriorities = null;
+    private PatternState[] patternPriorities = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -223,20 +255,29 @@ public abstract class TrcRevBlinkin
     /**
      * This method sets the LED pattern priority list for operations that need it.
      *
-     * @param patternPriorities specifies the pattern priority list.
+     * @param ledPriorities specifies the pattern priority list.
      */
-    public void setPatternPriorities(LEDPattern[] patternPriorities)
+    public void setPatternPriorities(LEDPattern[] ledPriorities)
     {
         final String funcName = "setPatternPriorities";
 
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "priorityList=%s", Arrays.toString(patternPriorities));
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+                "priorityList=%s", Arrays.toString(ledPriorities));
         }
 
-        this.patternPriorities = patternPriorities;
+        patternPriorities = new PatternState[patternPriorities.length];
+
+        for (int i = 0; i < patternPriorities.length; i++)
+        {
+            patternPriorities[i] = new PatternState(ledPriorities[i]);
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
     }   //setPatternPriorities
 
     /**
@@ -282,36 +323,41 @@ public abstract class TrcRevBlinkin
     }   //setPattern
 
     /**
-     * This method sets the color pattern of the LED strip only if the pattern has a priority higher or equal
-     * to the priority of the current color pattern in the given priority list. If the color pattern is not in
-     * the priority list, it is considered the lowest priority.
+     * This method enables/disables the LED pattern in the priority list.
      *
-     * @param pattern specifies the color pattern to be set.
+     * @param pattern specifies the LED pattern in the priority list.
+     * @param enabled specifies true to turn the pattern ON, false to turn it OFF.
      */
-    public void setPatternWithPriority(LEDPattern pattern)
+    public void setPatternState(LEDPattern pattern, boolean enabled)
     {
-        final String funcName = "setPatternWithPriority";
-        LEDPattern currPattern = getPattern();
-        int currPriority = getPatternPriority(currPattern);
-        int patternPriority = getPatternPriority(pattern);
+        int index = getPatternPriority(pattern);
 
-        if (debugEnabled)
+        if (index != -1)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
-            dbgTrace.traceInfo(funcName, "currPattern=%s(%d), pattern=%s(%d)",
-                currPattern, currPriority, pattern, patternPriority);
+            patternPriorities[index].enabled = enabled;
+            updateLED();
+        }
+    }   //setPatternState
+
+    /**
+     * This method returns the LED pattern state if it is in the priority list. If the pattern is not in the list,
+     * it returns false.
+     *
+     * @param pattern specifies the LED pattern in the priority list.
+     * @return true if the LED pattern is ON, false if it is OFF.
+     */
+    public boolean getPatternState(LEDPattern pattern)
+    {
+        boolean state = false;
+        int index = getPatternPriority(pattern);
+
+        if (index != -1)
+        {
+            state = patternPriorities[index].enabled;
         }
 
-        if (patternPriority > currPriority)
-        {
-            set(pattern.value);
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
-    }   //setPatternWithPriority
+        return state;
+    }   //getPatternState
 
     /**
      * This method searches the given pattern priorities array for the given pattern. If found, its index is
@@ -335,7 +381,7 @@ public abstract class TrcRevBlinkin
         {
             for (int i = 0; i < patternPriorities.length; i++)
             {
-                if (pattern == patternPriorities[i])
+                if (pattern == patternPriorities[i].pattern)
                 {
                     priority = i;
                     break;
@@ -350,5 +396,26 @@ public abstract class TrcRevBlinkin
 
         return priority;
     }   //getPatternPriority
+
+    /**
+     * This method is called to update the LED pattern according to the patternPriorities list. It will turn on the
+     * highest priority pattern if enabled. If none of the patterns in the priority list is enabled, it will turn
+     * off the LED strip.
+     */
+    private void updateLED()
+    {
+        LEDPattern pattern = LEDPattern.SolidBlack;
+
+        for (int i = patternPriorities.length - 1; i >= 0; i--)
+        {
+            if (patternPriorities[i].enabled)
+            {
+                pattern = patternPriorities[i].pattern;
+                break;
+            }
+        }
+
+        setPattern(pattern);
+    }   //updateLED
 
 }   //class TrcRevBlinkin
