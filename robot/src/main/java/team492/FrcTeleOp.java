@@ -231,9 +231,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         if (Robot.USE_RASPI_VISION)
         {
-            HalDashboard.putBoolean("Status/TapeDetected", robot.vision.getAveragePose(5, true) != null);
+            boolean targetFound = robot.vision.getAveragePose(5, true) != null;
+            HalDashboard.putBoolean("Status/TapeDetected", targetFound);
+            robot.indicator.signalVisionDetected(targetFound);
         }
-        HalDashboard.putBoolean("Status/CargoDetected", robot.pickup.cargoDetected());
+        boolean cargoDetected = robot.pickup.cargoDetected();
+        HalDashboard.putBoolean("Status/CargoDetected", cargoDetected);
+        robot.indicator.signalCargoDetected(cargoDetected);
+
         HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
 
         if (DEBUG_LOOP_TIME)

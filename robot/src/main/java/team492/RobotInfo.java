@@ -251,7 +251,7 @@ public class RobotInfo
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
-    public static final double ELEVATOR_CALIBRATE_POWER         = 0.2;
+    public static final double ELEVATOR_CALIBRATE_POWER         = 0.5;
     public static final double ELEVATOR_MIN_POS                 = 5.125;
     public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
