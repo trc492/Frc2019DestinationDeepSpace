@@ -349,6 +349,8 @@ public class Robot extends FrcRobotBase
 
             dashboard.clearDisplay();
 
+            indicator.reset();
+
             if (runMode == RunMode.AUTO_MODE || runMode == RunMode.TEST_MODE)
             {
                 driveTime = HalDashboard.getNumber("Test/DriveTime", 5.0);
@@ -395,6 +397,8 @@ public class Robot extends FrcRobotBase
                 totalEnergy * 100.0 / RobotInfo.BATTERY_CAPACITY_WATT_HOUR);
             setTraceLogEnabled(false);
             closeTraceLog();
+
+            indicator.reset();
         }
     }   //robotStopMode
 

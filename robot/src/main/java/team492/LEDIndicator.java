@@ -41,6 +41,12 @@ public class LEDIndicator
         blinkin.setPatternState(normalPattern, true);
     }
 
+    public void reset()
+    {
+        blinkin.disable();
+        blinkin.setPatternState(normalPattern, true);
+    }
+
     public void signalCargoDetected(boolean detected)
     {
         blinkin.setPatternState(cargoPattern, detected);

@@ -398,6 +398,18 @@ public abstract class TrcRevBlinkin
     }   //getPatternPriority
 
     /**
+     * This method disables all patterns in the pattern priority list and turns off the led strip.
+     */
+    public void disable()
+    {
+        for(PatternState state : patternPriorities)
+        {
+            state.enabled = false;
+        }
+        setPattern(LEDPattern.SolidBlack);
+    } //disable
+
+    /**
      * This method is called to update the LED pattern according to the patternPriorities list. It will turn on the
      * highest priority pattern if enabled. If none of the patterns in the priority list is enabled, it will turn
      * off the LED strip.
