@@ -255,7 +255,7 @@ public abstract class TrcRevBlinkin
     /**
      * This method sets the LED pattern priority list for operations that need it.
      *
-     * @param ledPriorities specifies the pattern priority list.
+     * @param ledPriorities specifies the pattern priority list or null to disregard the previously set list.
      */
     public void setPatternPriorities(LEDPattern[] ledPriorities)
     {
@@ -264,15 +264,23 @@ public abstract class TrcRevBlinkin
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "priorityList=%s", Arrays.toString(ledPriorities));
+                "priorityList=%s", ledPriorities == null? "null": Arrays.toString(ledPriorities));
         }
 
-        patternPriorities = new PatternState[patternPriorities.length];
-
-        for (int i = 0; i < patternPriorities.length; i++)
+        if (ledPriorities != null)
         {
-            patternPriorities[i] = new PatternState(ledPriorities[i]);
+            patternPriorities = new PatternState[patternPriorities.length];
+
+            for (int i = 0; i < patternPriorities.length; i++)
+            {
+                patternPriorities[i] = new PatternState(ledPriorities[i]);
+            }
         }
+        else
+        {
+            patternPriorities = null;
+        }
+        setPattern(LEDPattern.SolidBlack);
 
         if (debugEnabled)
         {
@@ -330,12 +338,24 @@ public abstract class TrcRevBlinkin
      */
     public void setPatternState(LEDPattern pattern, boolean enabled)
     {
+        final String funcName = "setPatternState";
         int index = getPatternPriority(pattern);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s,state=%s,index=%d",
+                pattern, enabled, index);
+        }
 
         if (index != -1)
         {
             patternPriorities[index].enabled = enabled;
             updateLED();
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
     }   //setPatternState
 
@@ -348,16 +368,56 @@ public abstract class TrcRevBlinkin
      */
     public boolean getPatternState(LEDPattern pattern)
     {
+        final String funcName = "getPatternState";
         boolean state = false;
         int index = getPatternPriority(pattern);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s,index=%d",
+                pattern, index);
+        }
 
         if (index != -1)
         {
             state = patternPriorities[index].enabled;
         }
 
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", state);
+        }
+
         return state;
     }   //getPatternState
+
+    /**
+     * This method resets all pattern states in the pattern priority list and turns off the LED strip.
+     */
+    public void resetAllPatternStates()
+    {
+        final String funcName = "resetAllPatternStates";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
+        if (patternPriorities != null)
+        {
+            for (PatternState state: patternPriorities)
+            {
+                state.enabled = false;
+            }
+
+            setPattern(LEDPattern.SolidBlack);
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //resetAllPatternStates
 
     /**
      * This method searches the given pattern priorities array for the given pattern. If found, its index is
@@ -374,7 +434,7 @@ public abstract class TrcRevBlinkin
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.FUNC, "pattern=%s", pattern);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
         }
 
         if (patternPriorities != null)
@@ -391,23 +451,11 @@ public abstract class TrcRevBlinkin
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.FUNC, "=%d", priority);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%d", priority);
         }
 
         return priority;
     }   //getPatternPriority
-
-    /**
-     * This method disables all patterns in the pattern priority list and turns off the led strip.
-     */
-    public void disable()
-    {
-        for(PatternState state : patternPriorities)
-        {
-            state.enabled = false;
-        }
-        setPattern(LEDPattern.SolidBlack);
-    } //disable
 
     /**
      * This method is called to update the LED pattern according to the patternPriorities list. It will turn on the
@@ -416,7 +464,13 @@ public abstract class TrcRevBlinkin
      */
     private void updateLED()
     {
+        final String funcName = "updateLED";
         LEDPattern pattern = LEDPattern.SolidBlack;
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.FUNC);
+        }
 
         for (int i = patternPriorities.length - 1; i >= 0; i--)
         {
@@ -428,6 +482,11 @@ public abstract class TrcRevBlinkin
         }
 
         setPattern(pattern);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.FUNC, "! (pattern=%s)", pattern);
+        }
     }   //updateLED
 
 }   //class TrcRevBlinkin

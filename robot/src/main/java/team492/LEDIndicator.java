@@ -43,7 +43,7 @@ public class LEDIndicator
 
     public void reset()
     {
-        blinkin.disable();
+        blinkin.resetAllPatternStates();
         blinkin.setPatternState(normalPattern, true);
     }
 
