@@ -269,7 +269,7 @@ public abstract class TrcRevBlinkin
 
         if (ledPriorities != null)
         {
-            patternPriorities = new PatternState[patternPriorities.length];
+            patternPriorities = new PatternState[ledPriorities.length];
 
             for (int i = 0; i < patternPriorities.length; i++)
             {
