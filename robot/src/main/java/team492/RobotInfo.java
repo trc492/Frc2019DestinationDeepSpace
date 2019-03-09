@@ -246,13 +246,14 @@ public class RobotInfo
     // Elevator subsystem
     //
     // TODO: Tune all of this
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0019605117;
+    // for mag encoder: 0.0019605117
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0152322925;
     public static final double ELEVATOR_KP                      = 0.4;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.5;
-    public static final double ELEVATOR_MIN_POS                 = 5.125;
+    public static final double ELEVATOR_MIN_POS                 = 5.25;
     public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
