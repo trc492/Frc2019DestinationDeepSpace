@@ -257,7 +257,7 @@ public class RobotInfo
     public static final double ELEVATOR_MAX_POS                 = 71;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
-    public static final double ELEVATOR_GRAVITY_COMP            = 0.07;
+    public static final double ELEVATOR_GRAVITY_COMP            = 0.05;
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.8;
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
