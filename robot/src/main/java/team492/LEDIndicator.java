@@ -27,7 +27,7 @@ import trclib.TrcRevBlinkin.LEDPattern;
 
 public class LEDIndicator
 {
-    private final LEDPattern normalPattern = LEDPattern.FixedFireMedium;
+    private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
     private final LEDPattern cargoPattern = LEDPattern.SolidOrange;
     private final LEDPattern visionPattern = LEDPattern.SolidAqua;
     private final LEDPattern[] patterns = new LEDPattern[] { normalPattern, cargoPattern, visionPattern };

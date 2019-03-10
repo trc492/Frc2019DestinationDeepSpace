@@ -141,7 +141,7 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
     public static final double CAMERA_DEPTH                     = 16; // Inches from center of EE to center of camera, + = backward
-    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_OFFSET                    = 1; // Inches from center of EE to center of camera, + = right
 
     //
     // Ultrasonic sensors.
@@ -247,7 +247,7 @@ public class RobotInfo
     //
     // TODO: Tune all of this
     // for mag encoder: 0.0019605117
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.0152322925;
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.001979768;
     public static final double ELEVATOR_KP                      = 0.4;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;

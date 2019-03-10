@@ -102,9 +102,26 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     } // stopMode
 
+    private void showStatus()
+    {
+        if (Robot.USE_RASPI_VISION)
+        {
+            boolean targetFound = robot.vision.getAveragePose(5, true) != null;
+            HalDashboard.putBoolean("Status/TapeDetected", targetFound);
+            robot.indicator.signalVisionDetected(targetFound);
+        }
+        boolean cargoDetected = robot.pickup.cargoDetected();
+        HalDashboard.putBoolean("Status/CargoDetected", cargoDetected);
+        robot.indicator.signalCargoDetected(cargoDetected);
+
+        HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
+    }
+
     @Override
     public void runPeriodic(double elapsedTime)
     {
+        showStatus();
+
         double elevatorPower = robot.operatorStick.getYWithDeadband(true);
 
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
@@ -229,18 +246,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runContinuous(double elapsedTime)
     {
-        if (Robot.USE_RASPI_VISION)
-        {
-            boolean targetFound = robot.vision.getAveragePose(5, true) != null;
-            HalDashboard.putBoolean("Status/TapeDetected", targetFound);
-            robot.indicator.signalVisionDetected(targetFound);
-        }
-        boolean cargoDetected = robot.pickup.cargoDetected();
-        HalDashboard.putBoolean("Status/CargoDetected", cargoDetected);
-        robot.indicator.signalCargoDetected(cargoDetected);
-
-        HalDashboard.putString("Status/DriveSpeed", driveSpeed.toString());
-
         if (DEBUG_LOOP_TIME)
         {
             loopTimeCounter.update();
