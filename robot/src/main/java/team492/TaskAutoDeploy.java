@@ -276,7 +276,7 @@ public class TaskAutoDeploy
                     robot.enableSmallGains();
                     if (USE_VISION_YAW)
                     {
-                        pose = robot.vision.getAveragePose(5, true);
+                        pose = robot.vision.getAveragePose(5, false);
                         if (pose != null)
                         {
                             sm.setState(State.ORIENT);
@@ -312,7 +312,7 @@ public class TaskAutoDeploy
                     break;
 
                 case REFRESH_VISION:
-                    pose = robot.vision.getAveragePose(5, true);
+                    pose = robot.vision.getAveragePose(5, false);
                     if (pose != null)
                     {
                         sm.setState(afterRefreshVision != null ? afterRefreshVision : State.DONE);

@@ -106,7 +106,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         if (Robot.USE_RASPI_VISION)
         {
-            boolean targetFound = robot.vision.getAveragePose(5, true) != null;
+            boolean targetFound = robot.vision.getLastPose() != null;
             HalDashboard.putBoolean("Status/TapeDetected", targetFound);
             robot.indicator.signalVisionDetected(targetFound);
         }
