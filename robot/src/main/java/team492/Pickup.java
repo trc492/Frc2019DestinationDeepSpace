@@ -52,6 +52,7 @@ public class Pickup
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
     private boolean manualOverrideEnabled;
+    private FrcPneumatic alignGuide;
 
     public Pickup(Robot robot)
     {
@@ -90,6 +91,8 @@ public class Pickup
 
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
+
+        alignGuide = new FrcPneumatic(instanceName + ".alignGuide", RobotInfo.CANID_PCM1, RobotInfo.SOL_ALIGN_GUIDES);
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
@@ -138,15 +141,25 @@ public class Pickup
      * Meaning it will return a power value that will hold the endeffector suspend in any valid position. Since
      * gravitational pull of the endeffector depends on its angle, this is proportional to the sine of the
      * endeffector angle (endeffector is at zero degree when it is in the vertical position).
-     *  EndEffectorMaxTorqueAtFulcrum = EndEffectorWeight * EndEffectorCGDistanceFromFulcrum
-     *  PercentageMotorPower = sin(EndEffectorAngle) * EndEffectorMaxTorqueAtFulcrum /
-     *                         (MotorStallTorque * GearRatio)
+     * EndEffectorMaxTorqueAtFulcrum = EndEffectorWeight * EndEffectorCGDistanceFromFulcrum
+     * PercentageMotorPower = sin(EndEffectorAngle) * EndEffectorMaxTorqueAtFulcrum /
+     * (MotorStallTorque * GearRatio)
      *
      * @return gravity compensation value.
      */
     private double getGravityCompensation()
     {
         return Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
+    }
+
+    public void extendAlignGuides()
+    {
+        alignGuide.extend();
+    }
+
+    public void retractAlignGuides()
+    {
+        alignGuide.retract();
     }
 
     public boolean isUpperLimitSwitchActive()
@@ -322,7 +335,7 @@ public class Pickup
     {
         pitchController.cancel();
         power = TrcUtil.clipRange(power, -1.0, 1.0);
-//        pitchController.setPower(power, hold);
+        //        pitchController.setPower(power, hold);
         // TODO: figure this out
         pitchMotor.set(power);
     }

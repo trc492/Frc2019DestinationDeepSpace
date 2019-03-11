@@ -103,7 +103,7 @@ public class RaspiVision
         RelativePose average = new RelativePose();
         synchronized (framesLock)
         {
-            if (requireAll && frames.size() < numFrames)
+            if ((requireAll && frames.size() < numFrames) || frames.isEmpty())
             {
                 return null;
             }

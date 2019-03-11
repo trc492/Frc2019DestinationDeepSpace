@@ -214,6 +214,7 @@ public class TrcPidActuator extends TrcPidMotor
 
         if (manualOverride || minPos == 0.0 && maxPos == 0.0)
         {
+            cancel();
             super.setPower(power);
         }
         else

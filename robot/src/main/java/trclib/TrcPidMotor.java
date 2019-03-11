@@ -1032,7 +1032,7 @@ public class TrcPidMotor
         }
         else
         {
-            if (instanceName.equals("PickupActuator"))
+            if (instanceName.equals("ElevatorActuator"))
             {
                 TrcDbgTrace.getGlobalTracer().traceInfo("Elevator",
                     "pidTask Active! target=%.1f,onTarget=%b,hold=%b",
