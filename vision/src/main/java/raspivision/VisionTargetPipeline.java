@@ -49,7 +49,7 @@ public class VisionTargetPipeline implements VisionPipeline
 
     public double[] hsvThresholdHue = { 30, 100 };
     public double[] hsvThresholdSaturation = { 160, 255 };
-    public double[] hsvThresholdValue = { 0, 100 };
+    public double[] hsvThresholdValue = { 50, 100 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
