@@ -59,7 +59,7 @@ public class TaskAutoDeploy
 
     private static final boolean USE_VISION_YAW = false;
     private static final boolean REFRESH_VISION = false; // Only applicable if using vision yaw.
-    private static final boolean ALIGN_BOTH = true; // if true, align x and y axis at the same time
+    private static final boolean ALIGN_BOTH = false; // if true, align x and y axis at the same time
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
         270.0 + RobotInfo.ROCKET_SIDE_ANGLE };

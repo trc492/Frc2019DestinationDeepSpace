@@ -49,7 +49,7 @@ public class VisionTargetPipeline implements VisionPipeline
 
     public double[] hsvThresholdHue = { 30, 100 };
     public double[] hsvThresholdSaturation = { 160, 255 };
-    public double[] hsvThresholdValue = { 50, 100 };
+    public double[] hsvThresholdValue = { 0, 180 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
@@ -126,13 +126,22 @@ public class VisionTargetPipeline implements VisionPipeline
                 }
             }
 
-            if (isValid(visionTargets))
+            List<TargetData> datas = new ArrayList<>();
+            for (int i = 0; i < visionTargets.size() - 1; i++)
             {
-                detectedTargets = detectTargets(visionTargets);
-                int width = source0.width();
-                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
-                    .orElseThrow(IllegalStateException::new);
+                VisionTarget left = visionTargets.get(i);
+                VisionTarget right = visionTargets.get(i + 1);
+                if (left.isLeftTarget && !right.isLeftTarget)
+                {
+                    datas.add(getTargetData(left, right));
+                    i++;
+                }
             }
+
+            detectedTargets = datas;
+            int width = source0.width();
+            selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
+                .orElseThrow(IllegalStateException::new);
         }
         finally
         {
@@ -323,25 +332,17 @@ public class VisionTargetPipeline implements VisionPipeline
         }
     }
 
-    private List<TargetData> detectTargets(List<VisionTarget> targets)
+    private TargetData getTargetData(VisionTarget left, VisionTarget right)
     {
-        List<TargetData> targetDatas = new ArrayList<>(); // Yes I know datas isn't a word.
-        // Pair vision targets and get the enclosing bounding box.
-        for (int i = 0; i < targets.size(); i += 2)
-        {
-            VisionTarget left = targets.get(i);
-            VisionTarget right = targets.get(i + 1);
-            int leftBound = left.x - left.w / 2;
-            int rightBound = right.x + right.w / 2;
-            int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
-            int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
-            TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
-                rightBound - leftBound, Math.abs(bottomBound - topBound));
-            data.leftTarget = left;
-            data.rightTarget = right;
-            targetDatas.add(data);
-        }
-        return targetDatas;
+        int leftBound = left.x - left.w / 2;
+        int rightBound = right.x + right.w / 2;
+        int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
+        int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
+        TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
+            rightBound - leftBound, Math.abs(bottomBound - topBound));
+        data.leftTarget = left;
+        data.rightTarget = right;
+        return data;
     }
 
     private boolean isValidRect(RotatedRect rect)
