@@ -99,6 +99,8 @@ public class RaspiVision
     private double startTime = 0;
     private CvSource dashboardDisplay;
 
+    private volatile double cameraPitch = 0.0;
+
     private int width, height; // in pixels
 
     private final Object dataLock = new Object();
@@ -170,6 +172,10 @@ public class RaspiVision
         NetworkTableEntry valueHigh = table.getEntry("ValueHigh");
         NetworkTableEntry ratioLow = table.getEntry("RatioLow");
         NetworkTableEntry ratioHigh = table.getEntry("RatioHigh");
+        NetworkTableEntry cameraPitch = table.getEntry("CameraPitch");
+
+        cameraPitch.addListener(event -> this.cameraPitch = event.value.getDouble(),
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
 
@@ -470,10 +476,9 @@ public class RaspiVision
         Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
         // Get the distances in the x and z axes. (or in robot space, x and y)
         double x = translationVector.get(0, 0)[0];
-        double z = translationVector.get(2, 0)[0];
-        // Convert x,y to r,theta
-        double distance = Math.sqrt(x * x + z * z);
-        double heading = Math.toDegrees(Math.atan2(x, z));
+        double zRot = translationVector.get(2, 0)[0]; // This is uncorrected for pitch
+
+        double z = Math.cos(Math.toRadians(cameraPitch)) * zRot;
 
         // Convert the axis-angle rotation vector into a rotation matrix
         Calib3d.Rodrigues(rotationVector, rotationMatrix);
@@ -525,7 +530,7 @@ public class RaspiVision
             image.release();
         }
 
-        return new RelativePose(heading, distance, objectYaw);
+        return new RelativePose(x, z, objectYaw);
     }
 
     private double[] convertRotMatrixToEulerAngles(Mat rotationMatrix)

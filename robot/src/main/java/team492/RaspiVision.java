@@ -25,11 +25,14 @@ public class RaspiVision
     {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("RaspiVision");
         NetworkTableEntry entry = table.getEntry("VisionData");
+        NetworkTableEntry pitchEntry = table.getEntry("CameraPitch");
         gson = new Gson();
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
         ringLight = new Relay(RobotInfo.RELAY_RINGLIGHT_POWER);
         ringLight.setDirection(Direction.kForward);
+
+        pitchEntry.setDouble(RobotInfo.CAMERA_PITCH);
     }
 
     public void setRingLightEnabled(boolean enabled)

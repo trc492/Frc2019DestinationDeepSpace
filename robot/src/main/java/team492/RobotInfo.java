@@ -143,6 +143,7 @@ public class RobotInfo
 
     public static final double CAMERA_DEPTH                     = 16; // Inches from center of EE to center of camera, + = backward
     public static final double CAMERA_OFFSET                    = 1; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_PITCH                     = 0.0; // Down is positive
 
     //
     // Ultrasonic sensors.
