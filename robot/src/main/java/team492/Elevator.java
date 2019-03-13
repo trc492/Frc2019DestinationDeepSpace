@@ -59,6 +59,11 @@ public class Elevator
         //     RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
     }
 
+    public TrcPidActuator getElevator()
+    {
+        return elevator;
+    }
+
     public double getPower()
     {
         return motor.getPower();
