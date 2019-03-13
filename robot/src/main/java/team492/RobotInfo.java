@@ -238,6 +238,7 @@ public class RobotInfo
     public static final double PICKUP_GROUND_CARGO_POS          = 54;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
+    public static final double PICKUP_CARGO_SHIP_POS            = 20.38;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
     public static final double PICKUP_CARGO_PICKUP_POWER        = 1.0;
@@ -262,6 +263,8 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_MIN_POWER         = 0.8;
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
+
+    public static final double ELEVATOR_POS_CARGO_SHIP          = 35.91;
 
     public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 14.5;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;

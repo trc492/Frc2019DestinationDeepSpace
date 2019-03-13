@@ -454,7 +454,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON11:
                 if (pressed)
                 {
-                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_HATCH_PICKUP_POS);
+                    robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_CARGO_SHIP);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_CARGO_SHIP_POS);
                 }
                 break;
 
