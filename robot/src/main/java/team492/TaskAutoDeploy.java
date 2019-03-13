@@ -25,6 +25,7 @@ package team492;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
+import trclib.TrcStopwatch;
 import trclib.TrcTaskMgr;
 import trclib.TrcWarpSpace;
 
@@ -74,11 +75,11 @@ public class TaskAutoDeploy
     private TrcEvent onFinishedEvent;
     private TrcTaskMgr.TaskObject alignmentTask;
     private double elevatorHeight;
-    private double travelHeight;
     private DeployType deployType;
     private TrcWarpSpace warpSpace;
     private boolean alignOnly = false;
     private State afterRefreshVision;
+    private TrcStopwatch stopwatch;
 
     public TaskAutoDeploy(Robot robot)
     {
@@ -88,6 +89,7 @@ public class TaskAutoDeploy
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
         event = new TrcEvent(instanceName + ".event");
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
+        stopwatch = new TrcStopwatch();
     }
 
     /**
@@ -202,6 +204,7 @@ public class TaskAutoDeploy
         robot.setHalfBrakeModeEnabled(true, robot.driveInverted);
         afterRefreshVision = null;
         robot.pickup.retractHatchDeployer();
+        stopwatch.cancel();
     }
 
     private void setEnabled(boolean enabled)
@@ -268,12 +271,14 @@ public class TaskAutoDeploy
 
             TrcEvent elevatorEvent;
             double x, y;
+            double travelHeight;
 
             switch (state)
             {
                 case START:
                     robot.setHalfBrakeModeEnabled(false, false);
                     robot.enableSmallGains();
+                    pose = null;
                     if (USE_VISION_YAW)
                     {
                         pose = robot.vision.getAveragePose(5, false);
@@ -312,10 +317,27 @@ public class TaskAutoDeploy
                     break;
 
                 case REFRESH_VISION:
-                    pose = robot.vision.getAveragePose(5, false);
-                    if (pose != null)
+                    if (!stopwatch.isActive())
                     {
-                        sm.setState(afterRefreshVision != null ? afterRefreshVision : State.DONE);
+                        stopwatch.start();
+                    }
+                    if (stopwatch.getElapsedTime() >= 0.2 && pose != null)
+                    {
+                        if (afterRefreshVision == State.ALIGN_Y)
+                        {
+                            pose.x = 0.0;
+                            sm.setState(afterRefreshVision);
+                            stopwatch.cancel();
+                        }
+                    }
+                    else
+                    {
+                        pose = robot.vision.getAveragePose(5, false);
+                        if (pose != null)
+                        {
+                            sm.setState(afterRefreshVision != null ? afterRefreshVision : State.DONE);
+                            stopwatch.cancel();
+                        }
                     }
                     break;
 
@@ -347,23 +369,18 @@ public class TaskAutoDeploy
                     break;
 
                 case ALIGN_X:
-                    elevatorEvent = new TrcEvent(instanceName + ".elevatorEvent");
-                    travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
-                    robot.elevator.setPosition(travelHeight, elevatorEvent);
-
                     x = getXDistance();
                     y = 0.0;
 
                     robot.globalTracer
                         .traceInfo("DeployTask", "State=ALIGN_X, x=%.1f,y=%.1f,rot=%.1f", x, y, robot.targetHeading);
                     robot.pidDrive.setTarget(x, y, robot.targetHeading, false, event);
-                    sm.addEvent(elevatorEvent);
-                    sm.addEvent(event);
-                    sm.waitForEvents(State.REFRESH_VISION, 0.0, true);
+                    sm.waitForSingleEvent(event,State.REFRESH_VISION);
                     afterRefreshVision = State.ALIGN_Y;
                     break;
 
                 case ALIGN_Y:
+                    travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight);
 
                     x = getXDistance();
