@@ -284,18 +284,22 @@ public class RobotInfo
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
-    public static final double ELEVATOR_POS_CLIMB               = 30.0; // TODO: tune this
 
     public static final double ROCKET_SIDE_ANGLE                = 61.23; // Angle in degrees between side wall and angled rocket side.
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
 
-    public static final double CLIMBER_ACTUATOR_SCALE           = 1.0;
-    public static final double CLIMBER_KP                       = 0.0;
-    public static final double CLIMBER_KI                       = 0.0;
-    public static final double CLIMBER_KD                       = 0.0;
-    public static final double CLIMBER_TOLERANCE                = 3.0;
-    public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.4;
+    public static final double CLIMBER_ACTUATOR_SCALE           = 1.0; // TODO: Tune this
+    public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.2;
     public static final double CLIMBER_ACTUATOR_GROUND_POS      = 13.0 * CLIMBER_ACTUATOR_SCALE; // in encoder ticks
+    public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.4;
+    public static final double CLIMBER_ACTUATOR_HOLD_POWER      = 0.3;
+    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.5; // It's down
+    public static final double CLIMBER_ELEVATOR_HOLD_POWER      = -0.3;
+    public static final double CLIMBER_PICKUP_HOLD_POWER        = 0.5;
+    public static final double CLIMBER_PICKUP_ANGLE             = 140.0;
+    public static final double CLIMBER_WHEELS_DRIVE_POWER       = 0.8;
+    public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 30.0; // TODO: tune this
+    public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 40.0; // TODO: tune this
 }   // class RobotInfo
