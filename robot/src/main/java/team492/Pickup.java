@@ -149,7 +149,8 @@ public class Pickup
      */
     private double getGravityCompensation()
     {
-        return Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
+        // This needs to be negative since negative = up
+        return -Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
     }
 
     public void extendAlignGuides()
