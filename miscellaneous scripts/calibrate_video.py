@@ -35,7 +35,7 @@ print('\nChoosing 100 evenly spaced frames...')
 objectpoints = []
 imagepoints = []
 num_found = len(imgpoints)
-for i in range(0 , num_found, int(num_found/100)):
+for i in range(0 , num_found, int(num_found/50)):
     objectpoints.append(objpoints[i])
     imagepoints.append(imgpoints[i])
 

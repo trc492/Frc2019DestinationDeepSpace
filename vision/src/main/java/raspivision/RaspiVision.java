@@ -59,35 +59,11 @@ public class RaspiVision
     private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DRAW_CROSSHAIR = true;
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
+    private static final boolean DRAW_CROSSHAIR = false;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.FULL_PNP;
 
     private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
     private static final boolean FLIP_Y_AXIS = true;
-
-    // Default image resolution, in pixels
-    private static final int DEFAULT_WIDTH = 320;
-    private static final int DEFAULT_HEIGHT = 240;
-
-    // These are for the Raspberry Pi Camera v2
-    private static final double CAMERA_FOV_X = 62.2;
-    private static final double CAMERA_FOV_Y = 48.8;
-
-    private static final double CROSSHAIR_X_ANGLE = -7.125; // Angle in degrees from camera to end effector
-
-    // These were calculated using the game manual specs on vision target
-    // Origin is center of bounding box
-    // Order is leftbottomcorner, lefttopcorner, rightbottomcorner, righttopcorner
-    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-5.375, -2.9375, 0),
-        new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
-
-    // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 223.01258757, 0.0, 153.16212363, 0.0, 222.23760939,
-        126.9374426, 0.0, 0.0, 1.0 };
-
-    // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.21826744, -0.60425638, 0.00453213, -0.00482952,
-        0.40065646 };
 
     private Gson gson;
     private Thread visionThread;
@@ -117,7 +93,7 @@ public class RaspiVision
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
     private MatOfDouble dist;
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
-    private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
+    private MatOfPoint3f worldPoints = new MatOfPoint3f(CameraConstants.TARGET_WORLD_COORDS);
     private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
     private Mat rotationVector = new Mat();
     private Mat translationVector = new Mat();
@@ -180,17 +156,17 @@ public class RaspiVision
         cameraPitch.addListener(event -> this.cameraPitch = event.value.getDouble(),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
-        cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
+        cameraData.setDoubleArray(new double[] { CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT });
 
         if (DEBUG_DISPLAY != DebugDisplayType.NONE)
         {
-            dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
         }
 
         if (!APPROXIMATE_CAMERA_MATRIX)
         {
-            cameraMat.put(0, 0, CAMERA_MATRIX);
-            dist = new MatOfDouble(DISTORTION_MATRIX);
+            cameraMat.put(0, 0, CameraConstants.CAMERA_MATRIX);
+            dist = new MatOfDouble(CameraConstants.DISTORTION_MATRIX);
         }
         else
         {
@@ -201,7 +177,7 @@ public class RaspiVision
         calcThread = new Thread(this::calculationThread);
 
         camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
-        camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+        camera.setResolution(CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
         camera.setBrightness(40);
         pipeline = new VisionTargetPipeline();
         visionThread = new Thread(this::visionProcessingThread);
@@ -269,7 +245,7 @@ public class RaspiVision
 
         if (DRAW_CROSSHAIR)
         {
-            driverStream = CameraServer.getInstance().putVideo("DriverStream", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            driverStream = CameraServer.getInstance().putVideo("DriverStream", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
         }
 
         while (!Thread.interrupted())
@@ -372,8 +348,8 @@ public class RaspiVision
             cameraData.setDoubleArray(new double[] { width, height });
             if (APPROXIMATE_CAMERA_MATRIX)
             {
-                double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
-                double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
+                double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CameraConstants.CAMERA_FOV_X / 2.0)));
+                double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CameraConstants.CAMERA_FOV_Y / 2.0)));
                 cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
             }
         }
@@ -447,7 +423,7 @@ public class RaspiVision
     private void drawCrossHairs(Mat image)
     {
         double xFov = cameraMat.get(1, 1)[0];
-        double x = Math.tan(Math.toRadians(CROSSHAIR_X_ANGLE)) * xFov;
+        double x = Math.tan(Math.toRadians(CameraConstants.CROSSHAIR_X_ANGLE)) * xFov;
         Imgproc.line(image, new Point(x, 0), new Point(x, height), new Scalar(255, 255, 255), 2);
     }
 
