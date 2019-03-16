@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import scipy.misc
 
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
@@ -9,6 +10,9 @@ objp[:,:2] = np.mgrid[0:9,0:7].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
+# Collect an image that measures grid coverage of the field of view.
+coverage = np.zeros((120,180),np.float32)
+coverage_scale=0.25
 
 video = cv2.VideoCapture('vid.mp4')
 success = True
@@ -26,16 +30,26 @@ while success:
         if ret == True:
             objpoints.append(objp)
             corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-            imgpoints.append(corners)
-        print('\rRead frame: %3d of %3d' % (count, num_frames), end='')
+            imgpoints.append(corners)            
+            for c in corners:
+                for cc in c:
+                    # note: change to +=1 for a grayscale result
+                    coverage[int(cc[1]*coverage_scale),int(cc[0]*coverage_scale)]=1
+        print('Read frame: %3d of %3d (%d) Corners: %3d\r' % (count, num_frames, ret, len(corners if corners is not None else [])),end='')
     else:
         print('\nFailed to read image!')
 
-print('\nChoosing 100 evenly spaced frames...')
+print('Found corners in {} of {} frames'.format(len(imgpoints), num_frames))
+
+print('Saving coverage map')
+scipy.misc.imsave('coverage.jpg', coverage)
+
+num_to_calibrate = 100
+print('\nChoosing {} evenly spaced frames...'.format(num_to_calibrate))
 objectpoints = []
 imagepoints = []
 num_found = len(imgpoints)
-for i in range(0 , num_found, int(num_found/50)):
+for i in range(0 , num_found, max(1,int(num_found/num_to_calibrate))):
     objectpoints.append(objpoints[i])
     imagepoints.append(imgpoints[i])
 
