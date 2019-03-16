@@ -438,6 +438,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                if (pressed)
+                {
+                    robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_CARGO_SHIP);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_CARGO_SHIP_POS);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
@@ -454,8 +459,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON11:
                 if (pressed)
                 {
-                    robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_CARGO_SHIP);
-                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_CARGO_SHIP_POS);
+                    robot.pickup.setPickupAngle(RobotInfo.PICKUP_HATCH_PICKUP_POS);
+                    robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_HATCH_PICKUP);
                 }
                 break;
 
@@ -576,6 +581,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
+                if (pressed)
+                {
+                    robot.elevator.zeroCalibrate();
+                    robot.pickup.zeroCalibrate();
+                }
                 break;
         }
     } // operatorStickButtonEvent

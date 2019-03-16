@@ -237,8 +237,8 @@ public class RobotInfo
     public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE; // Max torque required to hold up
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
-    public static final double PICKUP_HATCH_PICKUP_POS          = 0.4;
-    public static final double PICKUP_GROUND_CARGO_POS          = 54;
+    public static final double PICKUP_HATCH_PICKUP_POS          = 11.21;
+    public static final double PICKUP_GROUND_CARGO_POS          = 66.16;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
     public static final double PICKUP_CARGO_SHIP_POS            = 20.38;
@@ -276,8 +276,8 @@ public class RobotInfo
         ELEVATOR_POS_CARGO_ROCKET_MED, ELEVATOR_POS_CARGO_ROCKET_HIGH };
 
     public static final double ELEVATOR_POS_HATCH_ROCKET_LOW    = ELEVATOR_MIN_POS;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 35.5;
-    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 64.875;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_MED    = 34.45;
+    public static final double ELEVATOR_POS_HATCH_ROCKET_HIGH   = 63.06;
     public static final double[] ELEVATOR_HATCH_ROCKET_POSITIONS = new double[] { ELEVATOR_POS_HATCH_ROCKET_LOW,
         ELEVATOR_POS_HATCH_ROCKET_MED, ELEVATOR_POS_HATCH_ROCKET_HIGH };
 

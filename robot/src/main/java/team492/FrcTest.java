@@ -346,12 +346,6 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
-                if (pressed)
-                {
-                    processedInput = true;
-                    robot.elevator.zeroCalibrate();
-                    robot.pickup.zeroCalibrate();
-                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
