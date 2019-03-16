@@ -8,6 +8,7 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Relay;
 import edu.wpi.first.wpilibj.Relay.Direction;
+import trclib.TrcUtil;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +60,9 @@ public class RaspiVision
         else
         {
             // Deserialize the latest calculated pose
-            this.relativePose = gson.fromJson(info, RelativePose.class);
+            RelativePose relativePose = gson.fromJson(info, RelativePose.class);
+            relativePose.time = TrcUtil.getCurrentTime();
+            this.relativePose = relativePose;
             synchronized (framesLock)
             {
                 // Add the latest pose
@@ -71,6 +74,11 @@ public class RaspiVision
                 }
             }
         }
+    }
+
+    private boolean isFresh(RelativePose pose)
+    {
+        return pose != null && TrcUtil.getCurrentTime() - pose.time >= RobotInfo.CAMERA_DATA_TIMEOUT;
     }
 
     /**
@@ -112,19 +120,31 @@ public class RaspiVision
             }
             int fromIndex = Math.max(0, frames.size() - numFrames);
             List<RelativePose> poses = frames.subList(fromIndex, frames.size());
+            int numFreshFrames = 0;
             for (RelativePose pose : poses)
             {
-                average.objectYaw += pose.objectYaw;
-                average.r += pose.r;
-                average.theta += pose.theta;
-                average.x += pose.x;
-                average.y += pose.y;
+                // Only use data if it's fresh
+                if (isFresh(pose))
+                {
+                    average.objectYaw += pose.objectYaw;
+                    average.r += pose.r;
+                    average.theta += pose.theta;
+                    average.x += pose.x;
+                    average.y += pose.y;
+                    numFreshFrames++;
+                }
             }
-            average.objectYaw /= poses.size();
-            average.r /= poses.size();
-            average.theta /= poses.size();
-            average.x /= poses.size();
-            average.y /= poses.size();
+            // If no fresh data, clear all and return null
+            if (numFreshFrames == 0)
+            {
+                frames.clear();
+                return null;
+            }
+            average.objectYaw /= (double) numFreshFrames;
+            average.r /= (double) numFreshFrames;
+            average.theta /= (double) numFreshFrames;
+            average.x /= (double) numFreshFrames;
+            average.y /= (double) numFreshFrames;
         }
         return average;
     }
@@ -150,11 +170,13 @@ public class RaspiVision
      */
     public RelativePose getLastPose()
     {
-        return relativePose;
+        RelativePose pose = relativePose;
+        return isFresh(pose) ? pose : null;
     }
 
     public static class RelativePose
     {
         public double r, theta, objectYaw, x, y;
+        public double time;
     }
 }
