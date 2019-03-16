@@ -257,6 +257,11 @@ public class Robot extends FrcRobotBase
         rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
 
+        leftFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rightFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        leftRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rightRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+
         //
         // Initialize DriveBase subsystem.
         //

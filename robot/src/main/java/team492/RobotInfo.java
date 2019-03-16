@@ -35,6 +35,8 @@ public class RobotInfo
 
     public static final double BATTERY_CAPACITY_WATT_HOUR       = 18.0*12.0;
 
+    public static final double BATTERY_NOMINAL_VOLTAGE          = 12.0;
+
     //
     // Robot dimensions.
     //
