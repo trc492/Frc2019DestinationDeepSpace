@@ -27,8 +27,8 @@ import edu.wpi.first.cameraserver.CameraServer;
 
 public class DriverCamera
 {
-    private static final int DEFAULT_WIDTH = 640;
-    private static final int DEFAULT_HEIGHT = 480;
+    private static final int DEFAULT_WIDTH = 160;
+    private static final int DEFAULT_HEIGHT = 120;
 
     private int cameraIndex;
 

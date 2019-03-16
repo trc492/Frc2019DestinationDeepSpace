@@ -177,8 +177,15 @@ public class RaspiVision
         calcThread = new Thread(this::calculationThread);
 
         camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
-        camera.setResolution(CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        camera.setBrightness(40);
+        if (CameraConstants.correctlyInitialized && !"".equals(CameraConstants.defaultJsonConfig.strip()))
+        {
+            cameraConfig.setString(CameraConstants.defaultJsonConfig);
+        }
+        else
+        {
+            camera.setResolution(CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+            camera.setBrightness(CameraConstants.DEFAULT_BRIGHTNESS);
+        }
         pipeline = new VisionTargetPipeline();
         visionThread = new Thread(this::visionProcessingThread);
         visionThread.setDaemon(false);

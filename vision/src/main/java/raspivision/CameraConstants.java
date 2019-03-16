@@ -10,9 +10,11 @@ import java.io.InputStreamReader;
 
 public class CameraConstants
 {
+    public static boolean correctlyInitialized = true;
     // Default image resolution, in pixels
     public static int DEFAULT_WIDTH;
     public static int DEFAULT_HEIGHT;
+    public static final int DEFAULT_BRIGHTNESS = 40;
     // These are for the Raspberry Pi Camera v2
     public static final double CAMERA_FOV_X = 62.2;
     public static final double CAMERA_FOV_Y = 48.8;
@@ -51,6 +53,7 @@ public class CameraConstants
             DEFAULT_WIDTH = 320;
             DEFAULT_HEIGHT = 240;
             defaultJsonConfig = "";
+            correctlyInitialized = false;
             e.printStackTrace();
         }
     }
