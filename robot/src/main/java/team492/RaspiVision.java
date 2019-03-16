@@ -51,8 +51,8 @@ public class RaspiVision
     {
         if (!notification.connected)
         {
-            robot.globalTracer.traceInfo("RaspiVision.connectionListener", "Client %s disconnected!",
-                notification.conn.remote_ip);
+            robot.globalTracer
+                .traceInfo("RaspiVision.connectionListener", "Client %s disconnected!", notification.conn.remote_ip);
         }
     }
 
