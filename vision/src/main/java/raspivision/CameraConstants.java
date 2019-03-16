@@ -18,7 +18,6 @@ public class CameraConstants
     // These are for the Raspberry Pi Camera v2
     public static final double CAMERA_FOV_X = 62.2;
     public static final double CAMERA_FOV_Y = 48.8;
-    public static final double CROSSHAIR_X_ANGLE = -7.125; // Angle in degrees from camera to end effector
     // These were calculated using the game manual specs on vision target
     // Origin is center of bounding box
     // Order is leftbottomcorner, lefttopcorner, rightbottomcorner, righttopcorner

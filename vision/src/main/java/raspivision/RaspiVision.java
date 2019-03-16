@@ -59,7 +59,6 @@ public class RaspiVision
     private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final boolean DRAW_CROSSHAIR = false;
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.FULL_PNP;
 
     private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
@@ -248,12 +247,6 @@ public class RaspiVision
         CvSink sink = new CvSink("RaspiVision");
         sink.setSource(camera);
         Mat image = new Mat();
-        CvSource driverStream = null;
-
-        if (DRAW_CROSSHAIR)
-        {
-            driverStream = CameraServer.getInstance().putVideo("DriverStream", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
-        }
 
         while (!Thread.interrupted())
         {
@@ -265,12 +258,6 @@ public class RaspiVision
                 {
                     this.image = frame;
                     imageLock.notify();
-                }
-
-                if (driverStream != null)
-                {
-                    drawCrossHairs(image);
-                    driverStream.putFrame(image);
                 }
             }
             else
@@ -425,13 +412,6 @@ public class RaspiVision
             numFrames = 0;
             startTime = currTime;
         }
-    }
-
-    private void drawCrossHairs(Mat image)
-    {
-        double xFov = cameraMat.get(1, 1)[0];
-        double x = Math.tan(Math.toRadians(CameraConstants.CROSSHAIR_X_ANGLE)) * xFov;
-        Imgproc.line(image, new Point(x, 0), new Point(x, height), new Scalar(255, 255, 255), 2);
     }
 
     private double getTime()
