@@ -1,6 +1,7 @@
 package team492;
 
 import com.google.gson.Gson;
+import edu.wpi.first.networktables.ConnectionNotification;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
@@ -21,12 +22,17 @@ public class RaspiVision
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
     private Relay ringLight;
+    private Robot robot;
 
-    public RaspiVision()
+    public RaspiVision(Robot robot)
     {
-        NetworkTable table = NetworkTableInstance.getDefault().getTable("RaspiVision");
+        this.robot = robot;
+
+        NetworkTableInstance instance = NetworkTableInstance.getDefault();
+        NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry entry = table.getEntry("VisionData");
         NetworkTableEntry pitchEntry = table.getEntry("CameraPitch");
+        instance.addConnectionListener(this::connectionListener, false);
         gson = new Gson();
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
@@ -39,6 +45,15 @@ public class RaspiVision
     public void setRingLightEnabled(boolean enabled)
     {
         ringLight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
+    }
+
+    private void connectionListener(ConnectionNotification notification)
+    {
+        if (!notification.connected)
+        {
+            robot.globalTracer.traceInfo("RaspiVision.connectionListener", "Client %s disconnected!",
+                notification.conn.remote_ip);
+        }
     }
 
     private void updateTargetInfo(EntryNotification event)

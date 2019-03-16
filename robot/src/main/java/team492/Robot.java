@@ -211,7 +211,7 @@ public class Robot extends FrcRobotBase
 
         if (USE_RASPI_VISION)
         {
-            vision = new RaspiVision();
+            vision = new RaspiVision(this);
         }
 
         //
