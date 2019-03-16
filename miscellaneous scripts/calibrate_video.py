@@ -10,9 +10,11 @@ objp[:,:2] = np.mgrid[0:9,0:7].T.reshape(-1,2)
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
 
+width,height = 1280,960
+
 # Collect an image that measures grid coverage of the field of view.
-coverage = np.zeros((120,180),np.float32)
 coverage_scale=0.25
+coverage = np.zeros((int(height*coverage_scale),int(width*coverage_scale)),np.float32)
 
 video = cv2.VideoCapture('vid.mp4')
 success = True
@@ -21,7 +23,7 @@ num_frames = int(video.get(int(cv2.CAP_PROP_FRAME_COUNT)))
 while success:
     success, img = video.read()
     if success:
-        img = cv2.resize(img, (640,480))
+        img = cv2.resize(img, (width,height))
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         # Find the chess board corners
         ret, corners = cv2.findChessboardCorners(gray, (9,7), None)

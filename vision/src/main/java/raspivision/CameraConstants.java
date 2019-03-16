@@ -25,11 +25,11 @@ public class CameraConstants
         new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
     public static String defaultJsonConfig;
     // Calculated by calibrating the camera
-    public static double[] CAMERA_MATRIX = new double[] { 223.01258757, 0.0, 153.16212363, 0.0, 222.23760939,
-        126.9374426, 0.0, 0.0, 1.0 };
+    public static double[] CAMERA_MATRIX = new double[] { 315.36241525, 0.0, 162.72056488, 0.0, 353.96380493,
+        123.0447475, 0.0, 0.0, 1.0 };
     // Calculated by calibrating the camera
-    public static double[] DISTORTION_MATRIX = new double[] { 0.21826744, -0.60425638, 0.00453213, -0.00482952,
-        0.40065646 };
+    public static double[] DISTORTION_MATRIX = new double[] { 0.26215572, -0.36606937, 0.00456197, 0.00611082,
+        -0.29983345 };
 
     static
     {
@@ -37,7 +37,7 @@ public class CameraConstants
         {
             StringBuilder sb = new StringBuilder();
             String s;
-            while((s = in.readLine()) != null)
+            while ((s = in.readLine()) != null)
             {
                 sb.append(s);
             }
