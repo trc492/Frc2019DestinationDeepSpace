@@ -386,10 +386,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.pickup.pickupCargo(null);
+                    robot.indicator.enablePickupPriorities();
                 }
                 else
                 {
                     robot.pickup.cancel();
+                    robot.indicator.enableNormalPriorities();
                 }
                 break;
 

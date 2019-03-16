@@ -30,20 +30,32 @@ public class LEDIndicator
     private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
     private final LEDPattern cargoPattern = LEDPattern.SolidOrange;
     private final LEDPattern visionPattern = LEDPattern.SolidAqua;
-    private final LEDPattern[] patterns = new LEDPattern[] { normalPattern, cargoPattern, visionPattern };
+    private final LEDPattern[] normalPriorities = new LEDPattern[] { normalPattern, cargoPattern, visionPattern };
+    private final LEDPattern[] pickupPriorities = new LEDPattern[] { normalPattern, visionPattern, cargoPattern };
 
     private FrcRevBlinkin blinkin;
 
     public LEDIndicator()
     {
         blinkin = new FrcRevBlinkin("LEDIndicator", RobotInfo.PWM_REV_BLINKIN);
-        blinkin.setPatternPriorities(patterns);
+        blinkin.setPatternPriorities(normalPriorities);
         blinkin.setPatternState(normalPattern, true);
+    }
+
+    public void enableNormalPriorities()
+    {
+        blinkin.setPatternPriorities(normalPriorities);
+    }
+
+    public void enablePickupPriorities()
+    {
+        blinkin.setPatternPriorities(pickupPriorities);
     }
 
     public void reset()
     {
         blinkin.resetAllPatternStates();
+        blinkin.setPatternPriorities(normalPriorities);
         blinkin.setPatternState(normalPattern, true);
     }
 
