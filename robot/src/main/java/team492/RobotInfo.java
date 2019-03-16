@@ -267,7 +267,7 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
 
-    public static final double ELEVATOR_POS_CARGO_SHIP          = 35.91;
+    public static final double ELEVATOR_POS_CARGO_SHIP          = 31.91;
 
     public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 14.5;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
