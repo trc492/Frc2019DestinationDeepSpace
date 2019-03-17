@@ -159,7 +159,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 lastElevatorPower = elevatorPower;
             }
 
-            double actuatorPower = actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
+            double actuatorPower = actuatorEnabled ? robot.operatorStick.getThrottleWithDeadband(true) : 0.0;
             robot.climber.setActuatorPower(actuatorPower);
             //
             // DriveBase operation.
