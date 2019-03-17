@@ -201,7 +201,7 @@ public class TaskAutoDeploy
         robot.stopSubsystems();
         onFinishedEvent = null;
         setEnabled(false);
-        robot.setHalfBrakeModeEnabled(true, robot.driveInverted);
+        robot.setHalfBrakeModeEnabled(true);
         afterRefreshVision = null;
         robot.pickup.retractHatchDeployer();
         stopwatch.cancel();
@@ -276,7 +276,7 @@ public class TaskAutoDeploy
             switch (state)
             {
                 case START:
-                    robot.setHalfBrakeModeEnabled(false, false);
+                    robot.setHalfBrakeModeEnabled(false);
                     robot.enableSmallGains();
                     pose = null;
                     if (USE_VISION_YAW)

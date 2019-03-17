@@ -117,6 +117,7 @@ public class Climber
             switch (state)
             {
                 case ZERO_SUBSYSTEMS:
+                    robot.setHalfBrakeModeEnabled(false);
                     actuator.set(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
                     robot.elevator.setPosition(level.getHeight());
                     robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE);

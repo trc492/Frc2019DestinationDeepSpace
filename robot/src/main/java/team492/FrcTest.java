@@ -119,7 +119,7 @@ public class FrcTest extends FrcTeleOp
 
         if (test != Test.SUBSYSTEMS_TEST)
         {
-            robot.setHalfBrakeModeEnabled(false, false);
+            robot.setHalfBrakeModeEnabled(false);
             robot.driveBase.resetOdometry(true, false);
         }
 

@@ -233,11 +233,12 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
+        driveInverted = false;
         leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
         leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
         rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
-        setHalfBrakeModeEnabled(true, false); // Karkeys prefers front coast, back brake
+        setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
 
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
         pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
@@ -344,6 +345,8 @@ public class Robot extends FrcRobotBase
             Date now = new Date();
             globalTracer
                 .traceInfo(funcName, "[%.3f] %s: ***** %s *****", Robot.getModeElapsedTime(), now.toString(), runMode);
+
+            driveInverted = false;
 
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
@@ -720,14 +723,14 @@ public class Robot extends FrcRobotBase
         }
     }   //traceStateInfo
 
-    public void setHalfBrakeModeEnabled(boolean enabled, boolean inverted)
+    public void setHalfBrakeModeEnabled(boolean enabled)
     {
         if (enabled)
         {
-            leftFrontWheel.setBrakeModeEnabled(inverted);
-            rightFrontWheel.setBrakeModeEnabled(inverted);
-            leftRearWheel.setBrakeModeEnabled(!inverted);
-            rightRearWheel.setBrakeModeEnabled(!inverted);
+            leftFrontWheel.setBrakeModeEnabled(driveInverted);
+            rightFrontWheel.setBrakeModeEnabled(driveInverted);
+            leftRearWheel.setBrakeModeEnabled(!driveInverted);
+            rightRearWheel.setBrakeModeEnabled(!driveInverted);
         }
         else
         {

@@ -59,7 +59,7 @@ public class RaspiVision
     private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.FULL_PNP;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
 
     private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
     private static final boolean FLIP_Y_AXIS = true;
