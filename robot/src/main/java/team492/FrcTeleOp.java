@@ -216,10 +216,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double x = leftDriveX;
                     double y = rightDriveY;
                     double rot = rightTwist;
-                    if (driveClimberWheels)
-                    {
-                        robot.climber.setWheelPower(y);
-                    }
+                    robot.climber.setWheelPower(driveClimberWheels ? y : 0.0);
                     switch (driveSpeed)
                     {
                         case SLOW:
@@ -377,6 +374,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
             case FrcJoystick.SIDEWINDER_BUTTON8:
                 driveClimberWheels = pressed;
+                if (!pressed)
+                {
+                    robot.climber.setWheelPower(0.0);
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON9:

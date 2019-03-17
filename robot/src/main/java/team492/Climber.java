@@ -70,6 +70,7 @@ public class Climber
         actuator.setBrakeModeEnabled(true);
 
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
+        climberWheels.setInverted(true);
 
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 
