@@ -51,6 +51,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private boolean gyroAssist = false;
     private double lastElevatorPower;
     private TrcLoopTimeCounter loopTimeCounter;
+    private boolean driveClimberWheels = false;
+    private boolean actuatorEnabled = false;
 
     public FrcTeleOp(Robot robot)
     {
@@ -77,6 +79,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.operatorStick.setYInverted(false);
 
         robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
+
+        robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
+
+        driveClimberWheels = false;
+        actuatorEnabled = false;
 
         driveSpeed = DriveSpeed.MEDIUM;
 
@@ -151,6 +158,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 robot.elevator.setPower(elevatorPower);
                 lastElevatorPower = elevatorPower;
             }
+
+            robot.climber.setActuatorPower(actuatorEnabled ? robot.operatorStick.getThrottleWithDeadband(true) : 0.0);
             //
             // DriveBase operation.
             //
@@ -206,6 +215,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double x = leftDriveX;
                     double y = rightDriveY;
                     double rot = rightTwist;
+                    if (driveClimberWheels)
+                    {
+                        robot.climber.setWheelPower(y);
+                    }
                     switch (driveSpeed)
                     {
                         case SLOW:
@@ -362,6 +375,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON8:
+                driveClimberWheels = pressed;
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON9:
@@ -471,19 +485,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     } // operatorStickButtonEvent
 
-    private void setElevatorHeight(TaskAutoDeploy.DeployLevel level)
-    {
-        boolean cargo = robot.pickup.cargoDetected();
-        if (cargo)
-        {
-            robot.elevator.setPosition(RobotInfo.ELEVATOR_CARGO_ROCKET_POSITIONS[level.getIndex()]);
-        }
-        else
-        {
-            robot.elevator.setPosition(RobotInfo.ELEVATOR_HATCH_ROCKET_POSITIONS[level.getIndex()]);
-        }
-    }
-
     public void buttonPanelButtonEvent(int button, boolean pressed)
     {
         boolean isAutoActive = robot.isAutoActive();
@@ -591,4 +592,61 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
         }
     } // operatorStickButtonEvent
+
+    public void switchPanelButtonEvent(int button, boolean pressed)
+    {
+        robot.dashboard
+            .displayPrintf(8, "  SwitchPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
+                robot.isAutoActive());
+        switch (button)
+        {
+            case FrcJoystick.PANEL_BUTTON1:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON2:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON3:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON4:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON5:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON6:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON7:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON8:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON9:
+                break;
+
+            case FrcJoystick.PANEL_BUTTON10:
+                actuatorEnabled = pressed;
+                if (!pressed)
+                {
+                    robot.climber.setActuatorPower(0.0);
+                }
+                break;
+        }
+    }
+
+    private void setElevatorHeight(TaskAutoDeploy.DeployLevel level)
+    {
+        boolean cargo = robot.pickup.cargoDetected();
+        if (cargo)
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_CARGO_ROCKET_POSITIONS[level.getIndex()]);
+        }
+        else
+        {
+            robot.elevator.setPosition(RobotInfo.ELEVATOR_HATCH_ROCKET_POSITIONS[level.getIndex()]);
+        }
+    }
 } // class FrcTeleOp

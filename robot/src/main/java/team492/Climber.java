@@ -67,12 +67,18 @@ public class Climber
         actuator.motor.overrideLimitSwitchesEnable(true);
         actuator.configFwdLimitSwitchNormallyOpen(false);
         actuator.configRevLimitSwitchNormallyOpen(false);
+        actuator.setBrakeModeEnabled(true);
 
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
 
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 
         sm = new TrcStateMachine<>("ClimbStateMachine");
+    }
+
+    public void setWheelPower(double power)
+    {
+        climberWheels.set(power);
     }
 
     public boolean getLowerLimitSwitch()

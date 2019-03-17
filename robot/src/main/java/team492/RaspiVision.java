@@ -93,7 +93,7 @@ public class RaspiVision
 
     private boolean isFresh(RelativePose pose)
     {
-        return pose != null && TrcUtil.getCurrentTime() - pose.time >= RobotInfo.CAMERA_DATA_TIMEOUT;
+        return pose != null && TrcUtil.getCurrentTime() - pose.time <= RobotInfo.CAMERA_DATA_TIMEOUT;
     }
 
     /**

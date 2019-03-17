@@ -48,6 +48,7 @@ public class RobotInfo
     public static final int JSPORT_RIGHT_DRIVESTICK             = 1;
     public static final int JSPORT_OPERATORSTICK                = 2;
     public static final int JSPORT_BUTTON_PANEL                 = 3;
+    public static final int JSPORT_SWITCH_PANEL                 = 4;
 
     //
     // CAN IDs.
@@ -221,9 +222,9 @@ public class RobotInfo
     public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.3;
     public static final double PICKUP_MIN_POS                   = 0.0; // Perpendicular to ground
-    public static final double PICKUP_MAX_POS                   = 90.0; // Parallel to ground
+    public static final double PICKUP_MAX_POS                   = 103; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
-    public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 2.0;
+    public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 4.0;
     public static final double PICKUP_STALL_MIN_POWER           = 0.8;
     public static final double PICKUP_STALL_TIMEOUT             = 1.0;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.2;

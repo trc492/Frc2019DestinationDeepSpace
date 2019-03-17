@@ -131,6 +131,8 @@ public class FrcTest extends FrcTeleOp
                 robot.leftDriveStick.setButtonHandler(null);
                 robot.rightDriveStick.setButtonHandler(null);
                 robot.operatorStick.setButtonHandler(null);
+                robot.buttonPanel.setButtonHandler(null);
+                robot.switchPanel.setButtonHandler(null);
                 //
                 // Sensors Test is the same as Subsystems Test without joystick
                 // control.
@@ -409,7 +411,7 @@ public class FrcTest extends FrcTeleOp
 
         if (!processedInput)
         {
-            super.operatorStickButtonEvent(button, pressed);
+            super.buttonPanelButtonEvent(button, pressed);
         }
     } // operatorStickButtonEvent
 

@@ -116,6 +116,7 @@ public class Robot extends FrcRobotBase
     public FrcJoystick rightDriveStick = null;
     public FrcJoystick operatorStick = null;
     public FrcJoystick buttonPanel = null;
+    public FrcJoystick switchPanel = null;
     //
     // Sensors.
     //
@@ -190,6 +191,8 @@ public class Robot extends FrcRobotBase
         rightDriveStick = new FrcJoystick("rightDriveStick", RobotInfo.JSPORT_RIGHT_DRIVESTICK);
         operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
+        switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
+
         //
         // Sensors.
         //
