@@ -312,8 +312,12 @@ public class Pickup
      */
     public void setPickupAngle(double angle)
     {
-        angle = TrcUtil.clipRange(angle, RobotInfo.PICKUP_MIN_POS, RobotInfo.PICKUP_MAX_POS);
         pitchController.setTarget(angle, true);
+    }
+
+    public void setPickupAngle(double angle, TrcEvent onFinishedEvent)
+    {
+        pitchController.setTarget(angle, onFinishedEvent, 0.0);
     }
 
     /**

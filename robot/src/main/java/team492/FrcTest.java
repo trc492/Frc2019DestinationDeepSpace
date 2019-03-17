@@ -486,10 +486,8 @@ public class FrcTest extends FrcTeleOp
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
 
-        robot.dashboard
-            .displayPrintf(10, "Actuator %b/%b rawPos=%.0f,pos=%.2f,power=%.2f", robot.climber.getLowerLimitSwitch(),
-                robot.climber.getUpperLimitSwitch(), robot.climber.getActuatorRawPos(),
-                robot.climber.getActuatorPosition(), robot.climber.getActuatorPower());
+        robot.dashboard.displayPrintf(10, "Actuator %b/%b rawPos=%.0f,power=%.2f", robot.climber.getLowerLimitSwitch(),
+            robot.climber.getUpperLimitSwitch(), robot.climber.getActuatorRawPos(), robot.climber.getActuatorPower());
 
         if (robot.vision != null)
         {

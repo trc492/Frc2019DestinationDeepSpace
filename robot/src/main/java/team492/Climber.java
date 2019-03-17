@@ -23,6 +23,7 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -32,7 +33,7 @@ public class Climber
 {
     private enum State
     {
-        ZERO_SUBSYSTEMS, MONITOR_ACTUATOR_CALIBRATION, START_CLIMB, CLIMB, DRIVE_FORWARD, DONE
+        INIT_SUBSYSTEMS, CLIMB
     }
 
     public enum HabLevel
@@ -125,16 +126,6 @@ public class Climber
         return actuator.getPosition();
     }
 
-    public double getActuatorPosition()
-    {
-        return actuator.getPosition() * RobotInfo.CLIMBER_ACTUATOR_SCALE;
-    }
-
-    private double getClimbPosition()
-    {
-        return TrcUtil.average(getActuatorPosition(), level.getHeight() - robot.elevator.getPosition());
-    }
-
     public void cancel()
     {
         actuator.set(0.0);
@@ -153,57 +144,25 @@ public class Climber
         {
             switch (state)
             {
-                case ZERO_SUBSYSTEMS:
+                case INIT_SUBSYSTEMS:
+                    TrcEvent pickupEvent = new TrcEvent("PickupEvent");
+                    TrcEvent elevatorEvent = new TrcEvent("ElevatorEvent");
+
                     robot.setHalfBrakeModeEnabled(false);
-                    robot.elevator.setPosition(level.getHeight());
-                    robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE);
+                    robot.elevator.setPosition(level.getHeight(), elevatorEvent);
+                    robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE, pickupEvent);
                     climberWheels.setBrakeModeEnabled(true);
                     climberWheels.set(0.0);
 
-                    sm.setState(State.MONITOR_ACTUATOR_CALIBRATION);
-                    break;
-
-                case MONITOR_ACTUATOR_CALIBRATION:
-                    if (getActuatorPosition() >= RobotInfo.CLIMBER_ACTUATOR_GROUND_POS)
-                    {
-                        actuator.set(0.0);
-                        sm.setState(State.START_CLIMB);
-                    }
-                    else
-                    {
-                        actuator.set(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
-                    }
-                    break;
-
-                case START_CLIMB:
-                    robot.elevator.setManualOverrideEnabled(true); // Disable the elevator pid
-                    actuator.resetPosition(true);
-
-                    sm.setState(State.CLIMB);
+                    sm.addEvent(elevatorEvent);
+                    sm.addEvent(pickupEvent);
+                    sm.waitForEvents(State.CLIMB, 0.0, true);
                     break;
 
                 case CLIMB:
-                    if (getClimbPosition() >= level.getHeight() - RobotInfo.CLIMBER_CLIMB_TOLERANCE)
-                    {
-                        robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_HOLD_POWER);
-                        actuator.set(RobotInfo.CLIMBER_ACTUATOR_HOLD_POWER);
-                        sm.setState(State.DRIVE_FORWARD);
-                    }
-                    else
-                    {
-                        actuator.set(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
-                        robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
-                        robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-                    }
-                    break;
-
-                case DRIVE_FORWARD:
-                    climberWheels.set(RobotInfo.CLIMBER_WHEELS_DRIVE_POWER);
-                    sm.setState(State.DONE);
-                    break;
-
-                case DONE:
-                    setEnabled(false);
+                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                    robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
+                    actuator.set(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
                     break;
             }
         }
