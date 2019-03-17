@@ -41,9 +41,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE,
-        Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, SPARK_FOLLOW_TEST, PIXY_LINE_FOLLOW_TEST,
-        LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, SPARK_FOLLOW_TEST, PIXY_LINE_FOLLOW_TEST, LIVE_WINDOW
     } // enum Test
 
     private enum State
@@ -367,6 +365,54 @@ public class FrcTest extends FrcTeleOp
         }
     } // operatorStickButtonEvent
 
+    @Override
+    public void buttonPanelButtonEvent(int button, boolean pressed)
+    {
+        boolean processedInput = false;
+
+        switch (button)
+        {
+            case FrcJoystick.LOGITECH_TRIGGER:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON3:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON5:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON6:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON7:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON8:
+                processedInput = true;
+                robot.climber.setActuatorPower(pressed ? -0.3 : 0.0);
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                processedInput = true;
+                robot.climber.setActuatorPower(pressed ? 0.3 : 0.0);
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
+                break;
+        }
+
+        if (!processedInput)
+        {
+            super.operatorStickButtonEvent(button, pressed);
+        }
+    } // operatorStickButtonEvent
+
     /**
      * This method reads all sensors and prints out their values. This is a very
      * useful diagnostic tool to check if all sensors are working properly. For
@@ -390,10 +436,9 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
         robot.dashboard.displayPrintf(4, "Sensors: pressure=%.1f", robot.getPressure());
-        robot.dashboard
-            .displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f,Power=%.2f", robot.elevator.isLowerLimitSwitchActive(),
-                robot.elevator.isUpperLimitSwitchActive(), robot.elevator.getRawPosition(),
-                robot.elevator.getPosition(), robot.elevator.getPower());
+        robot.dashboard.displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f,Power=%.2f",
+            robot.elevator.isLowerLimitSwitchActive(), robot.elevator.isUpperLimitSwitchActive(),
+            robot.elevator.getRawPosition(), robot.elevator.getPosition(), robot.elevator.getPower());
         robot.dashboard
             .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b", robot.pickup.isLowerLimitSwitchActive(),
                 robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
@@ -438,6 +483,11 @@ public class FrcTest extends FrcTeleOp
 
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
+
+        robot.dashboard
+            .displayPrintf(10, "Actuator %b/%b rawPos=%.0f,pos=%.2f,power=%.2f", robot.climber.getLowerLimitSwitch(),
+                robot.climber.getUpperLimitSwitch(), robot.climber.getActuatorRawPos(),
+                robot.climber.getActuatorPosition(), robot.climber.getActuatorPower());
 
         if (robot.vision != null)
         {

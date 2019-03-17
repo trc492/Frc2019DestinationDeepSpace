@@ -56,11 +56,11 @@ public class RobotInfo
     public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
     public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
     public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
-    public static final int CANID_LEFT_DRIVE_MASTER             = 7;    // 40A: Purple
-    public static final int CANID_RIGHT_DRIVE_MASTER            = 8;    // 40A: Gray
+    public static final int CANID_UNUSED                        = 7;
+    public static final int CANID_CLIMB_ACTUATOR                = 8;    // 40A: Purple
     public static final int CANID_ELEVATOR                      = 9;    // 40A: White
     public static final int CANID_PICKUP_PITCH                  = 10;   // 40A: Orange
-    public static final int CANID_RESERVED                      = 11;   // 30A: Yellow
+    public static final int CANID_CLIMB_WHEELS                  = 11;    // 40A: Gray
     public static final int CANID_PICKUP                        = 12;   // 30A: Green
 
     public static final int CANID_PIGEON                        = 15;
@@ -294,10 +294,11 @@ public class RobotInfo
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
 
     public static final double CLIMBER_ACTUATOR_SCALE           = 1.0; // TODO: Tune this
-    public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.2;
+    public static final double CLIMBER_CLIMB_TOLERANCE          = 1.0;
+    public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.1;
     public static final double CLIMBER_ACTUATOR_GROUND_POS      = 13.0 * CLIMBER_ACTUATOR_SCALE; // in encoder ticks
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.4;
-    public static final double CLIMBER_ACTUATOR_HOLD_POWER      = 0.3;
+    public static final double CLIMBER_ACTUATOR_HOLD_POWER      = 0.0;
     public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.5; // It's down
     public static final double CLIMBER_ELEVATOR_HOLD_POWER      = -0.3;
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 0.5;

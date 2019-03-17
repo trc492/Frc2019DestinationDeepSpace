@@ -153,6 +153,7 @@ public class Robot extends FrcRobotBase
     //
     public Pickup pickup;
     public Elevator elevator;
+    public Climber climber;
 
     public TaskAutoDeploy autoDeploy;
     public TaskAlignTarget autoAlignTarget;
@@ -300,6 +301,7 @@ public class Robot extends FrcRobotBase
         //
         elevator = new Elevator();
         pickup = new Pickup(this);
+        climber = new Climber(this);
         indicator = new LEDIndicator();
 
         //
