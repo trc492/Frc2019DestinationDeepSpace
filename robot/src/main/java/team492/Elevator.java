@@ -33,6 +33,7 @@ public class Elevator
 {
     private TrcPidActuator elevator;
     private FrcCANTalon motor;
+    private TrcPidController pidController;
 
     public Elevator()
     {
@@ -47,8 +48,8 @@ public class Elevator
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,
             RobotInfo.ELEVATOR_KI, RobotInfo.ELEVATOR_KD);
-        TrcPidController pidController = new TrcPidController("ElevatorPidController", pidCoefficients,
-            RobotInfo.ELEVATOR_TOLERANCE, this::getPosition);
+        pidController = new TrcPidController("ElevatorPidController", pidCoefficients, RobotInfo.ELEVATOR_TOLERANCE,
+            this::getPosition);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("ElevatorLowerLimitSwitch", motor, false);
         // TODO: Need to determine the proper gravity compensation value.
         elevator = new TrcPidActuator("ElevatorActuator", motor, lowerLimitSwitch, pidController,
@@ -57,6 +58,11 @@ public class Elevator
         elevator.setPositionScale(RobotInfo.ELEVATOR_INCHES_PER_COUNT, RobotInfo.ELEVATOR_MIN_POS);
         // elevator.setStallProtection(RobotInfo.ELEVATOR_STALL_MIN_POWER, RobotInfo.ELEVATOR_STALL_TIMEOUT,
         //     RobotInfo.ELEVATOR_STALL_RESET_TIMEOUT);
+    }
+
+    public TrcPidController getPidController()
+    {
+        return pidController;
     }
 
     public TrcPidActuator getElevator()
@@ -128,10 +134,10 @@ public class Elevator
 
     public void setPower(double power, boolean hold)
     {
-//        elevator.cancel();
+        //        elevator.cancel();
         power = TrcUtil.clipRange(power, -1.0, 1.0);
         elevator.setPower(power, hold);
         // TODO: figure this out
-//        motor.set(power);
+        //        motor.set(power);
     }
 }

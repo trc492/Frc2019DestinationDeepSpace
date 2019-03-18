@@ -49,6 +49,7 @@ public class Pickup
     private FrcDigitalInput cargoSensor;
     private TrcDigitalTrigger cargoTrigger;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
+    private TrcPidController pitchPidController;
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
     private boolean manualOverrideEnabled;
@@ -73,10 +74,10 @@ public class Pickup
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.PICKUP_KP,
             RobotInfo.PICKUP_KI, RobotInfo.PICKUP_KD);
-        TrcPidController pidController = new TrcPidController("PickupPidController", pidCoefficients,
+        pitchPidController = new TrcPidController("PickupPidController", pidCoefficients,
             RobotInfo.PICKUP_TOLERANCE, this::getPickupAngle);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("PitchLowerSwitch", pitchMotor, false);
-        pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pidController,
+        pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pitchPidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
             this::getGravityCompensation);
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
@@ -318,6 +319,11 @@ public class Pickup
     public void setPickupAngle(double angle, TrcEvent onFinishedEvent)
     {
         pitchController.setTarget(angle, onFinishedEvent, 0.0);
+    }
+
+    public TrcPidController getPitchPidController()
+    {
+        return pitchPidController;
     }
 
     /**

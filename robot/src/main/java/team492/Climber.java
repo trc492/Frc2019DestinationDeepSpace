@@ -32,7 +32,7 @@ public class Climber
 {
     private enum State
     {
-        INIT_SUBSYSTEMS, CLIMB
+        INIT_SUBSYSTEMS, WAIT_FOR_ENGAGE, CLIMB
     }
 
     public enum HabLevel
@@ -71,6 +71,7 @@ public class Climber
 
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
         climberWheels.setInverted(true);
+        climberWheels.setBrakeModeEnabled(true);
 
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 
@@ -100,6 +101,7 @@ public class Climber
     public void climb(HabLevel level)
     {
         this.level = level;
+        sm.start(State.INIT_SUBSYSTEMS);
         setEnabled(true);
     }
 
@@ -131,9 +133,14 @@ public class Climber
         robot.elevator.setPower(0.0);
         robot.elevator.setManualOverrideEnabled(false);
         climberWheels.set(0.0);
-        climberWheels.setBrakeModeEnabled(false);
         robot.pickup.setPitchPower(0.0);
+        sm.stop();
         setEnabled(false);
+    }
+
+    public boolean isActive()
+    {
+        return sm.isEnabled();
     }
 
     private void climbTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
@@ -141,24 +148,44 @@ public class Climber
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
+            robot.dashboard.displayPrintf(9, "State: %s", state.toString());
             switch (state)
             {
                 case INIT_SUBSYSTEMS:
                     TrcEvent pickupEvent = new TrcEvent("PickupEvent");
                     TrcEvent elevatorEvent = new TrcEvent("ElevatorEvent");
 
-                    robot.setHalfBrakeModeEnabled(false);
+                    robot.setHalfBrakeModeEnabled(true);
                     robot.elevator.setPosition(level.getHeight(), elevatorEvent);
+                    robot.elevator.getPidController().saveAndSetOutputLimit(0.5);
+                    robot.pickup.getPitchPidController().saveAndSetOutputLimit(0.5);
                     robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE, pickupEvent);
-                    climberWheels.setBrakeModeEnabled(true);
                     climberWheels.set(0.0);
+
+                    robot.elevator.setManualOverrideEnabled(true);
+                    robot.pickup.setManualOverrideEnabled(true);
 
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(pickupEvent);
                     sm.waitForEvents(State.CLIMB, 0.0, true);
                     break;
 
+                case WAIT_FOR_ENGAGE:
+                    robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
+                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                    if (robot.elevator.getPosition() <= level.getHeight() - RobotInfo.CLIMBER_ELEVATOR_LIFT_DIFF)
+                    {
+                        sm.setState(State.CLIMB);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                    // Intentional fallthrough
+
                 case CLIMB:
+                    robot.elevator.getPidController().restoreOutputLimit();
+                    robot.pickup.getPitchPidController().restoreOutputLimit();
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
                     robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
                     actuator.set(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);

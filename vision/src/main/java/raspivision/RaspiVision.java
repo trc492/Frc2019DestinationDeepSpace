@@ -61,7 +61,7 @@ public class RaspiVision
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
     private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
 
-    private static final boolean APPROXIMATE_CAMERA_MATRIX = false;
+    private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
     private static final boolean FLIP_Y_AXIS = true;
 
     private Gson gson;

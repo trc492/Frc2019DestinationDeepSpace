@@ -666,7 +666,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive();
+        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive() || climber.isActive();
     }
 
     public void cancelAllAuto()
@@ -684,6 +684,11 @@ public class Robot extends FrcRobotBase
         if (autoAlignTarget.isActive())
         {
             autoAlignTarget.cancel();
+        }
+
+        if (climber.isActive())
+        {
+            climber.cancel();
         }
     }
 

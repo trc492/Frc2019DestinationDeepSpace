@@ -159,86 +159,94 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 lastElevatorPower = elevatorPower;
             }
 
-            double actuatorPower = actuatorEnabled ? robot.operatorStick.getThrottleWithDeadband(true) : 0.0;
+            double actuatorPower = actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
+            robot.dashboard.displayPrintf(12, "ActuatorPower=%.1f", actuatorPower);
             robot.climber.setActuatorPower(actuatorPower);
             //
             // DriveBase operation.
             //
-            switch (driveMode)
+            if (driveClimberWheels)
             {
-                case TANK_MODE:
-                    double leftPower = leftDriveY;
-                    double rightPower = rightDriveY;
-                    switch (driveSpeed)
-                    {
-                        case SLOW:
-                            leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                            rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                            break;
+                robot.climber.setWheelPower(rightDriveY);
+            }
+            else
+            {
+                robot.climber.setWheelPower(0.0);
+                switch (driveMode)
+                {
+                    case TANK_MODE:
+                        double leftPower = leftDriveY;
+                        double rightPower = rightDriveY;
+                        switch (driveSpeed)
+                        {
+                            case SLOW:
+                                leftPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                                rightPower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                                break;
 
-                        case MEDIUM:
-                            leftPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                            rightPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                            break;
+                            case MEDIUM:
+                                leftPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                                rightPower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                                break;
 
-                        case FAST:
-                            leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
-                            rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
-                            break;
-                    }
-                    robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
-                    break;
+                            case FAST:
+                                leftPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                                rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
+                                break;
+                        }
+                        robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
+                        break;
 
-                case ARCADE_MODE:
-                    double drivePower = rightDriveY;
-                    double turnPower = rightTwist;
-                    switch (driveSpeed)
-                    {
-                        case SLOW:
-                            drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
-                            turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                            break;
+                    case ARCADE_MODE:
+                        double drivePower = rightDriveY;
+                        double turnPower = rightTwist;
+                        switch (driveSpeed)
+                        {
+                            case SLOW:
+                                drivePower *= RobotInfo.DRIVE_SLOW_YSCALE;
+                                turnPower *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                                break;
 
-                        case MEDIUM:
-                            drivePower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                            turnPower *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                            break;
+                            case MEDIUM:
+                                drivePower *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                                turnPower *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                                break;
 
-                        case FAST:
-                            drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
-                            turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                            break;
-                    }
-                    robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
-                    break;
+                            case FAST:
+                                drivePower *= RobotInfo.DRIVE_FAST_YSCALE;
+                                turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                                break;
+                        }
+                        robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
+                        break;
 
-                case MECANUM_MODE:
-                    double x = leftDriveX;
-                    double y = rightDriveY;
-                    double rot = rightTwist;
-                    robot.climber.setWheelPower(driveClimberWheels ? y : 0.0);
-                    switch (driveSpeed)
-                    {
-                        case SLOW:
-                            x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                            y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                            rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                            break;
+                    case MECANUM_MODE:
+                        double x = leftDriveX;
+                        double y = rightDriveY;
+                        double rot = rightTwist;
+                        switch (driveSpeed)
+                        {
+                            case SLOW:
+                                x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                                y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                                rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                                break;
 
-                        case MEDIUM:
-                            x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
-                            y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                            rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                            break;
+                            case MEDIUM:
+                                x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
+                                y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                                rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                                break;
 
-                        case FAST:
-                            x *= RobotInfo.DRIVE_FAST_XSCALE;
-                            y *= RobotInfo.DRIVE_FAST_YSCALE;
-                            rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                            break;
-                    }
-                    robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
-                    break;
+                            case FAST:
+                                x *= RobotInfo.DRIVE_FAST_XSCALE;
+                                y *= RobotInfo.DRIVE_FAST_YSCALE;
+                                rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                                break;
+                        }
+                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
+                        break;
+                }
             }
         }
     } // runPeriodic
@@ -627,6 +635,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
+                if (pressed)
+                {
+                    robot.climber.climb(Climber.HabLevel.LEVEL_3);
+                }
+                else
+                {
+                    robot.climber.cancel();
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:

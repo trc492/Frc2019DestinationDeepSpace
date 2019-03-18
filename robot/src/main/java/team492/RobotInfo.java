@@ -296,7 +296,7 @@ public class RobotInfo
     //
     // Climber subsystem.
     //
-    public static final double CLIMBER_INCHES_PER_COUNT         = 1.0;
+    public static final double CLIMBER_INCHES_PER_COUNT         = 0.0008655284;
     public static final double CLIMBER_KP                       = 0.4;
     public static final double CLIMBER_KI                       = 0.0;
     public static final double CLIMBER_KD                       = 0.0;
@@ -310,10 +310,11 @@ public class RobotInfo
     public static final double CLIMBER_SYNC_GAIN                = 1.0;
 
     public static final double CLIMBER_ACTUATOR_SCALE           = 1.0; // TODO: Tune this
-    public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.8;
-    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.8; // It's down
+    public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 1.0;
+    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.6; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;
     public static final double CLIMBER_PICKUP_ANGLE             = 135.0;
-    public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 30.0; // TODO: tune this
-    public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 40.0; // TODO: tune this
+    public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 21.0; // TODO: tune this
+    public static final double CLIMBER_ELEVATOR_LIFT_DIFF = 7.0; // Number of inches due to backlash
+    public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 34.0; // TODO: tune this
 }   // class RobotInfo
