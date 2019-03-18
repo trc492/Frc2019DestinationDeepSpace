@@ -29,6 +29,23 @@ import trclib.TrcPidController;
 
 public class Climber2
 {
+    public enum HabLevel
+    {
+        LEVEL_2(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2), LEVEL_3(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3);
+
+        private double height;
+
+        HabLevel(double height)
+        {
+            this.height = height;
+        }
+
+        public double getHeight()
+        {
+            return height;
+        }
+    }   //enum HabLevel
+
     private class ClimberMotor extends FrcCANTalon
     {
         public ClimberMotor(String instanceName, int canId)
@@ -36,6 +53,11 @@ public class Climber2
             super(instanceName, canId);
         }   //ClimberMotor
     
+        public double getRawPosition()
+        {
+            return super.getPosition();
+        }   //getRawPosition
+
         @Override
         public double getPosition()
         {
@@ -47,6 +69,7 @@ public class Climber2
     private final Elevator elevator;
     private final ClimberMotor climberMotor;
     private final TrcPidActuator climber;
+    private final FrcCANTalon climberWheels;
     private double habHeight;
 
     public Climber2(Elevator elevator)
@@ -64,7 +87,7 @@ public class Climber2
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(
             RobotInfo.CLIMBER_KP, RobotInfo.CLIMBER_KI, RobotInfo.CLIMBER_KD);
         TrcPidController pidController = new TrcPidController(
-            "ClimberPidController", pidCoefficients, RobotInfo.CLIMBER_TOLERANCE, this::getPosition);
+            "ClimberPidController", pidCoefficients, RobotInfo.CLIMBER_TOLERANCE, this::getClimberPosition);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch(
             "ClimberLowerLimitSwitch", climberMotor, false);
         // TODO: Need to determine the proper gravity compensation value.
@@ -73,17 +96,25 @@ public class Climber2
             RobotInfo.CLIMBER_CALIBRATE_POWER, RobotInfo.CLIMBER_PID_FLOOR, RobotInfo.CLIMBER_PID_CEILING,
             () -> RobotInfo.CLIMBER_GRAVITY_COMP);
         climber.setPositionScale(RobotInfo.CLIMBER_INCHES_PER_COUNT, RobotInfo.CLIMBER_MIN_POS);
+
+        climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
+        climberWheels.setInverted(true);
     }   //Climber
 
-    public double getPosition()
+    public double getClimberRawPos()
+    {
+        return climberMotor.getRawPosition();
+    }
+
+    public double getClimberPosition()
     {
         // This should be the same as elevator position.
         return climber.getPosition();
-    }   //getPosition
+    }   //getClimberPosition
 
-    public void zeroCalibrate(double habHeight)
+    public void zeroCalibrate(HabLevel habLevel)
     {
-        this.habHeight = habHeight;
+        habHeight = habLevel.getHeight();
         elevator.setPosition(habHeight);
         climberMotor.set(-Math.abs(RobotInfo.CLIMBER_CALIBRATE_POWER));
     }
@@ -91,6 +122,26 @@ public class Climber2
     public void climb()
     {
         climber.setTarget(RobotInfo.ELEVATOR_MIN_POS, true);
+    }
+
+    public boolean getLowerLimitSwitch()
+    {
+        return climberMotor.isLowerLimitSwitchActive();
+    }
+
+    public boolean getUpperLimitSwitch()
+    {
+        return climberMotor.isUpperLimitSwitchActive();
+    }
+
+    public double getHabHeight()
+    {
+        return habHeight;
+    }
+
+    public void setWheelPower(double power)
+    {
+        climberWheels.set(power);
     }
 
 }   //class Climber
