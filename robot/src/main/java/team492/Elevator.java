@@ -64,6 +64,11 @@ public class Elevator
         return elevator;
     }
 
+    public FrcCANTalon getMotor()
+    {
+        return motor;
+    }
+
     public double getPower()
     {
         return motor.getPower();

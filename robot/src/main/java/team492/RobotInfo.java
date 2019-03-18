@@ -293,6 +293,21 @@ public class RobotInfo
 
     public static final double HAB_1_DRIVE_OFF_DIST             = 55.0;
     public static final double DRIVE_TO_CARGO_SHIP_FRONT_DIST   = 100.0;
+    //
+    // Climber subsystem.
+    //
+    public static final double CLIMBER_INCHES_PER_COUNT         = 1.0;
+    public static final double CLIMBER_KP                       = 0.4;
+    public static final double CLIMBER_KI                       = 0.0;
+    public static final double CLIMBER_KD                       = 0.0;
+    public static final double CLIMBER_TOLERANCE                = 1.0; // 1 in
+    public static final double CLIMBER_CALIBRATE_POWER          = 0.5;
+    public static final double CLIMBER_MIN_POS                  = 5.25;
+    public static final double CLIMBER_MAX_POS                  = 71;
+    public static final double CLIMBER_PID_FLOOR                = CLIMBER_MIN_POS - 2.0;
+    public static final double CLIMBER_PID_CEILING              = CLIMBER_MAX_POS + 2.0;
+    public static final double CLIMBER_GRAVITY_COMP             = 0.05;
+    public static final double CLIMBER_SYNC_GAIN                = 1.0;
 
     public static final double CLIMBER_ACTUATOR_SCALE           = 1.0; // TODO: Tune this
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.8;
