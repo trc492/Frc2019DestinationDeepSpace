@@ -27,7 +27,6 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
-import trclib.TrcUtil;
 
 public class Climber
 {
