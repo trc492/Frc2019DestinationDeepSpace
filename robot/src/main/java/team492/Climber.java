@@ -32,7 +32,7 @@ public class Climber
 {
     private enum State
     {
-        INIT_SUBSYSTEMS, WAIT_FOR_ENGAGE, CLIMB
+        INIT_SUBSYSTEMS, MANUAL_CLIMB
     }
 
     public enum HabLevel
@@ -167,28 +167,28 @@ public class Climber
 
                     sm.addEvent(elevatorEvent);
                     sm.addEvent(pickupEvent);
-                    sm.waitForEvents(State.CLIMB, 0.0, true);
+                    sm.waitForEvents(State.MANUAL_CLIMB, 3.0, true);
                     break;
 
-                case WAIT_FOR_ENGAGE:
-                    robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
+                case MANUAL_CLIMB:
+                    robot.elevator.getPidController().restoreOutputLimit();
+                    robot.pickup.getPitchPidController().restoreOutputLimit();
+                    double climbPower = robot.operatorStick.getYWithDeadband(true);
+                    double syncGain = robot.operatorStick.getTwistWithDeadband(true);
+                    double adjustment = syncGain * climbPower;
+                    robot.elevator.setPower(-(climbPower - adjustment));
+                    actuator.set(climbPower + adjustment);
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-                    if (robot.elevator.getPosition() <= level.getHeight() - RobotInfo.CLIMBER_ELEVATOR_LIFT_DIFF)
+                    if (robot.rightDriveStick.getRawButton(8))
                     {
-                        sm.setState(State.CLIMB);
+                        robot.driveBase.arcadeDrive(0.0, 0.0);
+                        climberWheels.set(robot.rightDriveStick.getYWithDeadband(true));
                     }
                     else
                     {
-                        break;
+                        climberWheels.set(0.0);
+                        robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
                     }
-                    // Intentional fallthrough
-
-                case CLIMB:
-                    robot.elevator.getPidController().restoreOutputLimit();
-                    robot.pickup.getPitchPidController().restoreOutputLimit();
-                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-                    robot.elevator.setPower(RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER);
-                    actuator.set(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
                     break;
             }
         }
