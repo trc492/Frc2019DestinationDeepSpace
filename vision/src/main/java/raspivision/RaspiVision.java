@@ -28,6 +28,7 @@ import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -71,13 +72,14 @@ public class RaspiVision
 
     private NetworkTableInstance instance;
     private NetworkTableEntry visionData;
-    private NetworkTableEntry cameraData;
 
     private int numFrames = 0;
     private double startTime = 0;
     private CvSource dashboardDisplay;
 
     private volatile double cameraPitch = 0.0;
+
+    private volatile boolean useDebugDisplay;
 
     private int width, height; // in pixels
 
@@ -141,7 +143,7 @@ public class RaspiVision
         NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
-        cameraData = table.getEntry("CameraData");
+        NetworkTableEntry useDebugDisplay = table.getEntry("UseDebugDisplay");
         NetworkTableEntry hueLow = table.getEntry("HueLow");
         NetworkTableEntry hueHigh = table.getEntry("HueHigh");
         NetworkTableEntry satLow = table.getEntry("SatLow");
@@ -152,14 +154,16 @@ public class RaspiVision
         NetworkTableEntry ratioHigh = table.getEntry("RatioHigh");
         NetworkTableEntry cameraPitch = table.getEntry("CameraPitch");
 
-        cameraPitch.addListener(event -> this.cameraPitch = event.value.getDouble(),
+        useDebugDisplay.addListener(event -> this.useDebugDisplay = event.value.isBoolean() && event.value.getBoolean(),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
-        cameraData.setDoubleArray(new double[] { CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT });
+        cameraPitch.addListener(event -> this.cameraPitch = event.value.isDouble() ? event.value.getDouble() : 0.0,
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         if (DEBUG_DISPLAY != DebugDisplayType.NONE)
         {
-            dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
+            dashboardDisplay = CameraServer.getInstance()
+                .putVideo("RaspiVision", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
         }
 
         if (!APPROXIMATE_CAMERA_MATRIX)
@@ -182,7 +186,8 @@ public class RaspiVision
         }
         else
         {
-            camera.setResolution(CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+            camera.setResolution(CameraConstants.DEFAULT_WIDTH,
+                CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
             camera.setBrightness(CameraConstants.DEFAULT_BRIGHTNESS);
         }
         pipeline = new VisionTargetPipeline();
@@ -192,30 +197,35 @@ public class RaspiVision
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
 
         hueHigh.setDouble(pipeline.hsvThresholdHue[1]);
-        hueHigh.addListener(event -> pipeline.hsvThresholdHue[1] = event.value.getDouble(), flag);
+        hueHigh.addListener(event -> pipeline.hsvThresholdHue[1] = getDouble(event), flag);
         hueLow.setDouble(pipeline.hsvThresholdHue[0]);
-        hueLow.addListener(event -> pipeline.hsvThresholdHue[0] = event.value.getDouble(), flag);
+        hueLow.addListener(event -> pipeline.hsvThresholdHue[0] = getDouble(event), flag);
 
         satHigh.setDouble(pipeline.hsvThresholdSaturation[1]);
-        satHigh.addListener(event -> pipeline.hsvThresholdSaturation[1] = event.value.getDouble(), flag);
+        satHigh.addListener(event -> pipeline.hsvThresholdSaturation[1] = getDouble(event), flag);
         satLow.setDouble(pipeline.hsvThresholdSaturation[0]);
-        satLow.addListener(event -> pipeline.hsvThresholdSaturation[0] = event.value.getDouble(), flag);
+        satLow.addListener(event -> pipeline.hsvThresholdSaturation[0] = getDouble(event), flag);
 
         valueHigh.setDouble(pipeline.hsvThresholdValue[1]);
-        valueHigh.addListener(event -> pipeline.hsvThresholdValue[1] = event.value.getDouble(), flag);
+        valueHigh.addListener(event -> pipeline.hsvThresholdValue[1] = getDouble(event), flag);
         valueLow.setDouble(pipeline.hsvThresholdValue[0]);
-        valueLow.addListener(event -> pipeline.hsvThresholdValue[0] = event.value.getDouble(), flag);
+        valueLow.addListener(event -> pipeline.hsvThresholdValue[0] = getDouble(event), flag);
 
         ratioLow.setDouble(pipeline.rotatedRectRatioMin);
-        ratioLow.addListener(event -> pipeline.rotatedRectRatioMin = event.value.getDouble(), flag);
+        ratioLow.addListener(event -> pipeline.rotatedRectRatioMin = getDouble(event), flag);
 
         ratioHigh.setDouble(pipeline.rotatedRectRatioMax);
-        ratioHigh.addListener(event -> pipeline.rotatedRectRatioMax = event.value.getDouble(), flag);
+        ratioHigh.addListener(event -> pipeline.rotatedRectRatioMax = getDouble(event), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         System.out.println("Done!\nInitialization complete!");
+    }
+
+    private double getDouble(EntryNotification event)
+    {
+        return event.value.isDouble() ? event.value.getDouble() : 0.0;
     }
 
     private void configCamera(UsbCamera camera, String json)
@@ -339,7 +349,6 @@ public class RaspiVision
         {
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
-            cameraData.setDoubleArray(new double[] { width, height });
             if (APPROXIMATE_CAMERA_MATRIX)
             {
                 double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CameraConstants.CAMERA_FOV_X / 2.0)));
@@ -356,8 +365,8 @@ public class RaspiVision
         }
 
         // If debug display is enabled, render it
-        if (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX || DEBUG_DISPLAY == DebugDisplayType.MASK
-            || DEBUG_DISPLAY == DebugDisplayType.REGULAR)
+        if (useDebugDisplay && (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX || DEBUG_DISPLAY == DebugDisplayType.MASK
+            || DEBUG_DISPLAY == DebugDisplayType.REGULAR))
         {
             debugDisplay(pipeline);
         }
@@ -471,11 +480,10 @@ public class RaspiVision
 
         // Convert the rotation matrix to euler angles
         double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
-        // Convert the yaw to actual yaw with my fuckit (tm) method.
-        double objectYaw = angles[1]; // yawMapper.applyAsDouble(angles[1]);
+        double objectYaw = angles[1];
 
         // Write to the debug display, if necessary
-        if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
+        if (useDebugDisplay && (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS))
         {
             Mat image = pipeline.getInput().clone();
 
