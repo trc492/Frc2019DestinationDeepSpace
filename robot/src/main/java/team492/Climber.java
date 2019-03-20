@@ -24,6 +24,7 @@ package team492;
 
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
+import frclib.FrcJoystick;
 import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
@@ -161,6 +162,7 @@ public class Climber
         actuator.set(0.0);
         robot.elevator.setPower(0.0);
         robot.elevator.setManualOverrideEnabled(false);
+        robot.pickup.setManualOverrideEnabled(false);
         climberWheels.set(0.0);
         robot.pickup.setPitchPower(0.0);
         sm.stop();
@@ -190,6 +192,7 @@ public class Climber
                     robot.pickup.getPitchPidController().saveAndSetOutputLimit(0.5);
                     robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE, pickupEvent);
                     climberWheels.set(0.0);
+                    climberWheels.setBrakeModeEnabled(true);
 
                     robot.elevator.setManualOverrideEnabled(true);
                     robot.pickup.setManualOverrideEnabled(true);
@@ -202,20 +205,24 @@ public class Climber
                 case MANUAL_CLIMB:
                     robot.elevator.getPidController().restoreOutputLimit();
                     robot.pickup.getPitchPidController().restoreOutputLimit();
-                    double climbPower = robot.operatorStick.getYWithDeadband(true);
-                    double syncGain = robot.operatorStick.getTwistWithDeadband(true);
-                    double adjustment = syncGain * climbPower;
-                    robot.elevator.setPower(-(climbPower - adjustment));
-                    actuator.set(climbPower + adjustment);
+
+                    robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-                    if (robot.rightDriveStick.getRawButton(8))
+
+                    setActuatorPower(robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON8) ?
+                        RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
+                        0.0);
+
+                    if (robot.rightDriveStick.getRawButton(FrcJoystick.SIDEWINDER_BUTTON8))
                     {
                         robot.driveBase.arcadeDrive(0.0, 0.0);
-                        climberWheels.set(robot.rightDriveStick.getYWithDeadband(true));
+                        climberWheels.setBrakeModeEnabled(true);
+                        setWheelPower(robot.rightDriveStick.getYWithDeadband(true));
                     }
                     else
                     {
-                        climberWheels.set(0.0);
+                        setWheelPower(0.0);
+                        climberWheels.setBrakeModeEnabled(false);
                         robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
                     }
                     break;
