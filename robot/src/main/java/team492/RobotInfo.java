@@ -219,7 +219,7 @@ public class RobotInfo
     // Pickup subsystem
     //
     // TODO: Tune all of this
-    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0111609546;
+    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0097596;
     public static final double PICKUP_KP                        = 0.03;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
@@ -256,16 +256,15 @@ public class RobotInfo
     //
     // Elevator subsystem
     //
-    // TODO: Tune all of this
     // for mag encoder: 0.0019605117
-    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.001979768;
+    public static final double ELEVATOR_INCHES_PER_COUNT        = 0.00195409;
     public static final double ELEVATOR_KP                      = 0.4;
     public static final double ELEVATOR_KI                      = 0.0;
     public static final double ELEVATOR_KD                      = 0.0;
     public static final double ELEVATOR_TOLERANCE               = 1.0; // 1 in
     public static final double ELEVATOR_CALIBRATE_POWER         = 0.5;
-    public static final double ELEVATOR_MIN_POS                 = 5.25;
-    public static final double ELEVATOR_MAX_POS                 = 71;
+    public static final double ELEVATOR_MIN_POS                 = 5.375;
+    public static final double ELEVATOR_MAX_POS                 = 68;
     public static final double ELEVATOR_PID_FLOOR               = ELEVATOR_MIN_POS - 2.0;
     public static final double ELEVATOR_PID_CEILING             = ELEVATOR_MAX_POS + 2.0;
     public static final double ELEVATOR_GRAVITY_COMP            = 0.05;
