@@ -57,11 +57,11 @@ public class RobotInfo
     public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
     public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
     public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
-    public static final int CANID_UNUSED                        = 7;
-    public static final int CANID_CLIMB_ACTUATOR                = 8;    // 40A: Purple
+    public static final int CANID_CLIMB_ACTUATOR                = 7;    // 40A: Purple
+    public static final int CANID_CLIMB_WHEELS                  = 8;    // 40A: Gray
     public static final int CANID_ELEVATOR                      = 9;    // 40A: White
     public static final int CANID_PICKUP_PITCH                  = 10;   // 40A: Orange
-    public static final int CANID_CLIMB_WHEELS                  = 11;    // 40A: Gray
+    public static final int CANID_UNUSED                        = 11;
     public static final int CANID_PICKUP                        = 12;   // 30A: Green
 
     public static final int CANID_PIGEON                        = 15;
