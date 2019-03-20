@@ -99,6 +99,7 @@ public class FrcAuto extends FrcTeleOp
         super.startMode(prevMode, nextMode);
         robot.elevator.zeroCalibrate(); // zero calibrate the elevator
         robot.pickup.zeroCalibrate(); // zero calibrate the pickup
+        robot.climber.zeroCalibrateActuator();
 
         final String funcName = moduleName + ".startMode";
 

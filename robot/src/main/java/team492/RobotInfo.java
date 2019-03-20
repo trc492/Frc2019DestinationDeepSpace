@@ -183,31 +183,35 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
+    // practice robot: 0.012/0.0/0.0
     public static final double ENCODER_X_INCHES_PER_COUNT       = 1.971078567;
-    public static final double ENCODER_X_KP                     = 0.012;
+    public static final double ENCODER_X_KP                     = 0.0;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.0;
     public static final double ENCODER_X_KF                     = 0.0;
     public static final double ENCODER_X_TOLERANCE              = 1.0;
 
-    public static final double ENCODER_X_KP_SMALL               = 0.024;
+    // practice robot: 0.024/0.0/0.0
+    public static final double ENCODER_X_KP_SMALL               = 0.0;
     public static final double ENCODER_X_KI_SMALL               = 0.0;
     public static final double ENCODER_X_KD_SMALL               = 0.0;
     public static final double ENCODER_X_KF_SMALL               = 0.0;
     public static final double ENCODER_X_TOLERANCE_SMALL        = 1.0;
 
     // comp robot: 0.02/0.0/0.0016
+    // practice robot: 0.01/0.0/0.001
     public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.360546194;
-    public static final double ENCODER_Y_KP                     = 0.01;
+    public static final double ENCODER_Y_KP                     = 0.0;
     public static final double ENCODER_Y_KI                     = 0.0;
-    public static final double ENCODER_Y_KD                     = 0.001;
+    public static final double ENCODER_Y_KD                     = 0.0;
     public static final double ENCODER_Y_KF                     = 0.0;
     public static final double ENCODER_Y_TOLERANCE              = 2.0;
 
     // Comp robot: 0.015/0.0/0.001
-    public static final double GYRO_TURN_KP                     = 0.008;
+    // practice robot: 0.008/0.0/0.0007
+    public static final double GYRO_TURN_KP                     = 0.015;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.0007;
+    public static final double GYRO_TURN_KD                     = 0.001;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
 
@@ -310,6 +314,7 @@ public class RobotInfo
     public static final double CLIMBER_SYNC_GAIN                = 1.0;
 
     public static final double CLIMBER_ACTUATOR_SCALE           = 1.0; // TODO: Tune this
+    public static final double CLIMBER_ACTUATOR_CAL_POWER       = -0.3;
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 1.0;
     public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.6; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;

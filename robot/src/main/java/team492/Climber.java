@@ -23,6 +23,8 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import frclib.FrcCANTalonLimitSwitch;
+import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -58,6 +60,8 @@ public class Climber
     private TrcTaskMgr.TaskObject climbTaskObj;
     private TrcStateMachine<State> sm;
     private HabLevel level;
+    private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
+    private boolean calibrating = false;
 
     public Climber(Robot robot)
     {
@@ -69,6 +73,12 @@ public class Climber
         actuator.configRevLimitSwitchNormallyOpen(false);
         actuator.setBrakeModeEnabled(true);
 
+        FrcCANTalonLimitSwitch actuatorLowerLimitSwitch = new FrcCANTalonLimitSwitch("ActuatorLowerLimit", actuator,
+            false);
+        actuatorLowerLimitSwitchTrigger = new TrcDigitalTrigger("TrcDigitalTrigger", actuatorLowerLimitSwitch,
+            this::lowerLimitSwitchEvent);
+        actuatorLowerLimitSwitchTrigger.setEnabled(true);
+
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
         climberWheels.setInverted(true);
         climberWheels.setBrakeModeEnabled(true);
@@ -76,6 +86,23 @@ public class Climber
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 
         sm = new TrcStateMachine<>("ClimbStateMachine");
+    }
+
+    private void lowerLimitSwitchEvent(boolean triggered)
+    {
+        actuator.resetPosition(true);
+        if (calibrating)
+        {
+            actuator.set(0.0);
+            calibrating = false;
+        }
+    }
+
+    public void zeroCalibrateActuator()
+    {
+        actuatorLowerLimitSwitchTrigger.setEnabled(true);
+        actuator.set(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
+        calibrating = true;
     }
 
     public void setWheelPower(double power)
@@ -96,6 +123,7 @@ public class Climber
     public void setActuatorPower(double power)
     {
         actuator.set(power);
+        calibrating = false;
     }
 
     public void climb(HabLevel level)
@@ -103,6 +131,7 @@ public class Climber
         this.level = level;
         sm.start(State.INIT_SUBSYSTEMS);
         setEnabled(true);
+        calibrating = false;
     }
 
     private void setEnabled(boolean enabled)
