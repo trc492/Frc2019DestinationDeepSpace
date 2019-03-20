@@ -647,6 +647,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
+                robot.climber.cancel();
                 actuatorEnabled = pressed;
                 if (!pressed)
                 {

@@ -159,14 +159,17 @@ public class Climber
 
     public void cancel()
     {
-        actuator.set(0.0);
-        robot.elevator.setPower(0.0);
-        robot.elevator.setManualOverrideEnabled(false);
-        robot.pickup.setManualOverrideEnabled(false);
-        climberWheels.set(0.0);
-        robot.pickup.setPitchPower(0.0);
-        sm.stop();
-        setEnabled(false);
+        if (isActive())
+        {
+            actuator.set(0.0);
+            robot.elevator.setPower(0.0);
+            robot.elevator.setManualOverrideEnabled(false);
+            robot.pickup.setManualOverrideEnabled(false);
+            climberWheels.set(0.0);
+            robot.pickup.setPitchPower(0.0);
+            sm.stop();
+            setEnabled(false);
+        }
     }
 
     public boolean isActive()
