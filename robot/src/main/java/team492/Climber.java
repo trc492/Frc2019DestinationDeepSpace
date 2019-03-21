@@ -60,8 +60,6 @@ public class Climber
     private TrcStateMachine<State> sm;
     // private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
     // private boolean calibrating = false;
-    private boolean driveWheels = false;
-    private boolean driveActuator = false;
     // private FrcJoystick.ButtonHandler rightDriveHandler, panelHandler;
 
     public Climber(Robot robot)
@@ -178,8 +176,6 @@ public class Climber
             climberWheels.set(0.0);
             robot.pickup.setPitchPower(0.0);
             sm.stop();
-            driveWheels = false;
-            driveActuator = false;
             // restoreButtonHandlers();
             setEnabled(false);
             robot.dashboard.displayPrintf(9, "");
@@ -251,23 +247,23 @@ public class Climber
         }
     }
 
-    public void rightDriveStickButtonEvent(int button, boolean pressed)
-    {
-        switch (button)
-        {
-            case FrcJoystick.SIDEWINDER_BUTTON8:
-                driveWheels = pressed;
-                break;
-        }
-    }
+    // public void rightDriveStickButtonEvent(int button, boolean pressed)
+    // {
+    //     switch (button)
+    //     {
+    //         case FrcJoystick.SIDEWINDER_BUTTON8:
+    //             driveWheels = pressed;
+    //             break;
+    //     }
+    // }
 
-    public void buttonPanelButtonEvent(int button, boolean pressed)
-    {
-        switch (button)
-        {
-            case FrcJoystick.PANEL_BUTTON8:
-                driveActuator = pressed;
-                break;
-        }
-    }
+    // public void buttonPanelButtonEvent(int button, boolean pressed)
+    // {
+    //     switch (button)
+    //     {
+    //         case FrcJoystick.PANEL_BUTTON8:
+    //             driveActuator = pressed;
+    //             break;
+    //     }
+    // }
 }

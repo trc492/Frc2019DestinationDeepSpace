@@ -334,11 +334,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             .displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
 
-        if (robot.climber.isActive())
-        {
-            robot.climber.rightDriveStickButtonEvent(button, pressed);
-            return;
-        }
+        // if (robot.climber.isActive())
+        // {
+        //     robot.climber.rightDriveStickButtonEvent(button, pressed);
+        //     return;
+        // }
 
         if (isAutoActive)
         {
@@ -503,11 +503,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             .displayPrintf(8, "  ButtonPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
 
-        if (robot.climber.isActive())
-        {
-            robot.climber.buttonPanelButtonEvent(button, pressed);
-            return;
-        }
+        // if (robot.climber.isActive())
+        // {
+        //     robot.climber.buttonPanelButtonEvent(button, pressed);
+        //     return;
+        // }
 
         if (isAutoActive && (pressed || (button != FrcJoystick.PANEL_BUTTON1 && button != FrcJoystick.PANEL_BUTTON2
             && button != FrcJoystick.PANEL_BUTTON3 && button != FrcJoystick.PANEL_BUTTON4)))
