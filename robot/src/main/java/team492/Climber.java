@@ -233,11 +233,8 @@ public class Climber
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
 
-                    setActuatorPower(robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON8) ?
-                        RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
-                        0.0);
-
-                    if (robot.rightDriveStick.getRawButton(FrcJoystick.SIDEWINDER_BUTTON8))
+                    setActuatorPower(robot.actuatorEnabled ? RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER : 0.0);
+                    if (robot.driveClimberWheels)
                     {
                         robot.driveBase.arcadeDrive(0.0, 0.0);
                         climberWheels.setBrakeModeEnabled(true);

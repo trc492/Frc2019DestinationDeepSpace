@@ -261,32 +261,6 @@ public class FrcJoystick extends Joystick
         }
     }   //setYInverted
 
-    @Override
-    public boolean getRawButton(int button)
-    {
-        final String funcName = "getRawButton";
-
-        // I ran into some issue with the super class implementation, because it's not specified whether buttons
-        // are referenced with indices or bitmasks, and turns out it's indices, while we use bitmasks.
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "button=%d", button);
-        }
-
-        // WPI uses a standard of indices (1,2,3), but we use a standard of bitmask (1,2,4)
-        // Convert bitmask to index with some magic I found online on stackoverfow.
-        int buttonIndex;
-        for (buttonIndex = 0; (button >>= 1) != 0; ++buttonIndex) { }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
-
-        return super.getRawButton(buttonIndex + 1); // Buttons are 1-indexed, so add 1
-    } // getRawButton
-
     /**
      * This method returns the value of the X analog stick.
      *

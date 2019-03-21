@@ -158,6 +158,8 @@ public class Robot extends FrcRobotBase
     public Pickup pickup;
     public Elevator elevator;
     public Climber climber;
+    public boolean driveClimberWheels = false;
+    public boolean actuatorEnabled = false;
 
     public TaskAutoDeploy autoDeploy;
     public TaskAlignTarget autoAlignTarget;

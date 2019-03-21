@@ -50,8 +50,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double lastElevatorPower;
     private double lastActuatorPower;
     private TrcLoopTimeCounter loopTimeCounter;
-    private boolean driveClimberWheels = false;
-    private boolean actuatorEnabled = false;
 
     public FrcTeleOp(Robot robot)
     {
@@ -81,8 +79,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
-        driveClimberWheels = false;
-        actuatorEnabled = false;
+        robot.driveClimberWheels = false;
+        robot.actuatorEnabled = false;
 
         driveSpeed = DriveSpeed.MEDIUM;
 
@@ -156,7 +154,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 lastElevatorPower = elevatorPower;
             }
 
-            double actuatorPower = actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
+            double actuatorPower = robot.actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
             if (actuatorPower != lastActuatorPower)
             {
                 robot.dashboard.displayPrintf(12, "ActuatorPower=%.1f", actuatorPower);
@@ -166,8 +164,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             //
             // DriveBase operation.
             //
-            if (driveClimberWheels)
+            if (robot.driveClimberWheels)
             {
+                // CodeReview: should multiply with a scale factor in order to sync the mecanum speed.
                 robot.climber.setWheelPower(rightDriveY);
             }
             else
@@ -384,7 +383,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON8:
-                driveClimberWheels = pressed;
+                robot.driveClimberWheels = pressed;
                 if (!pressed)
                 {
                     robot.climber.setWheelPower(0.0);
@@ -656,7 +655,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
             case FrcJoystick.PANEL_BUTTON10:
                 robot.climber.cancel();
-                actuatorEnabled = pressed;
+                robot.actuatorEnabled = pressed;
                 if (!pressed)
                 {
                     robot.climber.setActuatorPower(0.0);
