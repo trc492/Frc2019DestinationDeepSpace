@@ -28,8 +28,6 @@ import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
-import java.util.Arrays;
-
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     private enum DriveMode
@@ -336,6 +334,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.dashboard
             .displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
+
+        if (robot.climber.isActive())
+        {
+            robot.climber.rightDriveStickButtonEvent(button, pressed);
+            return;
+        }
+
         if (isAutoActive)
         {
             return; // Auto can only be cancelled by operator
@@ -498,6 +503,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.dashboard
             .displayPrintf(8, "  ButtonPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
+
+        if (robot.climber.isActive())
+        {
+            robot.climber.buttonPanelButtonEvent(button, pressed);
+            return;
+        }
 
         if (isAutoActive && (pressed || (button != FrcJoystick.PANEL_BUTTON1 && button != FrcJoystick.PANEL_BUTTON2
             && button != FrcJoystick.PANEL_BUTTON3 && button != FrcJoystick.PANEL_BUTTON4)))
