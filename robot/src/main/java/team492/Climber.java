@@ -25,7 +25,6 @@ package team492;
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcJoystick;
-import trclib.TrcDigitalTrigger;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -59,11 +58,11 @@ public class Climber
     private Robot robot;
     private TrcTaskMgr.TaskObject climbTaskObj;
     private TrcStateMachine<State> sm;
-    private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
-    private boolean calibrating = false;
+    // private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
+    // private boolean calibrating = false;
     private boolean driveWheels = false;
     private boolean driveActuator = false;
-    private FrcJoystick.ButtonHandler rightDriveHandler, panelHandler;
+    // private FrcJoystick.ButtonHandler rightDriveHandler, panelHandler;
 
     public Climber(Robot robot)
     {
@@ -77,9 +76,10 @@ public class Climber
 
         FrcCANTalonLimitSwitch actuatorLowerLimitSwitch = new FrcCANTalonLimitSwitch("ActuatorLowerLimit", actuator,
             false);
-        actuatorLowerLimitSwitchTrigger = new TrcDigitalTrigger("TrcDigitalTrigger", actuatorLowerLimitSwitch,
-            this::lowerLimitSwitchEvent);
-        actuatorLowerLimitSwitchTrigger.setEnabled(true);
+        // actuatorLowerLimitSwitchTrigger = new TrcDigitalTrigger("TrcDigitalTrigger", actuatorLowerLimitSwitch,
+        //     this::lowerLimitSwitchEvent);
+        // actuatorLowerLimitSwitchTrigger.setEnabled(true);
+        actuator.resetPositionOnDigitalInput(actuatorLowerLimitSwitch);
 
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
         climberWheels.setInverted(true);
@@ -90,21 +90,21 @@ public class Climber
         sm = new TrcStateMachine<>("ClimbStateMachine");
     }
 
-    private void lowerLimitSwitchEvent(boolean triggered)
-    {
-        actuator.resetPosition(true);
-        if (calibrating)
-        {
-            actuator.set(0.0);
-            calibrating = false;
-        }
-    }
+    // private void lowerLimitSwitchEvent(boolean triggered)
+    // {
+    //     if (calibrating)
+    //     {
+    //         actuator.set(0.0);
+    //         calibrating = false;
+    //     }
+    // }
 
     public void zeroCalibrateActuator()
     {
-        actuatorLowerLimitSwitchTrigger.setEnabled(true);
-        actuator.set(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
-        calibrating = true;
+        actuator.zeroCalibrate(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
+        // actuatorLowerLimitSwitchTrigger.setEnabled(true);
+        // actuator.set(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
+        // calibrating = true;
     }
 
     public void setWheelPower(double power)
@@ -135,14 +135,14 @@ public class Climber
     public void setActuatorPower(double power)
     {
         actuator.set(power);
-        calibrating = false;
+        // calibrating = false;
     }
 
     public void climb()
     {
         sm.start(State.INIT_SUBSYSTEMS);
         setEnabled(true);
-        calibrating = false;
+        // calibrating = false;
     }
 
     private void setEnabled(boolean enabled)
@@ -180,25 +180,25 @@ public class Climber
             sm.stop();
             driveWheels = false;
             driveActuator = false;
-            restoreButtonHandlers();
+            // restoreButtonHandlers();
             setEnabled(false);
             robot.dashboard.displayPrintf(9, "");
         }
     }
 
-    private void overrideButtonHandlers()
-    {
-        rightDriveHandler = robot.rightDriveStick.getButtonHandler();
-        panelHandler = robot.buttonPanel.getButtonHandler();
-        robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
-        robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
-    }
+    // private void overrideButtonHandlers()
+    // {
+    //     rightDriveHandler = robot.rightDriveStick.getButtonHandler();
+    //     panelHandler = robot.buttonPanel.getButtonHandler();
+    //     robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
+    //     robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
+    // }
 
-    private void restoreButtonHandlers()
-    {
-        robot.rightDriveStick.setButtonHandler(rightDriveHandler);
-        robot.buttonPanel.setButtonHandler(panelHandler);
-    }
+    // private void restoreButtonHandlers()
+    // {
+    //     robot.rightDriveStick.setButtonHandler(rightDriveHandler);
+    //     robot.buttonPanel.setButtonHandler(panelHandler);
+    // }
 
     public boolean isActive()
     {
@@ -214,7 +214,7 @@ public class Climber
             switch (state)
             {
                 case INIT_SUBSYSTEMS:
-                    overrideButtonHandlers();
+                    // overrideButtonHandlers();
 
                     robot.setHalfBrakeModeEnabled(true);
                     climberWheels.set(0.0);
@@ -254,7 +254,7 @@ public class Climber
         }
     }
 
-    private void rightDriveStickButtonEvent(int button, boolean pressed)
+    public void rightDriveStickButtonEvent(int button, boolean pressed)
     {
         switch (button)
         {
@@ -264,7 +264,7 @@ public class Climber
         }
     }
 
-    private void buttonPanelButtonEvent(int button, boolean pressed)
+    public void buttonPanelButtonEvent(int button, boolean pressed)
     {
         switch (button)
         {
