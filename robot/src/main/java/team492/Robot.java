@@ -22,6 +22,8 @@
 
 package team492;
 
+import edu.wpi.cscore.UsbCamera;
+import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.wpilibj.AnalogInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -73,6 +75,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_PIXY_I2C = false;
     public static final boolean USE_PIXY_V2 = false;
     public static final boolean USE_PIXY_LINE_TARGET = false;
+    public static final boolean USE_STREAM_CAMERA = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -306,6 +309,12 @@ public class Robot extends FrcRobotBase
         pickup = new Pickup(this);
         climber = new Climber(this);
         indicator = new LEDIndicator();
+
+        if (USE_STREAM_CAMERA)
+        {
+            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", 0);
+            camera.setResolution(160, 120);
+        }
 
         //
         // AutoAssist commands.

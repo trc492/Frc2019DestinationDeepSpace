@@ -215,6 +215,11 @@ public class FrcJoystick extends Joystick
         this.buttonHandler = buttonHandler;
     } //setButtonHandler
 
+    public ButtonHandler getButtonHandler()
+    {
+        return buttonHandler;
+    }
+
     /**
      * This method sets the joystick button sampling period. By default, it is sampling at 50Hz. One could change
      * the sampling period by calling this method.

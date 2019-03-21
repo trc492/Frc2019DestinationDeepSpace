@@ -63,6 +63,9 @@ public class Climber
     private HabLevel level;
     private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
     private boolean calibrating = false;
+    private boolean driveWheels = false;
+    private boolean driveActuator = false;
+    private FrcJoystick.ButtonHandler rightDriveHandler, panelHandler;
 
     public Climber(Robot robot)
     {
@@ -178,8 +181,26 @@ public class Climber
             climberWheels.set(0.0);
             robot.pickup.setPitchPower(0.0);
             sm.stop();
+            driveWheels = false;
+            driveActuator = false;
+            restoreButtonHandlers();
             setEnabled(false);
+            robot.dashboard.displayPrintf(9, "");
         }
+    }
+
+    private void overrideButtonHandlers()
+    {
+        rightDriveHandler = robot.rightDriveStick.getButtonHandler();
+        panelHandler = robot.buttonPanel.getButtonHandler();
+        robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
+        robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
+    }
+
+    private void restoreButtonHandlers()
+    {
+        robot.rightDriveStick.setButtonHandler(rightDriveHandler);
+        robot.buttonPanel.setButtonHandler(panelHandler);
     }
 
     public boolean isActive()
@@ -196,23 +217,16 @@ public class Climber
             switch (state)
             {
                 case INIT_SUBSYSTEMS:
-                    TrcEvent pickupEvent = new TrcEvent("PickupEvent");
-                    TrcEvent elevatorEvent = new TrcEvent("ElevatorEvent");
+                    overrideButtonHandlers();
 
                     robot.setHalfBrakeModeEnabled(true);
-                    robot.elevator.setPosition(level.getHeight(), elevatorEvent);
-                    robot.elevator.getPidController().saveAndSetOutputLimit(0.5);
-                    robot.pickup.getPitchPidController().saveAndSetOutputLimit(0.5);
-                    robot.pickup.setPickupAngle(RobotInfo.CLIMBER_PICKUP_ANGLE, pickupEvent);
                     climberWheels.set(0.0);
                     climberWheels.setBrakeModeEnabled(true);
 
                     robot.elevator.setManualOverrideEnabled(true);
                     robot.pickup.setManualOverrideEnabled(true);
 
-                    sm.addEvent(elevatorEvent);
-                    sm.addEvent(pickupEvent);
-                    sm.waitForEvents(State.MANUAL_CLIMB, 3.0, true);
+                    sm.setState(State.MANUAL_CLIMB);
                     break;
 
                 case MANUAL_CLIMB:
@@ -222,11 +236,9 @@ public class Climber
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
 
-                    setActuatorPower(robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON8) ?
-                        RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
-                        0.0);
+                    setActuatorPower(driveActuator ? RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER : 0.0);
 
-                    if (robot.rightDriveStick.getRawButton(FrcJoystick.SIDEWINDER_BUTTON8))
+                    if (driveWheels)
                     {
                         robot.driveBase.arcadeDrive(0.0, 0.0);
                         climberWheels.setBrakeModeEnabled(true);
@@ -240,6 +252,26 @@ public class Climber
                     }
                     break;
             }
+        }
+    }
+
+    private void rightDriveStickButtonEvent(int button, boolean pressed)
+    {
+        switch (button)
+        {
+            case FrcJoystick.SIDEWINDER_BUTTON8:
+                driveWheels = pressed;
+                break;
+        }
+    }
+
+    private void buttonPanelButtonEvent(int button, boolean pressed)
+    {
+        switch (button)
+        {
+            case FrcJoystick.PANEL_BUTTON8:
+                driveActuator = pressed;
+                break;
         }
     }
 }

@@ -50,6 +50,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean gyroAssist = false;
     private double lastElevatorPower;
+    private double lastActuatorPower;
     private TrcLoopTimeCounter loopTimeCounter;
     private boolean driveClimberWheels = false;
     private boolean actuatorEnabled = false;
@@ -98,6 +99,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
 
         lastElevatorPower = 0.0;
+        lastActuatorPower = 0.0;
     } // startMode
 
     @Override
@@ -147,11 +149,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
-        if (!robot.autoDeploy.isActive() && (shouldCancelAuto(leftDriveX, leftDriveY, rightDriveY, rightTwist) || !robot
-            .isAutoActive()))
+        if (!robot.isAutoActive())
         {
-            // Cancel any autos running
-            robot.cancelAllAuto();
             // TODO: Test if this works
             if (elevatorPower != lastElevatorPower)
             {
@@ -160,8 +159,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             }
 
             double actuatorPower = actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
-            robot.dashboard.displayPrintf(12, "ActuatorPower=%.1f", actuatorPower);
-            robot.climber.setActuatorPower(actuatorPower);
+            if (actuatorPower != lastActuatorPower)
+            {
+                robot.dashboard.displayPrintf(12, "ActuatorPower=%.1f", actuatorPower);
+                robot.climber.setActuatorPower(actuatorPower);
+                lastActuatorPower = actuatorPower;
+            }
             //
             // DriveBase operation.
             //
@@ -486,7 +489,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.pickup.setPickupAngle(RobotInfo.PICKUP_HATCH_PICKUP_POS);
-                    robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_HATCH_PICKUP);
                 }
                 break;
 

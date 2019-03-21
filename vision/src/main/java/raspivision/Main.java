@@ -26,7 +26,7 @@ import org.opencv.core.Core;
 
 public class Main
 {
-    private static final boolean USE_RASPI_VISION = true;
+    private static final boolean USE_RASPI_VISION = false;
     private static final boolean USE_DRIVER_CAMERA = true;
 
     public static void main(String[] args)
@@ -34,15 +34,16 @@ public class Main
         // Load the C++ native code
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
+        int cameraIndex = 0;
         if (USE_RASPI_VISION)
         {
-            RaspiVision vision = new RaspiVision(0);
+            RaspiVision vision = new RaspiVision(cameraIndex++);
             vision.start();
         }
 
         if (USE_DRIVER_CAMERA)
         {
-            DriverCamera driverCamera = new DriverCamera(1);
+            DriverCamera driverCamera = new DriverCamera(cameraIndex);
             driverCamera.start();
         }
     }

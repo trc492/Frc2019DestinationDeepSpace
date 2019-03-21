@@ -396,13 +396,9 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
-                processedInput = true;
-                robot.climber.setActuatorPower(pressed ? -0.3 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                processedInput = true;
-                robot.climber.setActuatorPower(pressed ? 0.3 : 0.0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:

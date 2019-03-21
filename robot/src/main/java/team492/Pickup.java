@@ -74,8 +74,8 @@ public class Pickup
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.PICKUP_KP,
             RobotInfo.PICKUP_KI, RobotInfo.PICKUP_KD);
-        pitchPidController = new TrcPidController("PickupPidController", pidCoefficients,
-            RobotInfo.PICKUP_TOLERANCE, this::getPickupAngle);
+        pitchPidController = new TrcPidController("PickupPidController", pidCoefficients, RobotInfo.PICKUP_TOLERANCE,
+            this::getPickupAngle);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("PitchLowerSwitch", pitchMotor, false);
         pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pitchPidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
@@ -318,7 +318,12 @@ public class Pickup
 
     public void setPickupAngle(double angle, TrcEvent onFinishedEvent)
     {
-        pitchController.setTarget(angle, onFinishedEvent, 0.0);
+        setPickupAngle(angle, onFinishedEvent, 0.0);
+    }
+
+    public void setPickupAngle(double angle, TrcEvent onFinishedEvent, double timeout)
+    {
+        pitchController.setTarget(angle, onFinishedEvent, timeout);
     }
 
     public TrcPidController getPitchPidController()

@@ -219,22 +219,22 @@ public class RobotInfo
     // Pickup subsystem
     //
     // TODO: Tune all of this
-    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0097596;
+    public static final double PICKUP_DEGREES_PER_COUNT         = 0.0101727665; //0.0097596;
     public static final double PICKUP_KP                        = 0.03;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
     public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.3;
-    public static final double PICKUP_MIN_POS                   = 0.0; // Perpendicular to ground
-    public static final double PICKUP_MAX_POS                   = 103; // Parallel to ground
-    public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 2.0;
+    public static final double PICKUP_MIN_POS                   = 3.8; // Perpendicular to ground
+    public static final double PICKUP_MAX_POS                   = 88.71; // Parallel to ground
+    public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 5.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 4.0;
     public static final double PICKUP_STALL_MIN_POWER           = 0.8;
     public static final double PICKUP_STALL_TIMEOUT             = 1.0;
     public static final double PICKUP_STALL_RESET_TIMEOUT       = 0.2;
     public static final double PICKUP_CURRENT_THRESHOLD         = 3.0; // Free=2.6,startup=7,cargopickup=5.5
 
-    public static final double PICKUP_MASS                      = 4.08; // kilograms
+    public static final double PICKUP_MASS                      = 6.0; // kilograms
     public static final double PICKUP_WEIGHT                    = PICKUP_MASS * TrcUtil.EARTH_GRAVITATIONAL_CONSTANT;//N
     public static final double PICKUP_CG_DISTANCE               = 0.286;// half of axle -> center of mass in meters
     public static final double PITCH_MOTOR_STALL_TORQUE         = 0.71; // Nm
@@ -243,11 +243,11 @@ public class RobotInfo
     public static final double PICKUP_MAX_TORQUE                = PICKUP_WEIGHT * PICKUP_CG_DISTANCE; // Max torque required to hold up
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
-    public static final double PICKUP_HATCH_PICKUP_POS          = 11.21;
-    public static final double PICKUP_GROUND_CARGO_POS          = 66.16;
+    public static final double PICKUP_HATCH_PICKUP_POS          = 5.05;
+    public static final double PICKUP_GROUND_CARGO_POS          = 50.47;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
-    public static final double PICKUP_CARGO_SHIP_POS            = 20.38;
+    public static final double PICKUP_CARGO_SHIP_POS            = 26.15;
 
     public static final double PICKUP_CARGO_PICKUP_TIMEOUT      = 5.0; // in seconds
     public static final double PICKUP_CARGO_PICKUP_POWER        = 1.0;
@@ -272,7 +272,7 @@ public class RobotInfo
     public static final double ELEVATOR_STALL_TIMEOUT           = 1.0;
     public static final double ELEVATOR_STALL_RESET_TIMEOUT     = 0.5;
 
-    public static final double ELEVATOR_POS_CARGO_SHIP          = 31.91;
+    public static final double ELEVATOR_POS_CARGO_SHIP          = 35.54;
 
     public static final double ELEVATOR_POS_CARGO_ROCKET_LOW    = 14.5;
     public static final double ELEVATOR_POS_CARGO_ROCKET_MED    = 42.25;
