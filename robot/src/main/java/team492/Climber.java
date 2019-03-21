@@ -111,6 +111,16 @@ public class Climber
         climberWheels.set(power);
     }
 
+    public double getWheelPower()
+    {
+        return climberWheels.getPower();
+    }
+
+    public double getWheelRawPos()
+    {
+        return climberWheels.getPosition();
+    }
+
     public boolean getLowerLimitSwitch()
     {
         return actuator.isLowerLimitSwitchActive();

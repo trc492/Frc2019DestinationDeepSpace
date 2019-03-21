@@ -474,20 +474,14 @@ public class FrcTest extends FrcTeleOp
                 }
             }
         }
-        double lfSpeed = robot.leftFrontWheel.getVelocity();
-        double rfSpeed = robot.rightFrontWheel.getVelocity();
-        double lrSpeed = robot.leftRearWheel.getVelocity();
-        double rrSpeed = robot.rightRearWheel.getVelocity();
-        double avgSpeed = (lfSpeed + rfSpeed + lrSpeed + rrSpeed) / 4.0;
-//        robot.dashboard
-//            .displayPrintf(8, "DriveSpeed: lf=%.0f,rf=%.0f,lr=%.0f,rr=%.0f,avg=%.0f", lfSpeed, rfSpeed, lrSpeed,
-//                rrSpeed, avgSpeed);
 
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
 
         robot.dashboard.displayPrintf(10, "Actuator %b/%b rawPos=%.0f,power=%.2f", robot.climber.getLowerLimitSwitch(),
             robot.climber.getUpperLimitSwitch(), robot.climber.getActuatorRawPos(), robot.climber.getActuatorPower());
+        robot.dashboard.displayPrintf(11, "Climber wheels rawPos=%.0f,power=%.2f", robot.climber.getWheelRawPos(),
+            robot.climber.getWheelPower());
 
         if (robot.vision != null)
         {
