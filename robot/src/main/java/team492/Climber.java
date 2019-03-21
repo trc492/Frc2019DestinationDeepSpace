@@ -24,7 +24,6 @@ package team492;
 
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
-import frclib.FrcJoystick;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
