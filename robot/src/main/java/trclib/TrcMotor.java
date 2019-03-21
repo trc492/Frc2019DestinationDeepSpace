@@ -516,7 +516,7 @@ public abstract class TrcMotor implements TrcMotorController
         //
         // Only do this if there is a digital trigger.
         //
-        if (digitalTrigger != null)
+        if (digitalTrigger != null && digitalTrigger.isEnabled())
         {
             set(-Math.abs(calibratePower));
             calibrating = true;
@@ -658,8 +658,10 @@ public abstract class TrcMotor implements TrcMotorController
 
         if (calibrating)
         {
+            //
+            // set(0.0) will turn off calibration mode.
+            //
             set(0.0);
-            calibrating = false;
         }
 
         resetPosition(false);
