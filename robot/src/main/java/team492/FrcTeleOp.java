@@ -254,11 +254,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     } // runPeriodic
 
-    private boolean shouldCancelAuto(double... joystickValues)
-    {
-        return Arrays.stream(joystickValues).anyMatch(d -> d != 0.0);
-    }
-
     private void setAllManualOverrideEnabled(boolean enabled)
     {
         robot.elevator.setManualOverrideEnabled(enabled);
@@ -640,7 +635,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.PANEL_BUTTON9:
                 if (pressed)
                 {
-                    robot.climber.climb(Climber.HabLevel.LEVEL_3);
+                    robot.climber.climb();
                 }
                 else
                 {

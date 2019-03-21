@@ -26,7 +26,6 @@ import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcJoystick;
 import trclib.TrcDigitalTrigger;
-import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -60,7 +59,6 @@ public class Climber
     private Robot robot;
     private TrcTaskMgr.TaskObject climbTaskObj;
     private TrcStateMachine<State> sm;
-    private HabLevel level;
     private TrcDigitalTrigger actuatorLowerLimitSwitchTrigger;
     private boolean calibrating = false;
     private boolean driveWheels = false;
@@ -140,9 +138,8 @@ public class Climber
         calibrating = false;
     }
 
-    public void climb(HabLevel level)
+    public void climb()
     {
-        this.level = level;
         sm.start(State.INIT_SUBSYSTEMS);
         setEnabled(true);
         calibrating = false;
