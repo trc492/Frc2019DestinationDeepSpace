@@ -213,6 +213,57 @@ public class TrcUtil
     }   //maxMagnitude
 
     /**
+     * Convert the index to a bitmask, assuming zero indexing. In the bitmask, all bits will be 0, except for one.
+     * The index of that bit is index. Ex: 4 -> 10000, 2 -> 100
+     *
+     * @param index The index to convert.
+     * @return The bitmask. All will be 0, except for one bit. The index of that bit is index.
+     */
+    public static int indexToBitmask(int index)
+    {
+        return indexToBitmask(index, true);
+    } // indexToBitmask
+
+    /**
+     * Convert the index to a bitmask, with zero or one indexing. In the bitmask, all bits will be 0, except for one.
+     * The index of that bit is index, taking into account zero or one indexing.
+     *
+     * @param index     The index to convert.
+     * @param zeroIndex If true, use zero indexing. Otherwise, use one indexing.
+     * @return The bitmask. All will be 0, except for one bit. The index of that bit is index.
+     */
+    public static int indexToBitmask(int index, boolean zeroIndex)
+    {
+        return 1 << (zeroIndex ? index : index - 1);
+    } // indexToBitmask
+
+    /**
+     * Returns the index of the most significant bit in a bitmask. Used to convert one-hot-encoding masks into indexes.
+     * This assumes zero indexing. Ex: 100 -> 2, 10 -> 1
+     *
+     * @param bitmask The mask to convert.
+     * @return The index of the most significant bit, with zero indexing.
+     */
+    public static int bitmaskToIndex(int bitmask)
+    {
+        return bitmaskToIndex(bitmask, true);
+    } // bitmaskToIndex
+
+    /**
+     * Returns the index of the most significant bit in a bitmask. Used to convert one-hot-encoding masks into indexes.
+     *
+     * @param bitmask   The mask to convert.
+     * @param zeroIndex If true, use zero indexing. Otherwise, use one indexing.
+     * @return The index of the most significant bit.
+     */
+    public static int bitmaskToIndex(int bitmask, boolean zeroIndex)
+    {
+        int index;
+        for (index = 0; (bitmask >>= 1) != 0; ++index) {}
+        return zeroIndex ? index : index + 1;
+    } // bitmaskToIndex
+
+    /**
      * This method normalizes the given array of numbers such that no number exceeds +/- 1.0. If no number exceeds
      * the magnitude of 1.0, nothing will change, otherwise the original nums array will be modified in place.
      *
@@ -244,8 +295,6 @@ public class TrcUtil
         normalizeInPlace(result);
 
         return result;
-        // double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
-        // return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
     }   //normalize
 
     /**
@@ -262,15 +311,15 @@ public class TrcUtil
     /**
      * This method checks if the given value is within the specified range.
      *
-     * @param value  The value to be checked.
-     * @param low    The low limit of the range.
-     * @param high   The high limit of the range.
+     * @param value     The value to be checked.
+     * @param low       The low limit of the range.
+     * @param high      The high limit of the range.
      * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low, high).
      * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(int value, int low, int high, boolean inclusive)
     {
-        return inclusive ? value >= low && value <= high: value > low && value < high;
+        return inclusive ? value >= low && value <= high : value > low && value < high;
     }   //inRange
 
     /**
@@ -289,15 +338,15 @@ public class TrcUtil
     /**
      * This method checks if the given value is within the specified range.
      *
-     * @param value  The value to be checked.
-     * @param low    The low limit of the range.
-     * @param high   The high limit of the range.
+     * @param value     The value to be checked.
+     * @param low       The low limit of the range.
+     * @param high      The high limit of the range.
      * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low,high).
      * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(double value, double low, double high, boolean inclusive)
     {
-        return inclusive ? value >= low && value <= high: value > low && value < high;
+        return inclusive ? value >= low && value <= high : value > low && value < high;
     }   //inRange
 
     /**
@@ -397,7 +446,7 @@ public class TrcUtil
     /**
      * This method returns the indexed byte of an integer.
      *
-     * @param data specifies the integer value.
+     * @param data  specifies the integer value.
      * @param index specifies the byte index.
      * @return indexed byte of the integer.
      */
