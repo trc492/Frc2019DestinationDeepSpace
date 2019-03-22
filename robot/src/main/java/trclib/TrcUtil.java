@@ -213,55 +213,90 @@ public class TrcUtil
     }   //maxMagnitude
 
     /**
-     * Convert the index to a bitmask, assuming zero indexing. In the bitmask, all bits will be 0, except for one.
-     * The index of that bit is index. Ex: 4 -> 10000, 2 -> 100
+     * This method returns a bit mask of the least significant set bit.
      *
-     * @param index The index to convert.
-     * @return The bitmask. All will be 0, except for one bit. The index of that bit is index.
+     * @param data specifies the data to find the least significant set bit.
+     * @return bit mask that has only the least significant set bit.
      */
-    public static int indexToBitmask(int index)
+    public static int leastSignificantSetBit(int data)
     {
-        return indexToBitmask(index, true);
-    } // indexToBitmask
+        int bitMask = 0;
+
+        if (data != 0)
+        {
+            bitMask = ~(data ^ -data);
+        }
+
+        return bitMask;
+    }   //leastSignificantSetBit
 
     /**
-     * Convert the index to a bitmask, with zero or one indexing. In the bitmask, all bits will be 0, except for one.
-     * The index of that bit is index, taking into account zero or one indexing.
+     * This method returns the bit position of the least significant set bit of the given data.
      *
-     * @param index     The index to convert.
-     * @param zeroIndex If true, use zero indexing. Otherwise, use one indexing.
-     * @return The bitmask. All will be 0, except for one bit. The index of that bit is index.
+     * @param data specifies the data to determine its least significant set bit position.
+     * @return least significant set bit position. -1 if no set bit.
      */
-    public static int indexToBitmask(int index, boolean zeroIndex)
+    public static int leastSignificantSetBitPosition(int data)
     {
-        return 1 << (zeroIndex ? index : index - 1);
-    } // indexToBitmask
+        int pos = -1;
+
+        if (data != 0)
+        {
+            for (int i = 0; ; i++)
+            {
+                if ((data & (1 << i)) != 0)
+                {
+                    pos = i;
+                    break;
+                }
+            }
+        }
+
+        return pos;
+    }   //leastSignificantSetBitPosition
 
     /**
-     * Returns the index of the most significant bit in a bitmask. Used to convert one-hot-encoding masks into indexes.
-     * This assumes zero indexing. Ex: 100 -> 2, 10 -> 1
+     * This method returns the bit position of the most significant set bit of the given data.
      *
-     * @param bitmask The mask to convert.
-     * @return The index of the most significant bit, with zero indexing.
+     * @param data specifies the data to determine its most significant set bit position.
+     * @return most significant set bit position. -1 if no set bit.
      */
-    public static int bitmaskToIndex(int bitmask)
+    public static int mostSignificantSetBitPosition(int data)
     {
-        return bitmaskToIndex(bitmask, true);
-    } // bitmaskToIndex
+        int pos = -1;
+
+        if (data != 0)
+        {
+            for (int i = 0; ; i++)
+            {
+                if ((data >>= 1) == 0)
+                {
+                    pos = i;
+                    break;
+                }
+            }
+        }
+
+        return pos;
+    }   //mostSignificantSetBitPosition
 
     /**
-     * Returns the index of the most significant bit in a bitmask. Used to convert one-hot-encoding masks into indexes.
+     * This method sets a bitmask with the given bit positions.
      *
-     * @param bitmask   The mask to convert.
-     * @param zeroIndex If true, use zero indexing. Otherwise, use one indexing.
-     * @return The index of the most significant bit.
+     * @param bitPositions specifies the bit positions to be set to 1.Bit positions are 0-based.
+     * @return bit mask.
      */
-    public static int bitmaskToIndex(int bitmask, boolean zeroIndex)
+    public static int setBitMask(int... bitPositions)
     {
-        int index;
-        for (index = 0; (bitmask >>= 1) != 0; ++index) {}
-        return zeroIndex ? index : index + 1;
-    } // bitmaskToIndex
+        int bitMask = 0;
+
+        for (int pos : bitPositions)
+        {
+            bitMask |= 1 << pos;
+        }
+
+        return bitMask;
+    }   //setBitMask
 
     /**
      * This method normalizes the given array of numbers such that no number exceeds +/- 1.0. If no number exceeds
