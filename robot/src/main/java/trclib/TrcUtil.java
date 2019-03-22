@@ -234,7 +234,7 @@ public class TrcUtil
      * This method returns the bit position of the least significant set bit of the given data.
      *
      * @param data specifies the data to determine its least significant set bit position.
-     * @return least significant set bit position. -1 if no set bit.
+     * @return 0-based least significant set bit position. -1 if no set bit.
      */
     public static int leastSignificantSetBitPosition(int data)
     {
@@ -259,7 +259,7 @@ public class TrcUtil
      * This method returns the bit position of the most significant set bit of the given data.
      *
      * @param data specifies the data to determine its most significant set bit position.
-     * @return most significant set bit position. -1 if no set bit.
+     * @return 0-based most significant set bit position. -1 if no set bit.
      */
     public static int mostSignificantSetBitPosition(int data)
     {
@@ -283,7 +283,7 @@ public class TrcUtil
     /**
      * This method sets a bitmask with the given bit positions.
      *
-     * @param bitPositions specifies the bit positions to be set to 1.Bit positions are 0-based.
+     * @param bitPositions specifies the bit positions to be set to 1. Bit positions are 0-based.
      * @return bit mask.
      */
     public static int setBitMask(int... bitPositions)
