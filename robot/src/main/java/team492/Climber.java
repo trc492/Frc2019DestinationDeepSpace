@@ -180,7 +180,7 @@ public class Climber
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1) ?
                         RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
                         0.0);
-                    if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8)))
+                    if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
                         robot.driveBase.arcadeDrive(0.0, 0.0);
                         climberWheels.setBrakeModeEnabled(true);
