@@ -24,9 +24,11 @@ package team492;
 
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
+import frclib.FrcJoystick;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
+import trclib.TrcUtil;
 
 public class Climber
 {
@@ -228,7 +230,10 @@ public class Climber
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
 
-                    setActuatorPower(robot.actuatorEnabled ? RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER : 0.0);
+                    setActuatorPower(robot.buttonPanel
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1) ?
+                        RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
+                        0.0);
                     if (robot.driveClimberWheels)
                     {
                         robot.driveBase.arcadeDrive(0.0, 0.0);
