@@ -156,6 +156,7 @@ public class RaspiVision
 
         useDebugDisplay.addListener(event -> this.useDebugDisplay = event.value.isBoolean() && event.value.getBoolean(),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        useDebugDisplay.setBoolean(useDebugDisplay.getBoolean(false));
 
         cameraPitch.addListener(event -> this.cameraPitch = event.value.isDouble() ? event.value.getDouble() : 0.0,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);

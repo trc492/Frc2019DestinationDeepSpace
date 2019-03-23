@@ -322,6 +322,7 @@ public class Robot extends FrcRobotBase
         // AutoAssist commands.
         //
         autoDeploy = new TaskAutoDeploy(this);
+        autoDeploy.setAlignOnly(true);
         autoAlignTarget = new TaskAlignTarget(this);
 
         //
