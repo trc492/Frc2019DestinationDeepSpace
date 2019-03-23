@@ -603,9 +603,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.PANEL_BUTTON10:
                 if (pressed)
                 {
-                    robot.elevator.zeroCalibrate();
-                    robot.pickup.zeroCalibrate();
                     robot.climber.zeroCalibrateActuator();
+                    if (!robot.climber.isActive())
+                    {
+                        robot.elevator.zeroCalibrate();
+                        robot.pickup.zeroCalibrate();
+                    }
                 }
                 break;
         }
