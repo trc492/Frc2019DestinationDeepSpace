@@ -224,7 +224,7 @@ public class TrcUtil
 
         if (data != 0)
         {
-            bitMask = ~(data ^ -data);
+            bitMask = data & ~(data ^ -data);
         }
 
         return bitMask;
