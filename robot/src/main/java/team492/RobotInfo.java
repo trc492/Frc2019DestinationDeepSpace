@@ -244,7 +244,7 @@ public class RobotInfo
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
     public static final double PICKUP_HATCH_PICKUP_POS          = 5.05;
-    public static final double PICKUP_GROUND_CARGO_POS          = 50.47;
+    public static final double PICKUP_GROUND_CARGO_POS          = 53.47;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
     public static final double PICKUP_CARGO_SHIP_POS            = 26.15;
