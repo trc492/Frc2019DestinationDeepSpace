@@ -176,16 +176,10 @@ public class Climber
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
 
-                    int button = TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1;
-                    if (robot.operatorStick.getRawButtonPressed(button))
-                    {
-                        setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
-                    }
-                    else if (robot.operatorStick.getRawButtonReleased(button))
-                    {
-                        setActuatorPower(0.0);
-                    }
-
+                    setActuatorPower(robot.buttonPanel
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1) ?
+                        RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
+                        0.0);
                     if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
                         double actuatorPower = robot.rightDriveStick.getYWithDeadband(true);
