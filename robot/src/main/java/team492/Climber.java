@@ -182,17 +182,21 @@ public class Climber
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1) ?
                         RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
                         0.0);
+
+                    robot.globalTracer.traceInfo("ClimbTask", "elevPower=%.2f,climbPower=%.2f,elevSpeed=%.2f,climbSpeed=%.2f",
+                        robot.elevator.getPower(), actuator.getPower(), robot.elevator.getMotor().getVelocity() * RobotInfo.ELEVATOR_INCHES_PER_COUNT,
+                        actuator.getVelocity() * RobotInfo.CLIMBER_INCHES_PER_COUNT);
                     if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
-                        double actuatorPower = robot.rightDriveStick.getYWithDeadband(true);
-                        robot.dashboard.displayPrintf(12, "Actuator enabled=true,power=%.2f", actuatorPower);
+                        double climberWheelPower = robot.rightDriveStick.getYWithDeadband(true);
+                        robot.dashboard.displayPrintf(12, "ClimberWheel enabled=true,power=%.2f", climberWheelPower);
                         robot.driveBase.arcadeDrive(0.0, 0.0);
                         climberWheels.setBrakeModeEnabled(true);
-                        setWheelPower(actuatorPower);
+                        setWheelPower(climberWheelPower);
                     }
                     else
                     {
-                        robot.dashboard.displayPrintf(12, "Actuator enabled=false");
+                        robot.dashboard.displayPrintf(12, "ClimberWheel enabled=false");
                         setWheelPower(0.0);
                         climberWheels.setBrakeModeEnabled(false);
                         robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
