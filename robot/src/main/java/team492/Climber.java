@@ -182,12 +182,15 @@ public class Climber
                         0.0);
                     if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
+                        double actuatorPower = robot.rightDriveStick.getYWithDeadband(true);
+                        robot.dashboard.displayPrintf(12, "Actuator enabled=true,power=%.2f", actuatorPower);
                         robot.driveBase.arcadeDrive(0.0, 0.0);
                         climberWheels.setBrakeModeEnabled(true);
-                        setWheelPower(robot.rightDriveStick.getYWithDeadband(true));
+                        setWheelPower(actuatorPower);
                     }
                     else
                     {
+                        robot.dashboard.displayPrintf(12, "Actuator enabled=false");
                         setWheelPower(0.0);
                         climberWheels.setBrakeModeEnabled(false);
                         robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
