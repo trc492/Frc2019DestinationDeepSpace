@@ -1,0 +1,3 @@
+# This file defines how the interactions with a USB drive should be handled
+# Copy this file to /etc/udev/rules.d/ folder please
+ACTION=="add", ATTR(idVendor)=="0a81", ATTRS{idProduct}=="0101", RUN+="/home/lvuser/robotautorunner.sh"
