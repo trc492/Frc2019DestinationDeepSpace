@@ -52,6 +52,8 @@ public class Climber
         actuator.configFwdLimitSwitchNormallyOpen(false);
         actuator.configRevLimitSwitchNormallyOpen(false);
         actuator.setBrakeModeEnabled(true);
+        actuator.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        actuator.motor.enableVoltageCompensation(true);
 
         FrcCANTalonLimitSwitch actuatorLowerLimitSwitch = new FrcCANTalonLimitSwitch("ActuatorLowerLimit", actuator,
             false);
