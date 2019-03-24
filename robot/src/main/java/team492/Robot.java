@@ -488,6 +488,10 @@ public class Robot extends FrcRobotBase
             new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL,
                 RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL));
         encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE_SMALL);
+        gyroTurnPidCtrl.setPidCoefficients(
+            new PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL,RobotInfo.GYRO_TURN_KI_SMALL,
+                RobotInfo.GYRO_TURN_KD_SMALL));
+        gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE_SMALL);
     }
 
     public void enableBigGains()
@@ -496,6 +500,9 @@ public class Robot extends FrcRobotBase
             new PidCoefficients(RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD,
                 RobotInfo.ENCODER_X_KF));
         encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE);
+        gyroTurnPidCtrl.setPidCoefficients(
+            new PidCoefficients(RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD));
+        gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE);
     }
 
     /**

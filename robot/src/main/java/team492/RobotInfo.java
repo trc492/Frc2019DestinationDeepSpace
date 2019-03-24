@@ -209,11 +209,19 @@ public class RobotInfo
 
     // Comp robot: 0.015/0.0/0.001
     // practice robot: 0.008/0.0/0.0007
-    public static final double GYRO_TURN_KP                     = 0.015;
+    // 3/24 comp robot: 0.0055/0.0/0.00008
+    public static final double GYRO_TURN_KP                     = 0.0055;
     public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.001;
+    public static final double GYRO_TURN_KD                     = 0.00008;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
+
+    // 3/24 compr robot: 0.0085/0.0/0.0
+    public static final double GYRO_TURN_KP_SMALL               = 0.0085;
+    public static final double GYRO_TURN_KI_SMALL               = 0.0;
+    public static final double GYRO_TURN_KD_SMALL               = 0.0;
+    public static final double GYRO_TURN_KF_SMALL               = 0.0;
+    public static final double GYRO_TURN_TOLERANCE_SMALL        = 1.5;
 
     //
     // Pickup subsystem
