@@ -163,6 +163,7 @@ public class Robot extends FrcRobotBase
     public boolean actuatorEnabled = false;
 
     public TaskAutoDeploy autoDeploy;
+    public TaskHeadingAlign autoHeadingAlign;
     public TaskAlignTarget autoAlignTarget;
     //
     // Define our subsystems for Auto and TeleOp modes.
@@ -324,6 +325,7 @@ public class Robot extends FrcRobotBase
         //
         autoDeploy = new TaskAutoDeploy(this);
         autoDeploy.setAlignOnly(true);
+        autoHeadingAlign = new TaskHeadingAlign(this);
         autoAlignTarget = new TaskAlignTarget(this);
 
         //
@@ -490,7 +492,7 @@ public class Robot extends FrcRobotBase
                 RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL));
         encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE_SMALL);
         gyroTurnPidCtrl.setPidCoefficients(
-            new PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL,RobotInfo.GYRO_TURN_KI_SMALL,
+            new PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL, RobotInfo.GYRO_TURN_KI_SMALL,
                 RobotInfo.GYRO_TURN_KD_SMALL));
         gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE_SMALL);
     }
@@ -686,7 +688,8 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive() || climber.isActive();
+        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive() || climber.isActive()
+            || autoHeadingAlign.isActive();
     }
 
     public void cancelAllAuto()
@@ -709,6 +712,11 @@ public class Robot extends FrcRobotBase
         if (climber.isActive())
         {
             climber.cancel();
+        }
+
+        if (autoHeadingAlign.isActive())
+        {
+            autoHeadingAlign.cancel();
         }
     }
 

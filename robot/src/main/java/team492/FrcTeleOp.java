@@ -334,15 +334,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             .displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
 
-        // if (robot.climber.isActive())
-        // {
-        //     robot.climber.rightDriveStickButtonEvent(button, pressed);
-        //     return;
-        // }
-
-        if (isAutoActive)
+        if (isAutoActive && (pressed || button != FrcJoystick.SIDEWINDER_BUTTON2))
         {
-            return; // Auto can only be cancelled by operator
+            return;
         }
 
         switch (button)
@@ -352,6 +346,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
+                if (pressed)
+                {
+                    robot.autoHeadingAlign.start();
+                }
+                else
+                {
+                    robot.autoHeadingAlign.cancel();
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
