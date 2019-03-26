@@ -149,6 +149,7 @@ public class RobotInfo
     public static final double CAMERA_OFFSET                    = 1; // Inches from center of EE to center of camera, + = right
     public static final double CAMERA_PITCH                     = 0.0; // Down is positive
     public static final double CAMERA_DATA_TIMEOUT              = 0.5; // 500ms
+    public static final double CAMERA_CENTERED_THRESHOLD        = 10.0; // +- 10 degrees
 
     //
     // Ultrasonic sensors.

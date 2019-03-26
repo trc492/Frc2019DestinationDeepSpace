@@ -23,6 +23,7 @@
 package team492;
 
 import frclib.FrcJoystick;
+import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
 import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
@@ -111,9 +112,24 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         if (Robot.USE_VISION_TARGETING)
         {
-            boolean targetFound = robot.vision.getLastPose() != null;
-            HalDashboard.putBoolean("Status/TapeDetected", targetFound);
-            robot.indicator.signalVisionDetected(targetFound);
+            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
+            HalDashboard.putBoolean("Status/TapeDetected", pose != null);
+            if (pose == null)
+            {
+                robot.indicator.signalNoVisionDetected();
+            }
+            else if (pose.theta > RobotInfo.CAMERA_CENTERED_THRESHOLD)
+            {
+                robot.indicator.signalVisionRight();
+            }
+            else if (pose.theta < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
+            {
+                robot.indicator.signalVisionLeft();
+            }
+            else
+            {
+                robot.indicator.signalVisionCentered();
+            }
         }
         boolean cargoDetected = robot.pickup.cargoDetected();
         HalDashboard.putBoolean("Status/CargoDetected", cargoDetected);

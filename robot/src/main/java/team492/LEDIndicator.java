@@ -29,9 +29,13 @@ public class LEDIndicator
 {
     private final LEDPattern normalPattern = LEDPattern.FixedBreathRed;
     private final LEDPattern cargoPattern = LEDPattern.SolidOrange;
-    private final LEDPattern visionPattern = LEDPattern.SolidAqua;
-    private final LEDPattern[] normalPriorities = new LEDPattern[] { normalPattern, cargoPattern, visionPattern };
-    private final LEDPattern[] pickupPriorities = new LEDPattern[] { normalPattern, visionPattern, cargoPattern };
+    private final LEDPattern visionCenteredPattern = LEDPattern.SolidGreen;
+    private final LEDPattern visionLeftPattern = LEDPattern.SolidHotPink;
+    private final LEDPattern visionRightPattern = LEDPattern.SolidBlue;
+    private final LEDPattern[] normalPriorities = new LEDPattern[] { normalPattern, cargoPattern, visionLeftPattern,
+        visionRightPattern, visionCenteredPattern };
+    private final LEDPattern[] pickupPriorities = new LEDPattern[] { normalPattern, visionLeftPattern,
+        visionRightPattern, visionCenteredPattern, cargoPattern };
 
     private FrcRevBlinkin blinkin;
 
@@ -64,9 +68,28 @@ public class LEDIndicator
         blinkin.setPatternState(cargoPattern, detected);
     }
 
-    public void signalVisionDetected(boolean detected)
+    public void signalNoVisionDetected()
     {
-        blinkin.setPatternState(visionPattern, detected);
+        blinkin.setPatternState(visionLeftPattern, false);
+        blinkin.setPatternState(visionRightPattern, false);
+        blinkin.setPatternState(visionCenteredPattern, false);
     }
 
+    public void signalVisionLeft()
+    {
+        signalNoVisionDetected();
+        blinkin.setPatternState(visionLeftPattern, true);
+    }
+
+    public void signalVisionRight()
+    {
+        signalNoVisionDetected();
+        blinkin.setPatternState(visionRightPattern, true);
+    }
+
+    public void signalVisionCentered()
+    {
+        signalNoVisionDetected();
+        blinkin.setPatternState(visionCenteredPattern, true);
+    }
 }
