@@ -233,7 +233,7 @@ public class FrcPdp extends PowerDistributionPanel
         {
             if (channelNames[i] != null)
             {
-                channelEnergyUsed[i] += voltage*getCurrent(i)*(currTime - lastTimestamp);
+                channelEnergyUsed[i] += voltage*getCurrent(i)*(currTime - lastTimestamp)/3600.0;
             }
         }
 
