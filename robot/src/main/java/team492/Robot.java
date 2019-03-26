@@ -39,6 +39,7 @@ import frclib.FrcEmic2TextToSpeech;
 import frclib.FrcI2cLEDPanel;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
+import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import hallib.HalDashboard;
@@ -71,7 +72,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_RASPI_VISION = true;
+    public static final boolean USE_VISION_TARGETING = true;
     public static final boolean USE_PIXY_I2C = false;
     public static final boolean USE_PIXY_V2 = false;
     public static final boolean USE_PIXY_LINE_TARGET = false;
@@ -131,7 +132,7 @@ public class Robot extends FrcRobotBase
     // VisionTargetPipeline subsystem.
     //
     public PixyVision pixy = null;
-    public RaspiVision vision = null;
+    public VisionTargeting vision = null;
     //
     // Miscellaneous subsystem.
     //
@@ -218,9 +219,9 @@ public class Robot extends FrcRobotBase
                 RobotInfo.PIXY_BRIGHTNESS, RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
         }
 
-        if (USE_RASPI_VISION)
+        if (USE_VISION_TARGETING)
         {
-            vision = new RaspiVision(this);
+            vision = new VisionTargeting();
         }
 
         //
@@ -621,7 +622,7 @@ public class Robot extends FrcRobotBase
 
                 if (DEBUG_RASPI_VISION && vision != null)
                 {
-                    RaspiVision.RelativePose pose = vision.getLastPose();
+                    FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
                     if (pose != null)
                     {
                         dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,

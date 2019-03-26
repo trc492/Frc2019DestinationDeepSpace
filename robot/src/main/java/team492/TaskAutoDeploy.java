@@ -22,6 +22,7 @@
 
 package team492;
 
+import frclib.FrcRemoteVisionProcessor;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -71,7 +72,7 @@ public class TaskAutoDeploy
     private Robot robot;
     private TrcStateMachine<State> sm;
     private TrcEvent event;
-    private RaspiVision.RelativePose pose;
+    private FrcRemoteVisionProcessor.RelativePose pose;
     private TrcEvent onFinishedEvent;
     private TrcTaskMgr.TaskObject alignmentTask;
     private double elevatorHeight;

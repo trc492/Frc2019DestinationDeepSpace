@@ -84,7 +84,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         driveSpeed = DriveSpeed.MEDIUM;
 
-        if (Robot.USE_RASPI_VISION)
+        if (Robot.USE_VISION_TARGETING)
         {
             robot.vision.setRingLightEnabled(true);
         }
@@ -101,7 +101,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        if (Robot.USE_RASPI_VISION)
+        if (Robot.USE_VISION_TARGETING)
         {
             robot.vision.setRingLightEnabled(false);
         }
@@ -109,7 +109,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     private void showStatus()
     {
-        if (Robot.USE_RASPI_VISION)
+        if (Robot.USE_VISION_TARGETING)
         {
             boolean targetFound = robot.vision.getLastPose() != null;
             HalDashboard.putBoolean("Status/TapeDetected", targetFound);
@@ -518,7 +518,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
-                if (Robot.USE_RASPI_VISION)
+                if (Robot.USE_VISION_TARGETING)
                 {
                     if (pressed)
                     {
@@ -532,7 +532,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
-                if (Robot.USE_RASPI_VISION)
+                if (Robot.USE_VISION_TARGETING)
                 {
                     if (pressed)
                     {
@@ -546,7 +546,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
-                if (Robot.USE_RASPI_VISION)
+                if (Robot.USE_VISION_TARGETING)
                 {
                     if (pressed)
                     {
@@ -560,7 +560,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
-                if (Robot.USE_RASPI_VISION)
+                if (Robot.USE_VISION_TARGETING)
                 {
                     if (pressed)
                     {

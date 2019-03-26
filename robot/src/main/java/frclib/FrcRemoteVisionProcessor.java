@@ -1,65 +1,112 @@
-package team492;
+/*
+ * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
 
-import com.google.gson.Gson;
+package frclib;
+
 import edu.wpi.first.networktables.ConnectionNotification;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.Relay;
-import edu.wpi.first.wpilibj.Relay.Direction;
+import trclib.TrcDbgTrace;
 import trclib.TrcUtil;
 
 import java.util.LinkedList;
 import java.util.List;
 
-public class RaspiVision
+public abstract class FrcRemoteVisionProcessor
 {
+    private final String instanceName;
+
     private volatile RelativePose relativePose = null;
-    private Gson gson;
+    protected NetworkTable networkTable;
     private int maxAverageWindow = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
     private Relay ringLight;
-    private Robot robot;
+    private double timeout;
 
-    public RaspiVision(Robot robot)
+    public FrcRemoteVisionProcessor(String instanceName, String networkTable, String dataKey)
     {
-        this.robot = robot;
+        this.instanceName = instanceName;
+        commonInit(networkTable, dataKey);
+    }
 
+    public FrcRemoteVisionProcessor(String instanceName, String networkTable, String dataKey, int relayPort)
+    {
+        this.instanceName = instanceName;
+        commonInit(networkTable, dataKey);
+        ringLight = new Relay(relayPort);
+        ringLight.setDirection(Relay.Direction.kForward);
+    }
+
+    private void commonInit(String networkTableName, String dataKey)
+    {
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
-        NetworkTable table = instance.getTable("RaspiVision");
-        NetworkTableEntry entry = table.getEntry("VisionData");
-        NetworkTableEntry pitchEntry = table.getEntry("CameraPitch");
+        networkTable = instance.getTable(networkTableName);
         instance.addConnectionListener(this::connectionListener, false);
-        gson = new Gson();
+        NetworkTableEntry entry = networkTable.getEntry(dataKey);
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
-        ringLight = new Relay(RobotInfo.RELAY_RINGLIGHT_POWER);
-        ringLight.setDirection(Direction.kForward);
 
-        pitchEntry.setDouble(RobotInfo.CAMERA_PITCH);
+    }
+
+    public void setFreshnessTimeout(double timeout)
+    {
+        this.timeout = timeout;
     }
 
     public void setRingLightEnabled(boolean enabled)
     {
-        ringLight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
+        if (ringLight != null)
+        {
+            ringLight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
+        }
     }
 
     private void connectionListener(ConnectionNotification notification)
     {
         if (!notification.connected)
         {
-            robot.globalTracer
-                .traceInfo("RaspiVision.connectionListener", "Client %s disconnected!", notification.conn.remote_ip);
+            TrcDbgTrace.getGlobalTracer()
+                .traceInfo("connectionListener", "Client %s disconnected!", notification.conn.remote_ip);
         }
     }
 
+    /**
+     * Process the latest data from network tables.
+     *
+     * @param data The NT value containing the data. The type of the data varies depending on implementation.
+     * @return The relative pose of the object being tracked. null if no object detected.
+     */
+    protected abstract RelativePose processData(NetworkTableValue data);
+
     private void updateTargetInfo(EntryNotification event)
     {
-        String info = event.value.getString();
-        if ("".equals(info))
+        RelativePose relativePose = processData(event.value);
+        if (relativePose == null)
         {
             // We have not found a pose, so set to null
             this.relativePose = null;
@@ -75,8 +122,6 @@ public class RaspiVision
         else
         {
             // Deserialize the latest calculated pose
-            RelativePose relativePose = gson.fromJson(info, RelativePose.class);
-            relativePose.time = TrcUtil.getCurrentTime();
             this.relativePose = relativePose;
             synchronized (framesLock)
             {
@@ -93,7 +138,7 @@ public class RaspiVision
 
     private boolean isFresh(RelativePose pose)
     {
-        return pose != null && TrcUtil.getCurrentTime() - pose.time <= RobotInfo.CAMERA_DATA_TIMEOUT;
+        return pose != null && (timeout == 0.0 || TrcUtil.getCurrentTime() - pose.time <= timeout);
     }
 
     /**

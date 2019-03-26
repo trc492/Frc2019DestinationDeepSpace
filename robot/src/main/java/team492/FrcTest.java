@@ -27,6 +27,7 @@ import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
+import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
 import team492.PixyVision.TargetInfo;
 import trclib.TrcEvent;
@@ -481,7 +482,7 @@ public class FrcTest extends FrcTeleOp
 
         if (robot.vision != null)
         {
-            RaspiVision.RelativePose pose = robot.vision.getLastPose();
+            FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
             if (pose != null)
             {
                 robot.dashboard
