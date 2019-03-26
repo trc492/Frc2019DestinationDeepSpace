@@ -80,10 +80,11 @@ public class RobotInfo
     public static final int PDP_CHANNEL_PIGEON                  = 8;
     public static final int PDP_CHANNEL_BLINKIN                 = 9;
     public static final int PDP_CHANNEL_RING_LIGHT              = 10;
-    public static final int PDP_CHANNEL_RESERVED                = 11;
+    public static final int PDP_CHANNEL_CLIBMER_WHEELS          = 11;
     public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 12;
     public static final int PDP_CHANNEL_ELEVATOR                = 13;
-    public static final int PDP_CHANNEL_LEFT_DRIVE_MASTER       = 14;
+    //public static final int PDP_CHANNEL_LEFT_DRIVE_MASTER       = 14;
+    public static final int PDP_CHANNEL_CLIMBER                 = 14;
     public static final int PDP_CHANNEL_LEFT_REAR_WHEEL         = 15;
 
     //

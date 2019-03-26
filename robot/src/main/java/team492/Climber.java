@@ -55,6 +55,8 @@ public class Climber
         actuator.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         actuator.motor.enableVoltageCompensation(true);
 
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_CLIMBER, "Climber");
+
         FrcCANTalonLimitSwitch actuatorLowerLimitSwitch = new FrcCANTalonLimitSwitch("ActuatorLowerLimit", actuator,
             false);
         actuator.resetPositionOnDigitalInput(actuatorLowerLimitSwitch);
@@ -62,6 +64,8 @@ public class Climber
         climberWheels = new FrcCANTalon("ClimberWheels", RobotInfo.CANID_CLIMB_WHEELS);
         climberWheels.setInverted(true);
         climberWheels.setBrakeModeEnabled(true);
+
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_CLIBMER_WHEELS, "ClimberWheels");
 
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 

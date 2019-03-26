@@ -307,7 +307,7 @@ public class Robot extends FrcRobotBase
         //
         // Create other hardware subsystems.
         //
-        elevator = new Elevator();
+        elevator = new Elevator(this);
         pickup = new Pickup(this);
         climber = new Climber(this);
         indicator = new LEDIndicator();

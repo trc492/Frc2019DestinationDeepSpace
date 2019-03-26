@@ -35,7 +35,7 @@ public class Elevator
     private FrcCANTalon motor;
     private TrcPidController pidController;
 
-    public Elevator()
+    public Elevator(Robot robot)
     {
         motor = new FrcCANTalon("ElevatorMotor", RobotInfo.CANID_ELEVATOR);
         motor.setInverted(true);
@@ -46,6 +46,8 @@ public class Elevator
         motor.setBrakeModeEnabled(true);
         motor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         motor.motor.enableVoltageCompensation(true);
+
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_ELEVATOR, "Elevator");
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,

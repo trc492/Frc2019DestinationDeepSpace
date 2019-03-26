@@ -64,12 +64,16 @@ public class Pickup
         pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
         pickupMotor.motor.overrideLimitSwitchesEnable(false);   // No limit switches, make sure they are disabled.
 
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_PICKUP, "Pickup");
+
         pitchMotor = new FrcCANTalon("PickupPitchMotor", RobotInfo.CANID_PICKUP_PITCH);
         pitchMotor.setInverted(false);
         pitchMotor.setBrakeModeEnabled(true);
         pitchMotor.motor.overrideLimitSwitchesEnable(true);
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
+
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_PICKUP_PITCH, "PickupPitch");
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.PICKUP_KP,
