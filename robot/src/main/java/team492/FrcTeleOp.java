@@ -415,14 +415,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
-        boolean isAutoActive = robot.isAutoActive();
-        robot.dashboard
-            .displayPrintf(8, "  OperatorStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
-                isAutoActive);
-        if (isAutoActive)
-        {
-            return;
-        }
+        robot.dashboard.displayPrintf(8, "  OperatorStick: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
@@ -516,22 +509,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void buttonPanelButtonEvent(int button, boolean pressed)
     {
-        boolean isAutoActive = robot.isAutoActive();
-        robot.dashboard
-            .displayPrintf(8, "  ButtonPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
-                isAutoActive);
-
-        // if (robot.climber.isActive())
-        // {
-        //     robot.climber.buttonPanelButtonEvent(button, pressed);
-        //     return;
-        // }
-
-        if (isAutoActive && (pressed || (button != FrcJoystick.PANEL_BUTTON1 && button != FrcJoystick.PANEL_BUTTON2
-            && button != FrcJoystick.PANEL_BUTTON3 && button != FrcJoystick.PANEL_BUTTON4)))
-        {
-            return;
-        }
+        robot.dashboard.displayPrintf(8, "  ButtonPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
 
         switch (button)
         {
@@ -634,9 +612,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void switchPanelButtonEvent(int button, boolean pressed)
     {
-        robot.dashboard
-            .displayPrintf(8, "  SwitchPanel: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
-                robot.isAutoActive());
+        robot.dashboard.displayPrintf(8, "  SwitchPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:

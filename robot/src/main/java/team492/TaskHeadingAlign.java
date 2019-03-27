@@ -51,6 +51,7 @@ public class TaskHeadingAlign
     private double targetHeading;
     private TrcEvent onFinishedEvent;
     private TaskAutoDeploy.DeployType deployType;
+    private double lastElevatorPower = 0.0;
 
     public TaskHeadingAlign(Robot robot)
     {
@@ -90,6 +91,7 @@ public class TaskHeadingAlign
             setEnabled(false);
             robot.pidDrive.cancel();
             sm.stop();
+            lastElevatorPower = 0.0;
         }
     }
 
@@ -166,12 +168,14 @@ public class TaskHeadingAlign
                     break;
 
                 case DRIVE:
+                    // Update vision information
                     FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
                     double currHeading = robot.driveBase.getHeading();
                     if (pose != null)
                     {
                         robot.targetHeading = pose.theta + currHeading;
                     }
+                    // Drive the robot towards the target
                     double turnPower =
                         RobotInfo.GYRO_TURN_KP_SMALL * (warpSpace.getOptimizedTarget(robot.targetHeading, currHeading)
                             - currHeading);
@@ -180,6 +184,13 @@ public class TaskHeadingAlign
                         "HeadingAlign aligning: targetHeading=%.1f,currHeading=%.1f,drivePower=%.2f,turnPower=%.2f",
                         robot.targetHeading, currHeading, drivePower, turnPower);
                     robot.driveBase.holonomicDrive(0.0, drivePower, turnPower);
+                    // Drive the elevator. Operator controls will be run by the button callbacks in teleop
+                    double elevatorPower = robot.operatorStick.getYWithDeadband(true);
+                    if (elevatorPower != lastElevatorPower)
+                    {
+                        robot.elevator.setPower(elevatorPower);
+                        lastElevatorPower = elevatorPower;
+                    }
                     // This state does not exit, as it has no exit condition. The driver must release the button.
                     break;
 
