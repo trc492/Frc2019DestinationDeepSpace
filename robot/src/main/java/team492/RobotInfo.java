@@ -324,7 +324,7 @@ public class RobotInfo
 
     public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.3;
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.9;
-    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.6; // It's down
+    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.65; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;
     public static final double CLIMBER_PICKUP_ANGLE             = 135.0;
     public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 21.0; // TODO: tune this
