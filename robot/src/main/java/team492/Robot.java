@@ -333,6 +333,8 @@ public class Robot extends FrcRobotBase
         //
         autoMode = new FrcAuto(this);
         setupRobotModes(new FrcTeleOp(this), autoMode, new FrcTest(this), new FrcDisabled(this));
+
+        pdp.registerEnergyUsedForAllUnregisteredChannels();
     }   //robotInit
 
     public void robotStartMode(RunMode runMode, RunMode prevMode)

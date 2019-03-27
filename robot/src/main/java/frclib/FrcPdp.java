@@ -144,6 +144,32 @@ public class FrcPdp extends PowerDistributionPanel
     }   //registerEnergyUsed
 
     /**
+     * This method registers all currently unregistered PDP channels for monitoring its energy used
+     * with a default name based on the channel number.
+     */
+    public synchronized void registerEnergyUsedForAllUnregisteredChannels()
+    {
+        final String funcName = "registerEnergyUsedForAllUnregisteredChannels";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
+        for (int i = 0; i < kPDPChannels; i++)
+        {
+            if (channelNames[i] == null) {
+                channelNames[i] = "Unassigned_" + i;
+            }
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //registerEnergyUsed
+
+    /**
      * This method unregisters a PDP channel for monitoring its energy used.
      *
      * @param channel specifies the channel to be unregistered.
