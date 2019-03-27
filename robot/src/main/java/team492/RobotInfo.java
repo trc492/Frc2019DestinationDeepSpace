@@ -186,26 +186,26 @@ public class RobotInfo
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
     // practice robot: 0.012/0.0/0.0
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.971078567;
-    public static final double ENCODER_X_KP                     = 0.0;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.1311748;
+    public static final double ENCODER_X_KP                     = 0.017;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.0;
     public static final double ENCODER_X_KF                     = 0.0;
-    public static final double ENCODER_X_TOLERANCE              = 1.0;
+    public static final double ENCODER_X_TOLERANCE              = 2.0;
 
     // practice robot: 0.024/0.0/0.0
-    public static final double ENCODER_X_KP_SMALL               = 0.0;
+    public static final double ENCODER_X_KP_SMALL               = 0.022;
     public static final double ENCODER_X_KI_SMALL               = 0.0;
     public static final double ENCODER_X_KD_SMALL               = 0.0;
     public static final double ENCODER_X_KF_SMALL               = 0.0;
-    public static final double ENCODER_X_TOLERANCE_SMALL        = 1.0;
+    public static final double ENCODER_X_TOLERANCE_SMALL        = 1.5;
 
     // comp robot: 0.02/0.0/0.0016
     // practice robot: 0.01/0.0/0.001
-    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.360546194;
-    public static final double ENCODER_Y_KP                     = 0.0;
+    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.355935875;
+    public static final double ENCODER_Y_KP                     = 0.011;
     public static final double ENCODER_Y_KI                     = 0.0;
-    public static final double ENCODER_Y_KD                     = 0.0;
+    public static final double ENCODER_Y_KD                     = 0.001;
     public static final double ENCODER_Y_KF                     = 0.0;
     public static final double ENCODER_Y_TOLERANCE              = 2.0;
 
