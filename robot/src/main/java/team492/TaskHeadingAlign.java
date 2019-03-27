@@ -22,6 +22,7 @@
 
 package team492;
 
+import frclib.FrcRemoteVisionProcessor;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -32,8 +33,10 @@ public class TaskHeadingAlign
 {
     private enum State
     {
-        START, TURN, DONE
+        START, TURN, DRIVE, DONE
     }
+
+    private static final boolean ASSISTED_DRIVE = true; // if false, be flush with target. if true, assist driving to target.
 
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
@@ -74,6 +77,10 @@ public class TaskHeadingAlign
         sm.start(State.TURN);
         setEnabled(true);
         this.onFinishedEvent = event;
+        if (event != null && ASSISTED_DRIVE)
+        {
+            throw new IllegalStateException("Assisted driving is on! Turn only is disabled!");
+        }
     }
 
     public void cancel()
@@ -135,15 +142,45 @@ public class TaskHeadingAlign
             switch (state)
             {
                 case START:
-                    targetHeading = getTargetRotation();
-                    sm.setState(State.TURN);
-                    // Intentional fallthrough
+                    if (ASSISTED_DRIVE)
+                    {
+                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
+                        if (pose != null)
+                        {
+                            targetHeading = pose.theta + robot.driveBase.getHeading();
+                            sm.setState(State.TURN);
+                        }
+                    }
+                    else
+                    {
+                        targetHeading = getTargetRotation();
+                        sm.setState(State.TURN);
+                    }
+                    break;
 
                 case TURN:
                     robot.enableSmallGains();
                     robot.targetHeading = targetHeading;
                     robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
-                    sm.waitForSingleEvent(event, State.DONE);
+                    sm.waitForSingleEvent(event, ASSISTED_DRIVE ? State.DRIVE : State.DONE);
+                    break;
+
+                case DRIVE:
+                    FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
+                    double currHeading = robot.driveBase.getHeading();
+                    if (pose != null)
+                    {
+                        robot.targetHeading = pose.theta + currHeading;
+                    }
+                    double turnPower =
+                        RobotInfo.GYRO_TURN_KP_SMALL * (warpSpace.getOptimizedTarget(robot.targetHeading, currHeading)
+                            - currHeading);
+                    double drivePower = robot.rightDriveStick.getYWithDeadband(true);
+                    robot.globalTracer.tracePrintf(
+                        "HeadingAlign aligning: targetHeading=%.1f,currHeading=%.1f,drivePower=%.2f,turnPower=%.2f",
+                        robot.targetHeading, currHeading, drivePower, turnPower);
+                    robot.driveBase.holonomicDrive(0.0, drivePower, turnPower);
+                    // This state does not exit, as it has no exit condition. The driver must release the button.
                     break;
 
                 case DONE:
