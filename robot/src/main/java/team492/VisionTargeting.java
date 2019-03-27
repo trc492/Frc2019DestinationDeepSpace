@@ -41,7 +41,7 @@ public class VisionTargeting
         }
         else
         {
-            vision = new FrcLimeLightVisionProcessor("LimeLight", "limelight", "camtran");
+            vision = new FrcLimeLightVisionProcessor("LimeLight");
         }
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }
