@@ -25,6 +25,7 @@ package team492;
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcJoystick;
+import frclib.FrcPdp;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -55,8 +56,6 @@ public class Climber
         actuator.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         actuator.motor.enableVoltageCompensation(true);
 
-        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_CLIMBER, "Climber");
-
         FrcCANTalonLimitSwitch actuatorLowerLimitSwitch = new FrcCANTalonLimitSwitch("ActuatorLowerLimit", actuator,
             false);
         actuator.resetPositionOnDigitalInput(actuatorLowerLimitSwitch);
@@ -65,7 +64,9 @@ public class Climber
         climberWheels.setInverted(true);
         climberWheels.setBrakeModeEnabled(true);
 
-        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_CLIBMER_WHEELS, "ClimberWheels");
+        robot.pdp.registerEnergyUsed(
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_CLIMBER, "Climber"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "ClimberWheels"));
 
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 

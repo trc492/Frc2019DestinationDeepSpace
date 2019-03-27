@@ -251,10 +251,11 @@ public class Robot extends FrcRobotBase
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
         setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
 
-        pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel");
-        pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel");
-        pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel");
-        pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel");
+        pdp.registerEnergyUsed(
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel"));
 
         //
         // Initialize each drive motor controller.
@@ -312,7 +313,7 @@ public class Robot extends FrcRobotBase
         elevator = new Elevator(this);
         pickup = new Pickup(this);
         climber = new Climber(this);
-        indicator = new LEDIndicator();
+        indicator = new LEDIndicator(this);
 
         if (USE_STREAM_CAMERA)
         {

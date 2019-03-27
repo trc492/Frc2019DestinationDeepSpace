@@ -39,11 +39,12 @@ public class LEDIndicator
 
     private FrcRevBlinkin blinkin;
 
-    public LEDIndicator()
+    public LEDIndicator(Robot robot)
     {
         blinkin = new FrcRevBlinkin("LEDIndicator", RobotInfo.PWM_REV_BLINKIN);
         blinkin.setPatternPriorities(normalPriorities);
         blinkin.setPatternState(normalPattern, true);
+        robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_BLINKIN, "Blinkin");
     }
 
     public void enableNormalPriorities()
