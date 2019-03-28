@@ -90,10 +90,11 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         {
             return null;
         }
+        // According to LL docs, format is [x, y, z, pitch, yaw, roll]
         double[] values = data.getDoubleArray();
         RelativePose pose = new RelativePose();
         pose.x = values[0];
-        pose.y = values[1];
+        pose.y = values[2]; // robot y axis is camera z axis
         pose.r = TrcUtil.magnitude(pose.x, pose.y);
         pose.theta = getHeading();
         pose.objectYaw = values[4];
