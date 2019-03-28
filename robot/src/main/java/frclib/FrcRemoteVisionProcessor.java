@@ -50,28 +50,27 @@ public abstract class FrcRemoteVisionProcessor
     private double offsetX = 0.0;
     private double offsetY = 0.0;
 
-    public FrcRemoteVisionProcessor(String instanceName, String networkTable, String dataKey)
+    public FrcRemoteVisionProcessor(String instanceName, String networkTableName, String dataKey)
     {
         this.instanceName = instanceName;
-        commonInit(networkTable, dataKey);
-    }
-
-    public FrcRemoteVisionProcessor(String instanceName, String networkTable, String dataKey, int relayPort)
-    {
-        this.instanceName = instanceName;
-        commonInit(networkTable, dataKey);
-        ringLight = new Relay(relayPort);
-        ringLight.setDirection(Relay.Direction.kForward);
-    }
-
-    private void commonInit(String networkTableName, String dataKey)
-    {
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
         networkTable = instance.getTable(networkTableName);
         instance.addConnectionListener(this::connectionListener, false);
         NetworkTableEntry entry = networkTable.getEntry(dataKey);
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+    }
+
+    public FrcRemoteVisionProcessor(String instanceName, String networkTableName, String dataKey, int relayPort)
+    {
+        this(instanceName, networkTableName, dataKey);
+        ringLight = new Relay(relayPort);
+        ringLight.setDirection(Relay.Direction.kForward);
+    }
+
+    public String toString()
+    {
+        return instanceName;
     }
 
     /**
