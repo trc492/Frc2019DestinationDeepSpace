@@ -72,7 +72,6 @@ public abstract class FrcRemoteVisionProcessor
         NetworkTableEntry entry = networkTable.getEntry(dataKey);
         entry.addListener(this::updateTargetInfo,
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
-
     }
 
     /**
@@ -101,7 +100,7 @@ public abstract class FrcRemoteVisionProcessor
         }
     }
 
-    private void recalcululatePolarCoords(RelativePose pose)
+    private void recalculatePolarCoords(RelativePose pose)
     {
         pose.r = TrcUtil.magnitude(pose.x, pose.y);
         pose.theta = Math.toDegrees(Math.atan2(pose.x, pose.y));
@@ -146,7 +145,7 @@ public abstract class FrcRemoteVisionProcessor
             // Adjust for the camera offset and recalculate polar coordinates
             relativePose.x += offsetX;
             relativePose.y += offsetY;
-            recalcululatePolarCoords(relativePose);
+            recalculatePolarCoords(relativePose);
             this.relativePose = relativePose;
             synchronized (framesLock)
             {
