@@ -33,6 +33,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         AUTO(0), OFF(1), BLINK(2), ON(3);
 
         private int value;
+
         RingLightMode(int value)
         {
             this.value = value;
@@ -46,6 +47,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 
     private NetworkTableEntry tv, heading;
     private NetworkTableEntry ledMode, pipeline;
+
     public FrcLimeLightVisionProcessor(String instanceName)
     {
         super(instanceName, "limelight", "camtran");
@@ -53,6 +55,11 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         ledMode = super.networkTable.getEntry("ledMode");
         pipeline = super.networkTable.getEntry("pipeline");
         heading = super.networkTable.getEntry("tx");
+    }
+
+    public boolean targetDetected()
+    {
+        return tv.getDouble(0.0) == 1.0;
     }
 
     public void selectPipeline(int pipeline)
@@ -79,7 +86,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
     @Override
     protected RelativePose processData(NetworkTableValue data)
     {
-        if (!hasValidData() || !data.isDoubleArray())
+        if (!targetDetected() || !data.isDoubleArray())
         {
             return null;
         }
@@ -92,10 +99,5 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         pose.objectYaw = values[4];
         pose.time = TrcUtil.getCurrentTime();
         return pose;
-    }
-
-    private boolean hasValidData()
-    {
-        return tv.getDouble(0.0) == 1.0;
     }
 }
