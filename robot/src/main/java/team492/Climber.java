@@ -43,6 +43,7 @@ public class Climber
     private Robot robot;
     private TrcTaskMgr.TaskObject climbTaskObj;
     private TrcStateMachine<State> sm;
+    private boolean wheelContacted = false;
 
     public Climber(Robot robot)
     {
@@ -147,6 +148,7 @@ public class Climber
             robot.pickup.setPitchPower(0.0);
             sm.stop();
             setEnabled(false);
+            wheelContacted = false;
             robot.dashboard.displayPrintf(9, "");
         }
     }
@@ -168,6 +170,7 @@ public class Climber
                     robot.setHalfBrakeModeEnabled(true);
                     climberWheels.set(0.0);
                     climberWheels.setBrakeModeEnabled(true);
+                    wheelContacted = false;
 
                     robot.elevator.setManualOverrideEnabled(true);
                     robot.pickup.setManualOverrideEnabled(true);
@@ -176,13 +179,12 @@ public class Climber
                     break;
 
                 case MANUAL_CLIMB:
-                    robot.elevator.getPidController().restoreOutputLimit();
-                    robot.pickup.getPitchPidController().restoreOutputLimit();
+                    // pickup pitch is at maximum power.
+                    if (!wheelContacted)
+                    {
+                        robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                    }
 
-                    // elevator power is set by operator stick.
-                    robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
-                    // pickup pitch is at maximum popwer.
-                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
                     // climber power is at high power if panel button 8 is pressed, otherwise set at 0.0.
                     // If panel button 8 is not pressed, climber is power at 0.0 and so is the elevator which may fight
                     // with the line above setting elevator power by operator stick.
@@ -190,13 +192,26 @@ public class Climber
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
                     {
                         setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
-                        robot.elevator.setPower(
-                            RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER + robot.rightDriveStick.getYWithDeadband(true));
+                        if (robot.elevator.getPosition() > RobotInfo.CLIMBER_ELEVATOR_DONE_POS)
+                        {
+                            robot.elevator.setPower(
+                                RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER + robot.operatorStick.getYWithDeadband(true));
+                        }
+                        else
+                        {
+                            robot.elevator.setPower(0.0);
+                        }
                     }
                     else
                     {
-                        setActuatorPower(0.0);
+                        setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
                         robot.elevator.setPower(0.0);
+                    }
+
+                    if (robot.leftDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
+                    {
+                        wheelContacted = true;
+                        robot.pickup.setPickupAngle(RobotInfo.PICKUP_MIN_POS);
                     }
 
                     robot.globalTracer
@@ -204,34 +219,9 @@ public class Climber
                             robot.elevator.getPower(), actuator.getPower(),
                             robot.elevator.getMotor().getVelocity() * RobotInfo.ELEVATOR_INCHES_PER_COUNT,
                             actuator.getVelocity() * RobotInfo.CLIMBER_INCHES_PER_COUNT);
-                    // If right stick button 8 is pressed, climb wheel power is set by right driver stick and wheel base
-                    // power is set to 0.0.
-                    // If right stick button 8 is not pressed, climb wheel power is set to 0.0 and wheel base power is
-                    // set by right drive stick.
-                    // CodeReview: This DOESN'T MAKE SENSE!!! If button 8 is pressed, only climb wheels are driving.
-                    // If button 8 is release, whatever right driver stick value is will be driving the wheel base
-                    // which could jerk the whole robot forward at high speed since we were using it to drive the
-                    // wimpy climb wheels and likely to be at maximum value!
-                    // Also, there is no state transition out of this state meaning that we will still driving the
-                    // PickupPitch at maximum power and the lowest pitch angle will probably lift the robot front
-                    // upward. And btw, you forgot to retract the climber tail that will probably nullify the climb
-                    // because the climb wheels are still touching the lowest platform.
-                    if (robot.rightDriveStick
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
-                    {
-                        double climberWheelPower = robot.rightDriveStick.getYWithDeadband(true);
-                        robot.dashboard.displayPrintf(12, "ClimberWheel enabled=true,power=%.2f", climberWheelPower);
-                        robot.driveBase.arcadeDrive(0.0, 0.0);
-                        climberWheels.setBrakeModeEnabled(true);
-                        setWheelPower(climberWheelPower);
-                    }
-                    else
-                    {
-                        robot.dashboard.displayPrintf(12, "ClimberWheel enabled=false");
-                        setWheelPower(0.0);
-                        climberWheels.setBrakeModeEnabled(false);
-                        robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
-                    }
+
+                    setWheelPower(robot.leftDriveStick.getYWithDeadband(true));
+                    robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
                     break;
             }
         }

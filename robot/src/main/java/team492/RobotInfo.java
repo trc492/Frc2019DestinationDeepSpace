@@ -323,11 +323,12 @@ public class RobotInfo
     public static final double CLIMBER_SYNC_GAIN                = 1.0;
     public static final double CLIMBER_POWER_RATIO              = 0.65;
 
-    public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.9;
-    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.65; // It's down
+    public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 1.0;
+    public static final double CLIMBER_ACTUATOR_GRAVITY_COMP    = 0.08;
+    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.5; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;
     public static final double CLIMBER_PICKUP_ANGLE             = 135.0;
     public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 21.0; // TODO: tune this
     public static final double CLIMBER_ELEVATOR_LIFT_DIFF = 7.0; // Number of inches due to backlash
-    public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 34.0; // TODO: tune this
+    public static final double CLIMBER_ELEVATOR_DONE_POS        = 11.0; // inches
 }   // class RobotInfo
