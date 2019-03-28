@@ -118,11 +118,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             {
                 robot.indicator.signalNoVisionDetected();
             }
-            else if (pose.theta > RobotInfo.CAMERA_CENTERED_THRESHOLD)
+            else if (pose.x > RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
                 robot.indicator.signalVisionRight();
             }
-            else if (pose.theta < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
+            else if (pose.x < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
                 robot.indicator.signalVisionLeft();
             }

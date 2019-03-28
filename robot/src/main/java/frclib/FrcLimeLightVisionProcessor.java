@@ -46,9 +46,9 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 
     private NetworkTableEntry tv, heading;
     private NetworkTableEntry ledMode, pipeline;
-    public FrcLimeLightVisionProcessor(String instanceName, String networkTable, String dataKey)
+    public FrcLimeLightVisionProcessor(String instanceName)
     {
-        super(instanceName, networkTable, dataKey);
+        super(instanceName, "limelight", "camtran");
         tv = super.networkTable.getEntry("tv");
         ledMode = super.networkTable.getEntry("ledMode");
         pipeline = super.networkTable.getEntry("pipeline");

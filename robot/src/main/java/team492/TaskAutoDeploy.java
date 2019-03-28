@@ -245,14 +245,9 @@ public class TaskAutoDeploy
         return targetYaw;
     }
 
-    private double getXDistance()
-    {
-        return pose.x + RobotInfo.CAMERA_OFFSET;
-    }
-
     private double getYDistance()
     {
-        double y = pose.y - RobotInfo.CAMERA_DEPTH;
+        double y = pose.y;
         if (deployType == DeployType.PICKUP_HATCH)
         {
             y += 8;
@@ -352,13 +347,13 @@ public class TaskAutoDeploy
                         // Vision data was taken BEFORE the ORIENT state, so we need to transform it to match robot coords.
                         double r = pose.r;
                         double theta = pose.theta - pose.objectYaw;
-                        x = Math.sin(Math.toRadians(theta)) * r + RobotInfo.CAMERA_OFFSET;
-                        y = Math.cos(Math.toRadians(theta)) * r - RobotInfo.CAMERA_DEPTH;
+                        x = Math.sin(Math.toRadians(theta)) * r;
+                        y = Math.cos(Math.toRadians(theta)) * r;
                     }
                     else
                     {
                         // Vision data was taken AFTER the ORIENT state, so no transformation required.
-                        x = getXDistance();
+                        x = pose.x;
                         y = getYDistance();
                     }
                     robot.globalTracer
@@ -370,7 +365,7 @@ public class TaskAutoDeploy
                     break;
 
                 case ALIGN_X:
-                    x = getXDistance();
+                    x = pose.x;
                     y = 0.0;
 
                     robot.globalTracer
@@ -384,7 +379,7 @@ public class TaskAutoDeploy
                     travelHeight = Math.min(RobotInfo.ELEVATOR_DRIVE_POS, elevatorHeight);
                     robot.elevator.setPosition(travelHeight);
 
-                    x = getXDistance();
+                    x = pose.x;
                     y = getYDistance();
 
                     robot.globalTracer

@@ -23,7 +23,7 @@
 package team492;
 
 import frclib.FrcRemoteVisionProcessor;
-import trclib.TrcEvent;
+import trclib.TrcPidController;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -33,10 +33,10 @@ public class TaskHeadingAlign
 {
     private enum State
     {
-        START, TURN, DRIVE, DONE
+        START, DRIVE
     }
 
-    private static final boolean ASSISTED_DRIVE = true; // if false, be flush with target. if true, assist driving to target.
+    private static final boolean POINT_TO_TARGET = true; // if false, be flush with target. if true, point at it.
 
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
@@ -45,43 +45,39 @@ public class TaskHeadingAlign
 
     private Robot robot;
     private TrcStateMachine<State> sm;
-    private TrcEvent event;
     private TrcTaskMgr.TaskObject turnTaskObj;
     private TrcWarpSpace warpSpace;
-    private double targetHeading;
-    private TrcEvent onFinishedEvent;
     private TaskAutoDeploy.DeployType deployType;
     private double lastElevatorPower = 0.0;
+    private TrcPidController turnPidController;
 
     public TaskHeadingAlign(Robot robot)
     {
         this.robot = robot;
         sm = new TrcStateMachine<>("TaskHeadingAlign.StateMachine");
-        event = new TrcEvent("TaskHeadingAlign.event");
         turnTaskObj = TrcTaskMgr.getInstance().createTask("TurnTask", this::turnTask);
         warpSpace = new TrcWarpSpace("warpSpace", 0.0, 360.0);
+        TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(
+            RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL, RobotInfo.ENCODER_X_KD_SMALL);
+        turnPidController = new TrcPidController("TurnPid", pidCoefficients, 1.0, robot.driveBase::getHeading);
+        turnPidController.setAbsoluteSetPoint(true);
     }
 
     public void start()
     {
-        start(null);
+        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH);
     }
 
-    public void start(TrcEvent event)
+    public void start(TaskAutoDeploy.DeployType deployType)
     {
-        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH, event);
-    }
-
-    public void start(TaskAutoDeploy.DeployType deployType, TrcEvent event)
-    {
-        this.deployType = deployType;
-        sm.start(State.TURN);
-        setEnabled(true);
-        this.onFinishedEvent = event;
-        if (event != null && ASSISTED_DRIVE)
+        if (isActive())
         {
-            throw new IllegalStateException("Assisted driving is on! Turn only is disabled!");
+            cancel();
         }
+        this.deployType = deployType;
+        sm.start(State.START);
+        turnPidController.reset();
+        setEnabled(true);
     }
 
     public void cancel()
@@ -92,6 +88,7 @@ public class TaskHeadingAlign
             robot.pidDrive.cancel();
             sm.stop();
             lastElevatorPower = 0.0;
+            turnPidController.reset();
         }
     }
 
@@ -136,6 +133,12 @@ public class TaskHeadingAlign
         }
     }
 
+    private void updateTarget(double targetHeading)
+    {
+        double target = warpSpace.getOptimizedTarget(targetHeading, robot.driveBase.getHeading());
+        turnPidController.setTarget(target);
+    }
+
     private void turnTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
         State state = sm.checkReadyAndGetState();
@@ -144,46 +147,45 @@ public class TaskHeadingAlign
             switch (state)
             {
                 case START:
-                    if (ASSISTED_DRIVE)
+                    robot.enableSmallGains();
+                    if (POINT_TO_TARGET)
                     {
                         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
                         if (pose != null)
                         {
-                            targetHeading = pose.theta + robot.driveBase.getHeading();
-                            sm.setState(State.TURN);
+                            updateTarget(pose.theta + robot.driveBase.getHeading());
+                            sm.setState(State.DRIVE);
                         }
                     }
                     else
                     {
-                        targetHeading = getTargetRotation();
-                        sm.setState(State.TURN);
+                        updateTarget(getTargetRotation());
+                        sm.setState(State.DRIVE);
                     }
-                    break;
-
-                case TURN:
-                    robot.enableSmallGains();
-                    robot.targetHeading = targetHeading;
-                    robot.pidDrive.setTarget(0.0, 0.0, robot.targetHeading, false, event);
-                    sm.waitForSingleEvent(event, ASSISTED_DRIVE ? State.DRIVE : State.DONE);
                     break;
 
                 case DRIVE:
-                    // Update vision information
-                    FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
                     double currHeading = robot.driveBase.getHeading();
-                    if (pose != null)
+                    // Only use vision data if we're pointing at the target
+                    if (POINT_TO_TARGET)
                     {
-                        robot.targetHeading = pose.theta + currHeading;
+                        // Update vision information
+                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
+                        if (pose != null)
+                        {
+                            updateTarget(pose.theta + currHeading);
+                        }
                     }
                     // Drive the robot towards the target
-                    double turnPower =
-                        RobotInfo.GYRO_TURN_KP_SMALL * (warpSpace.getOptimizedTarget(robot.targetHeading, currHeading)
-                            - currHeading);
-                    double drivePower = robot.rightDriveStick.getYWithDeadband(true);
-                    robot.globalTracer.tracePrintf(
-                        "HeadingAlign aligning: targetHeading=%.1f,currHeading=%.1f,drivePower=%.2f,turnPower=%.2f",
-                        robot.targetHeading, currHeading, drivePower, turnPower);
-                    robot.driveBase.holonomicDrive(0.0, drivePower, turnPower);
+                    double turnPower = turnPidController.getOutput();
+                    double xPower = robot.leftDriveStick.getXWithDeadband(true);
+                    double yPower = robot.rightDriveStick.getYWithDeadband(true);
+                    String log = String.format(
+                        "HeadingAlign: targetHeading=%.1f,currHeading=%.1f,xPower=%.2f,yPower=%.2f,turnPower=%.2f",
+                        robot.targetHeading, currHeading, xPower, yPower, turnPower);
+                    robot.globalTracer.traceInfo("turnTask", log);
+                    robot.dashboard.displayPrintf(15, log);
+                    robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
                     // Drive the elevator. Operator controls will be run by the button callbacks in teleop
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);
                     if (elevatorPower != lastElevatorPower)
@@ -192,14 +194,6 @@ public class TaskHeadingAlign
                         lastElevatorPower = elevatorPower;
                     }
                     // This state does not exit, as it has no exit condition. The driver must release the button.
-                    break;
-
-                case DONE:
-                    cancel();
-                    if (onFinishedEvent != null)
-                    {
-                        onFinishedEvent.set(true);
-                    }
                     break;
             }
         }

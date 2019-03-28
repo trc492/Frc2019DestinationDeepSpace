@@ -145,11 +145,11 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = 16; // Inches from center of EE to center of camera, + = backward
-    public static final double CAMERA_OFFSET                    = 1; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_DEPTH                     = -16; // Inches from center of EE to center of camera, + = forward
+    public static final double CAMERA_OFFSET                    = 2.5; // Inches from center of EE to center of camera, + = right
     public static final double CAMERA_PITCH                     = 0.0; // Down is positive
     public static final double CAMERA_DATA_TIMEOUT              = 0.5; // 500ms
-    public static final double CAMERA_CENTERED_THRESHOLD        = 10.0; // +- 10 degrees
+    public static final double CAMERA_CENTERED_THRESHOLD        = 2; // +- 2 inches in x axis
 
     //
     // Ultrasonic sensors.
@@ -324,7 +324,7 @@ public class RobotInfo
     public static final double CLIMBER_POWER_RATIO              = 0.65;
 
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.9;
-    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.6; // It's down
+    public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.65; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;
     public static final double CLIMBER_PICKUP_ANGLE             = 135.0;
     public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 21.0; // TODO: tune this

@@ -46,7 +46,9 @@ public abstract class FrcRemoteVisionProcessor
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
     private Relay ringLight;
-    private double timeout;
+    private double timeout = 0.0;
+    private double offsetX = 0.0;
+    private double offsetY = 0.0;
 
     public FrcRemoteVisionProcessor(String instanceName, String networkTable, String dataKey)
     {
@@ -73,6 +75,19 @@ public abstract class FrcRemoteVisionProcessor
 
     }
 
+    /**
+     * Set the offset of the camera. This is the distance in the x and y axes from the camera to the robot perspective.
+     * Positive is forward and right.
+     *
+     * @param x X component of distance to camera.
+     * @param y Y component of distance to camera.
+     */
+    public void setOffsets(double x, double y)
+    {
+        this.offsetX = x;
+        this.offsetY = y;
+    }
+
     public void setFreshnessTimeout(double timeout)
     {
         this.timeout = timeout;
@@ -84,6 +99,12 @@ public abstract class FrcRemoteVisionProcessor
         {
             ringLight.set(enabled ? Relay.Value.kOn : Relay.Value.kOff);
         }
+    }
+
+    private void recalcululatePolarCoords(RelativePose pose)
+    {
+        pose.r = TrcUtil.magnitude(pose.x, pose.y);
+        pose.theta = Math.toDegrees(Math.atan2(pose.x, pose.y));
     }
 
     private void connectionListener(ConnectionNotification notification)
@@ -105,6 +126,7 @@ public abstract class FrcRemoteVisionProcessor
 
     private void updateTargetInfo(EntryNotification event)
     {
+        // Deserialize the latest calculated pose
         RelativePose relativePose = processData(event.value);
         if (relativePose == null)
         {
@@ -121,7 +143,10 @@ public abstract class FrcRemoteVisionProcessor
         }
         else
         {
-            // Deserialize the latest calculated pose
+            // Adjust for the camera offset and recalculate polar coordinates
+            relativePose.x += offsetX;
+            relativePose.y += offsetY;
+            recalcululatePolarCoords(relativePose);
             this.relativePose = relativePose;
             synchronized (framesLock)
             {
