@@ -185,9 +185,12 @@ public class Climber
                         robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
                     }
 
-                    // climber power is at high power if panel button 8 is pressed, otherwise set at 0.0.
-                    // If panel button 8 is not pressed, climber is power at 0.0 and so is the elevator which may fight
-                    // with the line above setting elevator power by operator stick.
+                    // If panel button 8 is pressed and held, we are climbing. Set climber power to maximum. As long as
+                    // the elevator height is not at the lowest DONE position, set elevator power to a percentage of the
+                    // climber power so the robot is level. If necessary, allow the operator stick to fine adjust the
+                    // elevator power to level the robot. If the elevator has reached the lowest DONE position, robot
+                    // front wheels must be over the HAB platform???, so turn elevator power off and let the front end
+                    // drop onto the HAB.
                     if (robot.buttonPanel
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
                     {
@@ -199,15 +202,21 @@ public class Climber
                         }
                         else
                         {
+                            // CodeReview: questionable???
                             robot.elevator.setPower(0.0);
                         }
                     }
                     else
                     {
+                        // If panel button 8 is released, set climber power to GravityComp so it will hold its height
+                        // while setting elevator power to zero to let the front end drop.
                         setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
                         robot.elevator.setPower(0.0);
                     }
 
+                    // Driver presses left stick button 2 when the front wheel is completely above the HAB platform.
+                    // So retract the pickup to upright position so the front end of the robot will drop onto the
+                    // HAB platform.
                     if (robot.leftDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
                     {
                         wheelContacted = true;
@@ -220,6 +229,8 @@ public class Climber
                             robot.elevator.getMotor().getVelocity() * RobotInfo.ELEVATOR_INCHES_PER_COUNT,
                             actuator.getVelocity() * RobotInfo.CLIMBER_INCHES_PER_COUNT);
 
+                    // Use the left drive stick to control the climber wheel power while the right drive stick is
+                    // controlling the drive base wheel power.
                     setWheelPower(robot.leftDriveStick.getYWithDeadband(true));
                     robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
                     break;

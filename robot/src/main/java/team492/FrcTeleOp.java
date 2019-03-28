@@ -80,6 +80,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
+        // CodeReview: obsolete code???
         robot.driveClimberWheels = false;
         robot.actuatorEnabled = false;
 
@@ -170,6 +171,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 lastElevatorPower = elevatorPower;
             }
 
+            // CodeReview: obsolete code???
             double actuatorPower = robot.actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
             if (actuatorPower != lastActuatorPower)
             {
@@ -177,9 +179,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 robot.climber.setActuatorPower(actuatorPower);
                 lastActuatorPower = actuatorPower;
             }
+
             //
             // DriveBase operation.
             //
+            // CodeReview: obsolete code???
             if (robot.driveClimberWheels)
             {
                 // CodeReview: should multiply with a scale factor in order to sync the mecanum speed.
@@ -401,6 +405,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON8:
+                // CodeReview: obsolete code???
                 robot.driveClimberWheels = pressed;
                 if (!pressed)
                 {
@@ -651,6 +656,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
+                //CodeReview: obsolete code???
                 robot.climber.cancel();
                 robot.actuatorEnabled = pressed;
                 if (!pressed)
