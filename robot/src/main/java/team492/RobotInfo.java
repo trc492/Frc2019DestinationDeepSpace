@@ -314,15 +314,15 @@ public class RobotInfo
     public static final double CLIMBER_KI                       = 0.0;
     public static final double CLIMBER_KD                       = 0.0;
     public static final double CLIMBER_TOLERANCE                = 1.0; // 1 in
-    public static final double CLIMBER_CALIBRATE_POWER          = 0.5;
+    public static final double CLIMBER_CALIBRATE_POWER          = 0.3;
     public static final double CLIMBER_MIN_POS                  = 5.25;
     public static final double CLIMBER_MAX_POS                  = 71;
     public static final double CLIMBER_PID_FLOOR                = CLIMBER_MIN_POS - 2.0;
     public static final double CLIMBER_PID_CEILING              = CLIMBER_MAX_POS + 2.0;
     public static final double CLIMBER_GRAVITY_COMP             = 0.05;
     public static final double CLIMBER_SYNC_GAIN                = 1.0;
+    public static final double CLIMBER_POWER_RATIO              = 0.65;
 
-    public static final double CLIMBER_ACTUATOR_CAL_POWER       = 0.3;
     public static final double CLIMBER_ACTUATOR_CLIMB_POWER     = 0.9;
     public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.6; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;

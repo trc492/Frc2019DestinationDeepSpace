@@ -75,7 +75,7 @@ public class Climber
 
     public void zeroCalibrateActuator()
     {
-        actuator.zeroCalibrate(RobotInfo.CLIMBER_ACTUATOR_CAL_POWER);
+        actuator.zeroCalibrate(RobotInfo.CLIMBER_CALIBRATE_POWER);
     }
 
     public void setWheelPower(double power)
@@ -180,18 +180,28 @@ public class Climber
                     robot.elevator.getPidController().restoreOutputLimit();
                     robot.pickup.getPitchPidController().restoreOutputLimit();
 
+                    // elevator power is set by operator stick.
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
+                    // pickup pitch is at maximum popwer.
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
 
+                    // actuator power is at high constant power if panel button 8 is pressed and held, otherwise 0.0.
                     setActuatorPower(robot.buttonPanel
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1) ?
                         RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER :
                         0.0);
 
-                    robot.globalTracer.traceInfo("ClimbTask", "elevPower=%.2f,climbPower=%.2f,elevSpeed=%.2f,climbSpeed=%.2f",
+                    robot.globalTracer.traceInfo(
+                        "ClimbTask", "elevPower=%.2f,climbPower=%.2f,elevSpeed=%.2f,climbSpeed=%.2f",
                         robot.elevator.getPower(), actuator.getPower(), robot.elevator.getMotor().getVelocity() * RobotInfo.ELEVATOR_INCHES_PER_COUNT,
                         actuator.getVelocity() * RobotInfo.CLIMBER_INCHES_PER_COUNT);
-                    if (robot.rightDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
+                    // If right driver stick button 8 is held down, climb wheel power is set by right driver stick
+                    // and wheel base power is 0.0.
+                    // Otherwise climb wheel power is 0.0 but wheel base power is set by right driver stick.
+                    // Also, there is no transition out of this state?!
+                    // CodeReview: This DOESN"T MAKE SENSE!!!
+                    if (robot.rightDriveStick.getRawButton(
+                        TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
                         double climberWheelPower = robot.rightDriveStick.getYWithDeadband(true);
                         robot.dashboard.displayPrintf(12, "ClimberWheel enabled=true,power=%.2f", climberWheelPower);
