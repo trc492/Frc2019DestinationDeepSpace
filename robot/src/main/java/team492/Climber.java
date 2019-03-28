@@ -183,7 +183,9 @@ public class Climber
                     robot.elevator.setPower(robot.operatorStick.getYWithDeadband(true));
                     // pickup pitch is at maximum popwer.
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-
+                    // climber power is at high power if panel button 8 is pressed, otherwise set at 0.0.
+                    // If panel button 8 is not pressed, climber is power at 0.0 and so is the elevator which may fight
+                    // with the line above setting elevator power by operator stick.
                     if (robot.buttonPanel
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
                     {
@@ -202,6 +204,18 @@ public class Climber
                             robot.elevator.getPower(), actuator.getPower(),
                             robot.elevator.getMotor().getVelocity() * RobotInfo.ELEVATOR_INCHES_PER_COUNT,
                             actuator.getVelocity() * RobotInfo.CLIMBER_INCHES_PER_COUNT);
+                    // If right stick button 8 is pressed, climb wheel power is set by right driver stick and wheel base
+                    // power is set to 0.0.
+                    // If right stick button 8 is not pressed, climb wheel power is set to 0.0 and wheel base power is
+                    // set by right drive stick.
+                    // CodeReview: This DOESN'T MAKE SENSE!!! If button 8 is pressed, only climb wheels are driving.
+                    // If button 8 is release, whatever right driver stick value is will be driving the wheel base
+                    // which could jerk the whole robot forward at high speed since we were using it to drive the
+                    // wimpy climb wheels and likely to be at maximum value!
+                    // Also, there is no state transition out of this state meaning that we will still driving the
+                    // PickupPitch at maximum power and the lowest pitch angle will probably lift the robot front
+                    // upward. And btw, you forgot to retract the climber tail that will probably nullify the climb
+                    // because the climb wheels are still touching the lowest platform.
                     if (robot.rightDriveStick
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.SIDEWINDER_BUTTON8) + 1))
                     {
