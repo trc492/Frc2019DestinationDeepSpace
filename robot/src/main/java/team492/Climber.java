@@ -249,14 +249,24 @@ public class Climber
                         }
                         else
                         {
-                            // CodeReview: questionable???
+                            // CodeReview: while the elevator is not at DONE position, it will keep going down.
+                            // But once it reaches DONE position, power is set to zero and the robot front will
+                            // start to drop. Since we keep repeating this state, the elevator power will be
+                            // re-applied. The end result is then the robot front will twitch up and down at around
+                            // the DONE position while the BLUE button is held. Is this correct? If so, why don't
+                            // we just apply GRAVITY_COMP instead of 0.0 here so the robot front will be held at
+                            // DONE position steadily.
                             robot.elevator.setPower(0.0);
                         }
                     }
                     else
                     {
                         // If panel button 8 is released, set climber power to GravityComp so it will hold its height
-                        // while setting elevator power to zero to let the front end drop.
+                        // while setting elevator power to zero to let the front end drop. It looks like we are
+                        // expecting not releasing the BLUE button until the front wheel passes above the HAB platform.
+                        // Because if we release the BLUE button too early, we are setting elevator power zero here
+                        // meaning the robot front will start to drop and we don't want it drop unless the front wheels
+                        // pass above the HAB platform.
                         setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
                         robot.elevator.setPower(0.0);
                     }
