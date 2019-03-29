@@ -28,7 +28,7 @@ import frclib.FrcRemoteVisionProcessor;
 
 public class VisionTargeting
 {
-    private static final boolean USE_RASPI = true;
+    private static final boolean USE_RASPI = false;
 
     private FrcRemoteVisionProcessor vision;
 

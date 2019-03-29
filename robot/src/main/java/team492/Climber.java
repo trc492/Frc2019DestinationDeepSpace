@@ -26,6 +26,7 @@ import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
+import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
@@ -35,7 +36,7 @@ public class Climber
 {
     private enum State
     {
-        INIT_SUBSYSTEMS, MANUAL_CLIMB
+        PREP_ELEVATOR, CALIB_ELEVATOR, INIT_SUBSYSTEMS, MANUAL_CLIMB
     }
 
     private FrcCANTalon actuator;
@@ -43,6 +44,7 @@ public class Climber
     private Robot robot;
     private TrcTaskMgr.TaskObject climbTaskObj;
     private TrcStateMachine<State> sm;
+    private TrcEvent event;
     private boolean wheelContacted = false;
 
     public Climber(Robot robot)
@@ -71,6 +73,7 @@ public class Climber
         climbTaskObj = TrcTaskMgr.getInstance().createTask("ClimberTask", this::climbTask);
 
         sm = new TrcStateMachine<>("ClimbStateMachine");
+        event = new TrcEvent("TrcEvent");
     }
 
     public void zeroCalibrateActuator()
@@ -110,7 +113,7 @@ public class Climber
 
     public void climb()
     {
-        sm.start(State.INIT_SUBSYSTEMS);
+        sm.start(State.PREP_ELEVATOR);
         setEnabled(true);
     }
 
@@ -149,6 +152,7 @@ public class Climber
             sm.stop();
             setEnabled(false);
             wheelContacted = false;
+            robot.climbingButDriving = false;
             robot.dashboard.displayPrintf(9, "");
         }
     }
@@ -166,6 +170,49 @@ public class Climber
             robot.dashboard.displayPrintf(9, "State: %s", state.toString());
             switch (state)
             {
+                case PREP_ELEVATOR:
+                    robot.climbingButDriving = true;
+                    if (robot.switchPanel
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
+                    {
+                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE, event);
+                    }
+                    else
+                    {
+                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE, event);
+                    }
+                    robot.pickup.setManualOverrideEnabled(true);
+                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                    sm.waitForSingleEvent(event, State.CALIB_ELEVATOR);
+                    break;
+
+                case CALIB_ELEVATOR:
+                    boolean levelTwo = robot.switchPanel
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1);
+                    if (levelTwo)
+                    {
+                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE);
+                    }
+                    else
+                    {
+                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE);
+                    }
+                    if (robot.buttonPanel
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
+                    {
+                        robot.climbingButDriving = false;
+                        if (levelTwo)
+                        {
+                            robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2, event);
+                        }
+                        else
+                        {
+                            robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3, event);
+                        }
+                        sm.waitForSingleEvent(event, State.INIT_SUBSYSTEMS, 2.0);
+                    }
+                    break;
+
                 case INIT_SUBSYSTEMS:
                     robot.setHalfBrakeModeEnabled(true);
                     climberWheels.set(0.0);
@@ -217,7 +264,8 @@ public class Climber
                     // Driver presses left stick button 2 when the front wheel is completely above the HAB platform.
                     // So retract the pickup to upright position so the front end of the robot will drop onto the
                     // HAB platform.
-                    if (robot.leftDriveStick.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
+                    if (robot.leftDriveStick
+                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
                     {
                         wheelContacted = true;
                         robot.pickup.setPickupAngle(RobotInfo.PICKUP_MIN_POS);

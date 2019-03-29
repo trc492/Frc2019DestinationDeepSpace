@@ -162,7 +162,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
-        if (!robot.isAutoActive())
+        if (!robot.isAutoActive() || robot.climbingButDriving)
         {
             // TODO: Test if this works
             if (elevatorPower != lastElevatorPower)
@@ -299,10 +299,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.dashboard
             .displayPrintf(8, " LeftDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
                 isAutoActive);
-        if (isAutoActive)
-        {
-            return; // Auto can ony be cancelled by operator
-        }
 
         switch (button)
         {
@@ -319,9 +315,25 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
+                if (pressed)
+                {
+                    robot.autoHeadingAlign.start(true);
+                }
+                else
+                {
+                    robot.autoHeadingAlign.cancel();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
+                if (pressed)
+                {
+                    robot.autoHeadingAlign.start(false);
+                }
+                else
+                {
+                    robot.autoHeadingAlign.cancel();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON6:
@@ -366,14 +378,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
-                if (pressed)
-                {
-                    robot.autoHeadingAlign.start();
-                }
-                else
-                {
-                    robot.autoHeadingAlign.cancel();
-                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:

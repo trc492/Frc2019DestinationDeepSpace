@@ -161,6 +161,7 @@ public class Robot extends FrcRobotBase
     public Climber climber;
     public boolean driveClimberWheels = false;
     public boolean actuatorEnabled = false;
+    public boolean climbingButDriving = false;
 
     public TaskAutoDeploy autoDeploy;
     public TaskHeadingAlign autoHeadingAlign;
@@ -370,6 +371,7 @@ public class Robot extends FrcRobotBase
                 .traceInfo(funcName, "[%.3f] %s: ***** %s *****", Robot.getModeElapsedTime(), now.toString(), runMode);
 
             driveInverted = false;
+            climbingButDriving = false;
 
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);

@@ -233,7 +233,7 @@ public class RobotInfo
     public static final double PICKUP_KP                        = 0.03;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
-    public static final double PICKUP_TOLERANCE                 = 2.0; // 2 degrees
+    public static final double PICKUP_TOLERANCE                 = 0.5; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.3;
     public static final double PICKUP_MIN_POS                   = 3.8; // Perpendicular to ground
     public static final double PICKUP_MAX_POS                   = 88.71; // Parallel to ground
@@ -310,7 +310,7 @@ public class RobotInfo
     // Climber subsystem.
     //
     public static final double CLIMBER_INCHES_PER_COUNT         = 0.0008655284;
-    public static final double CLIMBER_KP                       = 0.4;
+    public static final double CLIMBER_KP                       = 0.48;
     public static final double CLIMBER_KI                       = 0.0;
     public static final double CLIMBER_KD                       = 0.0;
     public static final double CLIMBER_TOLERANCE                = 1.0; // 1 in
@@ -328,7 +328,9 @@ public class RobotInfo
     public static final double CLIMBER_ELEVATOR_CLIMB_POWER     = -0.5; // It's down
     public static final double CLIMBER_PICKUP_HOLD_POWER        = 1.0;
     public static final double CLIMBER_PICKUP_ANGLE             = 135.0;
-    public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 21.0; // TODO: tune this
-    public static final double CLIMBER_ELEVATOR_LIFT_DIFF = 7.0; // Number of inches due to backlash
+    public static final double CLIMBER_ELEVATOR_POS_LVL_2       = 19.0;
+    public static final double CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE = 25.0;
+    public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 32.0;
+    public static final double CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE = 38.0;
     public static final double CLIMBER_ELEVATOR_DONE_POS        = 11.0; // inches
 }   // class RobotInfo

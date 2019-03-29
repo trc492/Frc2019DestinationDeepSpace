@@ -36,7 +36,6 @@ public class TaskHeadingAlign
         START, DRIVE
     }
 
-    private static final boolean POINT_TO_TARGET = true; // if false, be flush with target. if true, point at it.
 
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
@@ -50,6 +49,7 @@ public class TaskHeadingAlign
     private TaskAutoDeploy.DeployType deployType;
     private double lastElevatorPower = 0.0;
     private TrcPidController turnPidController;
+    private boolean pointToTarget = true; // if false, be flush with target. if true, point at it.
 
     public TaskHeadingAlign(Robot robot)
     {
@@ -58,22 +58,23 @@ public class TaskHeadingAlign
         turnTaskObj = TrcTaskMgr.getInstance().createTask("TurnTask", this::turnTask);
         warpSpace = new TrcWarpSpace("warpSpace", 0.0, 360.0);
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(
-            RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL, RobotInfo.ENCODER_X_KD_SMALL);
+            RobotInfo.GYRO_TURN_KP_SMALL, RobotInfo.GYRO_TURN_KI_SMALL, RobotInfo.GYRO_TURN_KD_SMALL);
         turnPidController = new TrcPidController("TurnPid", pidCoefficients, 1.0, robot.driveBase::getHeading);
         turnPidController.setAbsoluteSetPoint(true);
     }
 
-    public void start()
+    public void start(boolean pointToTarget)
     {
-        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH);
+        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH, pointToTarget);
     }
 
-    public void start(TaskAutoDeploy.DeployType deployType)
+    public void start(TaskAutoDeploy.DeployType deployType, boolean pointToTarget)
     {
         if (isActive())
         {
             cancel();
         }
+        this.pointToTarget = pointToTarget;
         this.deployType = deployType;
         sm.start(State.START);
         turnPidController.reset();
@@ -85,7 +86,6 @@ public class TaskHeadingAlign
         if (isActive())
         {
             setEnabled(false);
-            robot.pidDrive.cancel();
             sm.stop();
             lastElevatorPower = 0.0;
             turnPidController.reset();
@@ -147,8 +147,8 @@ public class TaskHeadingAlign
             switch (state)
             {
                 case START:
-                    robot.enableSmallGains();
-                    if (POINT_TO_TARGET)
+                    robot.enableBigGains();
+                    if (pointToTarget)
                     {
                         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
                         if (pose != null)
@@ -167,7 +167,7 @@ public class TaskHeadingAlign
                 case DRIVE:
                     double currHeading = robot.driveBase.getHeading();
                     // Only use vision data if we're pointing at the target
-                    if (POINT_TO_TARGET)
+                    if (pointToTarget)
                     {
                         // Update vision information
                         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
@@ -182,7 +182,7 @@ public class TaskHeadingAlign
                     double yPower = robot.rightDriveStick.getYWithDeadband(true);
                     String log = String.format(
                         "HeadingAlign: targetHeading=%.1f,currHeading=%.1f,xPower=%.2f,yPower=%.2f,turnPower=%.2f",
-                        robot.targetHeading, currHeading, xPower, yPower, turnPower);
+                        turnPidController.getTarget(), currHeading, xPower, yPower, turnPower);
                     robot.globalTracer.traceInfo("turnTask", log);
                     robot.dashboard.displayPrintf(15, log);
                     robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
