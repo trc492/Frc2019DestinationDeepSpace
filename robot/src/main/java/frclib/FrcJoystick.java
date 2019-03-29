@@ -45,7 +45,7 @@ public class FrcJoystick extends Joystick
 
     //
     // Logitech Joystick:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
     public static final int LOGITECH_TRIGGER    = (1 << 0);
     public static final int LOGITECH_BUTTON2    = (1 << 1);
@@ -59,9 +59,21 @@ public class FrcJoystick extends Joystick
     public static final int LOGITECH_BUTTON10   = (1 << 9);
     public static final int LOGITECH_BUTTON11   = (1 << 10);
     public static final int LOGITECH_BUTTON12   = (1 << 11);
+    // public static final int LOGITECH_TRIGGER    = 1;
+    // public static final int LOGITECH_BUTTON2    = 2;
+    // public static final int LOGITECH_BUTTON3    = 3;
+    // public static final int LOGITECH_BUTTON4    = 4;
+    // public static final int LOGITECH_BUTTON5    = 5;
+    // public static final int LOGITECH_BUTTON6    = 6;
+    // public static final int LOGITECH_BUTTON7    = 7;
+    // public static final int LOGITECH_BUTTON8    = 8;
+    // public static final int LOGITECH_BUTTON9    = 9;
+    // public static final int LOGITECH_BUTTON10   = 10;
+    // public static final int LOGITECH_BUTTON11   = 11;
+    // public static final int LOGITECH_BUTTON12   = 12;
     //
     // Logitech DualAction Game Controller:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
     public static final int DUALACTION_BUTTONX  = (1 << 0);
     public static final int DUALACTION_BUTTONA  = (1 << 1);
@@ -75,9 +87,21 @@ public class FrcJoystick extends Joystick
     public static final int DUALACTION_START    = (1 << 9);
     public static final int DUALACTION_LTOP     = (1 << 10);
     public static final int DUALACTION_RTOP     = (1 << 11);
+    // public static final int DUALACTION_BUTTONX  = 1;
+    // public static final int DUALACTION_BUTTONA  = 2;
+    // public static final int DUALACTION_BUTTONB  = 3;
+    // public static final int DUALACTION_BUTTONY  = 4;
+    // public static final int DUALACTION_LB       = 5;
+    // public static final int DUALACTION_RB       = 6;
+    // public static final int DUALACTION_LT       = 7;
+    // public static final int DUALACTION_RT       = 8;
+    // public static final int DUALACTION_BACK     = 9;
+    // public static final int DUALACTION_START    = 10;
+    // public static final int DUALACTION_LTOP     = 11;
+    // public static final int DUALACTION_RTOP     = 12;
     //
     // Microsoft SideWinder Joystick:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
     public static final int SIDEWINDER_TRIGGER  = (1 << 0);
     public static final int SIDEWINDER_BUTTON2  = (1 << 1);
@@ -88,9 +112,18 @@ public class FrcJoystick extends Joystick
     public static final int SIDEWINDER_BUTTON7  = (1 << 6);
     public static final int SIDEWINDER_BUTTON8  = (1 << 7);
     public static final int SIDEWINDER_BUTTON9  = (1 << 8);
+    // public static final int SIDEWINDER_TRIGGER  = 1;
+    // public static final int SIDEWINDER_BUTTON2  = 2;
+    // public static final int SIDEWINDER_BUTTON3  = 3;
+    // public static final int SIDEWINDER_BUTTON4  = 4;
+    // public static final int SIDEWINDER_BUTTON5  = 5;
+    // public static final int SIDEWINDER_BUTTON6  = 6;
+    // public static final int SIDEWINDER_BUTTON7  = 7;
+    // public static final int SIDEWINDER_BUTTON8  = 8;
+    // public static final int SIDEWINDER_BUTTON9  = 9;
     //
     // Microsoft XBox Game Controller:
-    // UsagePage=0x01, Usage-0x05
+    // UsagePage=0x01, Usage=0x05
     //
     public static final int XBOX_BUTTONA        = (1 << 0);
     public static final int XBOX_BUTTONB        = (1 << 1);
@@ -100,20 +133,52 @@ public class FrcJoystick extends Joystick
     public static final int XBOX_RB             = (1 << 5);
     public static final int XBOX_BACK           = (1 << 6);
     public static final int XBOX_START          = (1 << 7);
+    // public static final int XBOX_BUTTONA        = 1;
+    // public static final int XBOX_BUTTONB        = 2;
+    // public static final int XBOX_BUTTONX        = 3;
+    // public static final int XBOX_BUTTONY        = 4;
+    // public static final int XBOX_LB             = 5;
+    // public static final int XBOX_RB             = 6;
+    // public static final int XBOX_BACK           = 7;
+    // public static final int XBOX_START          = 8;
     //
-    // Button panel:
-    // UsagePage=0x01, Usage-0x04 (i have no idea what this means)
+    // Generic USB Button Panel:
+    // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
     //
-    public static final int PANEL_BUTTON1    = (1 << 0);
-    public static final int PANEL_BUTTON2    = (1 << 1);
-    public static final int PANEL_BUTTON3    = (1 << 2);
-    public static final int PANEL_BUTTON4    = (1 << 3);
-    public static final int PANEL_BUTTON5    = (1 << 4);
-    public static final int PANEL_BUTTON6    = (1 << 5);
-    public static final int PANEL_BUTTON7    = (1 << 6);
-    public static final int PANEL_BUTTON8    = (1 << 7);
-    public static final int PANEL_BUTTON9    = (1 << 8);
-    public static final int PANEL_BUTTON10   = (1 << 9);
+    public static final int PANEL_BUTTON1       = (1 << 0);
+    public static final int PANEL_BUTTON2       = (1 << 1);
+    public static final int PANEL_BUTTON3       = (1 << 2);
+    public static final int PANEL_BUTTON4       = (1 << 3);
+    public static final int PANEL_BUTTON5       = (1 << 4);
+    public static final int PANEL_BUTTON6       = (1 << 5);
+    public static final int PANEL_BUTTON7       = (1 << 6);
+    public static final int PANEL_BUTTON8       = (1 << 7);
+    public static final int PANEL_BUTTON9       = (1 << 8);
+    public static final int PANEL_BUTTON10      = (1 << 9);
+    public static final int PANEL_BUTTON_RED1   = 1;
+    public static final int PANEL_BUTTON_GREEN1 = 2;
+    public static final int PANEL_BUTTON_BLUE1  = 3;
+    public static final int PANEL_BUTTON_YELLOW1= 4;
+    public static final int PANEL_BUTTON_WHITE1 = 5;
+    public static final int PANEL_BUTTON_RED2   = 6;
+    public static final int PANEL_BUTTON_GREEN2 = 7;
+    public static final int PANEL_BUTTON_BLUE2  = 8;
+    public static final int PANEL_BUTTON_YELLOW2= 9;
+    public static final int PANEL_BUTTON_WHITE2 = 10;
+    //
+    // Generic USB Switch Panel:
+    // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
+    //
+    public static final int PANEL_SWITCH_WHITE1 = 1;
+    public static final int PANEL_SWTICH_RED1   = 2;
+    public static final int PANEL_SWTICH_GREEN1 = 3;
+    public static final int PANEL_SWTICH_BLUE1  = 4;
+    public static final int PANEL_SWTICH_YELLOW1= 5;
+    public static final int PANEL_SWTICH_WHITE2 = 6;
+    public static final int PANEL_SWTICH_RED2   = 7;
+    public static final int PANEL_SWTICH_GREEN2 = 8;
+    public static final int PANEL_SWTICH_BLUE2  = 9;
+    public static final int PANEL_SWTICH_YELLOW2= 10;
 
     /**
      * This interface, if provided, will allow this class to do a notification callback when there are button
@@ -611,6 +676,8 @@ public class FrcJoystick extends Joystick
                             dbgTrace.traceInfo(funcName, "Button %x pressed", buttonMask);
                         }
                         buttonHandler.joystickButtonEvent(buttonMask, true);
+                        // buttonHandler.joystickButtonEvent(
+                        //     TrcUtil.leastSignificantSetBitPosition(buttonMask + 1), true);
                     }
                     else
                     {
@@ -622,6 +689,8 @@ public class FrcJoystick extends Joystick
                             dbgTrace.traceInfo(funcName, "Button %x released", buttonMask);
                         }
                         buttonHandler.joystickButtonEvent(buttonMask, false);
+                        // buttonHandler.joystickButtonEvent(
+                        //     TrcUtil.leastSignificantSetBitPosition(buttonMask + 1), false);
                     }
                     //
                     // Clear the least significant set bit.
