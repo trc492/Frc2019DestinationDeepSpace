@@ -160,6 +160,12 @@ public class Pickup
         return -Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
     }
 
+    public double getPitchPower()
+    {
+        return pitchMotor.getPower();
+    }
+
+
     public void extendAlignGuides()
     {
         alignGuide.extend();

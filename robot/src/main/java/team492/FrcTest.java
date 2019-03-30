@@ -439,9 +439,9 @@ public class FrcTest extends FrcTeleOp
             robot.elevator.isLowerLimitSwitchActive(), robot.elevator.isUpperLimitSwitchActive(),
             robot.elevator.getRawPosition(), robot.elevator.getPosition(), robot.elevator.getPower());
         robot.dashboard
-            .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b", robot.pickup.isLowerLimitSwitchActive(),
+            .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b,PIDOut=%.2f,Power=%.2f", robot.pickup.isLowerLimitSwitchActive(),
                 robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
-                robot.pickup.getPickupAngle(), robot.pickup.cargoDetected());
+                robot.pickup.getPickupAngle(), robot.pickup.cargoDetected(), robot.pickup.getPitchPidController().getOutput(), robot.pickup.getPitchPower());
         if (robot.pixy != null)
         {
             if (Robot.USE_PIXY_LINE_TARGET)

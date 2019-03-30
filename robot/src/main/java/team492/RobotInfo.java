@@ -230,12 +230,12 @@ public class RobotInfo
     //
     // TODO: Tune all of this
     public static final double PICKUP_DEGREES_PER_COUNT         = 0.0101727665; //0.0097596;
-    public static final double PICKUP_KP                        = 0.03;
+    public static final double PICKUP_KP                        = 0.06;
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
     public static final double PICKUP_TOLERANCE                 = 0.5; // 2 degrees
     public static final double PICKUP_CALIBRATE_POWER           = 0.3;
-    public static final double PICKUP_MIN_POS                   = 3.8; // Perpendicular to ground
+    public static final double PICKUP_MIN_POS                   = 6.0; // Perpendicular to ground
     public static final double PICKUP_MAX_POS                   = 88.71; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 5.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 4.0;
@@ -254,7 +254,7 @@ public class RobotInfo
     public static final double PICKUP_PERCENT_TORQUE            = PICKUP_MAX_TORQUE / PITCH_MOTOR_SHAFT_MAX_TORQUE;
 
     public static final double PICKUP_HATCH_PICKUP_POS          = 5.05;
-    public static final double PICKUP_GROUND_CARGO_POS          = 53.47;
+    public static final double PICKUP_GROUND_CARGO_POS          = 55.96;
     public static final double PICKUP_PERP_TO_GROUND_POS        = PICKUP_MIN_POS;
     public static final double PICKUP_PARALLEL_TO_GROUND_POS    = PICKUP_MAX_POS;
     public static final double PICKUP_CARGO_SHIP_POS            = 26.15;
