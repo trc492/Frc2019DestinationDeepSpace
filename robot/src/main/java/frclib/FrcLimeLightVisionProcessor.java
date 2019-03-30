@@ -23,9 +23,9 @@
 package frclib;
 
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableValue;
 import trclib.TrcUtil;
 
+import java.util.Arrays;
 import java.util.function.DoubleUnaryOperator;
 
 public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
@@ -47,29 +47,46 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         }
     }
 
-    private NetworkTableEntry tv, heading, area;
+    private NetworkTableEntry tv, heading, area, camtran;
     private NetworkTableEntry ledMode, pipeline;
     private DoubleUnaryOperator depthApproximator;
-
-    public FrcLimeLightVisionProcessor(String instanceName)
-    {
-        this(instanceName, "camtran");
-    }
+    private boolean use3D = true;
 
     public FrcLimeLightVisionProcessor(String instanceName, DoubleUnaryOperator depthApproximator)
     {
-        this(instanceName, "ta");
+        this(instanceName);
         this.depthApproximator = depthApproximator;
+        use3D = false;
     }
 
-    private FrcLimeLightVisionProcessor(String instanceName, String dataKey)
+    public FrcLimeLightVisionProcessor(String instanceName)
     {
-        super(instanceName, "limelight", dataKey);
+        super(instanceName, "limelight");
         tv = super.networkTable.getEntry("tv");
         ledMode = super.networkTable.getEntry("ledMode");
         pipeline = super.networkTable.getEntry("pipeline");
         heading = super.networkTable.getEntry("tx");
         area = super.networkTable.getEntry("ta");
+        camtran = super.networkTable.getEntry("camtran");
+    }
+
+    /**
+     * Override the automatic switching/fallback behavior of using camtran mode.
+     *
+     * @param override If true, use 3d. Else, use area to approximate depth.
+     */
+    public void setUse3DOverride(boolean override)
+    {
+        if (depthApproximator == null && !override)
+        {
+            throw new IllegalStateException("Must set the depth approximator before disabling 3D!");
+        }
+        use3D = override;
+    }
+
+    public void setDepthApproximator(DoubleUnaryOperator depthApproximator)
+    {
+        this.depthApproximator = depthApproximator;
     }
 
     public boolean targetDetected()
@@ -98,36 +115,30 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         setRingLightEnabled(enabled ? RingLightMode.ON : RingLightMode.OFF);
     }
 
-    private boolean availableData(NetworkTableValue data)
-    {
-        return targetDetected() && ((depthApproximator == null && data.isDoubleArray()) || (depthApproximator != null
-            && data.isDouble()));
-    }
-
     public void setRingLightEnabled(RingLightMode mode)
     {
         ledMode.setDouble(mode.getValue());
     }
 
     @Override
-    protected RelativePose processData(NetworkTableValue data)
+    protected RelativePose processData()
     {
-        if (!availableData(data))
+        if (!targetDetected())
         {
             return null;
         }
 
         RelativePose pose = new RelativePose();
         pose.time = TrcUtil.getCurrentTime();
-        if (depthApproximator == null)
+        double[] data3d = camtran.getDoubleArray(new double[6]);
+        if (use3D && Arrays.stream(data3d).anyMatch(d -> d != 0.0))
         {
             // According to LL docs, format is [x, y, z, pitch, yaw, roll]
-            double[] values = data.getDoubleArray();
-            pose.x = -values[0]; // x axis is relative to target instead of robot, so invert
-            pose.y = -values[2]; // robot y axis is camera z axis, relative to target, invert
+            pose.x = -data3d[0]; // x axis is relative to target instead of robot, so invert
+            pose.y = -data3d[2]; // robot y axis is camera z axis, relative to target, invert
             pose.r = TrcUtil.magnitude(pose.x, pose.y);
             pose.theta = getHeading();
-            pose.objectYaw = values[4];
+            pose.objectYaw = data3d[4];
         }
         else
         {

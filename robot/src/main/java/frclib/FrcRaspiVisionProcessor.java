@@ -23,26 +23,29 @@
 package frclib;
 
 import com.google.gson.Gson;
-import edu.wpi.first.networktables.NetworkTableValue;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import trclib.TrcUtil;
 
 public class FrcRaspiVisionProcessor extends FrcRemoteVisionProcessor
 {
     private Gson gson;
+    private NetworkTableEntry data;
+
     public FrcRaspiVisionProcessor(String instanceName, String networkTable, String dataKey, int relayPort)
     {
-        super(instanceName, networkTable, dataKey, relayPort);
+        super(instanceName, networkTable, relayPort);
+        data = super.networkTable.getEntry(dataKey);
         gson = new Gson();
     }
 
-    @Override
-    protected RelativePose processData(NetworkTableValue data)
+    @Override protected RelativePose processData()
     {
-        if (!data.isString() || "".equals(data.getString()))
+        String dataString = data.getString("");
+        if ("".equals(dataString))
         {
             return null;
         }
-        RelativePose pose = gson.fromJson(data.getString(), RelativePose.class);
+        RelativePose pose = gson.fromJson(dataString, RelativePose.class);
         pose.time = TrcUtil.getCurrentTime();
         return pose;
     }

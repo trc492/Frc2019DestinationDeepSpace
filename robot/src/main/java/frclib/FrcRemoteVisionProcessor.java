@@ -23,14 +23,12 @@
 package frclib;
 
 import edu.wpi.first.networktables.ConnectionNotification;
-import edu.wpi.first.networktables.EntryListenerFlags;
-import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.Relay;
 import trclib.TrcDbgTrace;
+import trclib.TrcRobot;
+import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
 import java.util.LinkedList;
@@ -49,21 +47,22 @@ public abstract class FrcRemoteVisionProcessor
     private double timeout = 0.0;
     private double offsetX = 0.0;
     private double offsetY = 0.0;
+    private TrcTaskMgr.TaskObject visionTaskObj;
 
-    public FrcRemoteVisionProcessor(String instanceName, String networkTableName, String dataKey)
+    public FrcRemoteVisionProcessor(String instanceName, String networkTableName)
     {
         this.instanceName = instanceName;
         NetworkTableInstance instance = NetworkTableInstance.getDefault();
         networkTable = instance.getTable(networkTableName);
         instance.addConnectionListener(this::connectionListener, false);
-        NetworkTableEntry entry = networkTable.getEntry(dataKey);
-        entry.addListener(this::updateTargetInfo,
-            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        visionTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".visionTask", this::updateTargetInfo);
+        // TODO: Maybe make this standalone? We'll see.
+        visionTaskObj.registerTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);
     }
 
-    public FrcRemoteVisionProcessor(String instanceName, String networkTableName, String dataKey, int relayPort)
+    public FrcRemoteVisionProcessor(String instanceName, String networkTableName, int relayPort)
     {
-        this(instanceName, networkTableName, dataKey);
+        this(instanceName, networkTableName);
         ringLight = new Relay(relayPort);
         ringLight.setDirection(Relay.Direction.kForward);
     }
@@ -117,15 +116,14 @@ public abstract class FrcRemoteVisionProcessor
     /**
      * Process the latest data from network tables.
      *
-     * @param data The NT value containing the data. The type of the data varies depending on implementation.
      * @return The relative pose of the object being tracked. null if no object detected.
      */
-    protected abstract RelativePose processData(NetworkTableValue data);
+    protected abstract RelativePose processData();
 
-    private void updateTargetInfo(EntryNotification event)
+    private void updateTargetInfo(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
         // Deserialize the latest calculated pose
-        RelativePose relativePose = processData(event.value);
+        RelativePose relativePose = processData();
         if (relativePose == null)
         {
             // We have not found a pose, so set to null
