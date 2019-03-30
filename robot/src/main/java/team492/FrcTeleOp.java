@@ -378,6 +378,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON2:
+                robot.vision.setRingLightEnabled(!pressed);
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
