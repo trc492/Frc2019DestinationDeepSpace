@@ -300,6 +300,7 @@ public class RobotInfo
 
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
+    public static final double ELEVATOR_POS_HATCH_PICKUP_GROUND = 9.91;
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
     public static final double ROCKET_SIDE_ANGLE                = 61.23; // Angle in degrees between side wall and angled rocket side.
