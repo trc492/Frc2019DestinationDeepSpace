@@ -26,6 +26,8 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableValue;
 import trclib.TrcUtil;
 
+import java.util.function.DoubleUnaryOperator;
+
 public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 {
     public enum RingLightMode
@@ -45,16 +47,29 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         }
     }
 
-    private NetworkTableEntry tv, heading;
+    private NetworkTableEntry tv, heading, area;
     private NetworkTableEntry ledMode, pipeline;
+    private DoubleUnaryOperator depthApproximator;
 
     public FrcLimeLightVisionProcessor(String instanceName)
     {
-        super(instanceName, "limelight", "camtran");
+        this(instanceName, "camtran");
+    }
+
+    public FrcLimeLightVisionProcessor(String instanceName, DoubleUnaryOperator depthApproximator)
+    {
+        this(instanceName, "ta");
+        this.depthApproximator = depthApproximator;
+    }
+
+    private FrcLimeLightVisionProcessor(String instanceName, String dataKey)
+    {
+        super(instanceName, "limelight", dataKey);
         tv = super.networkTable.getEntry("tv");
         ledMode = super.networkTable.getEntry("ledMode");
         pipeline = super.networkTable.getEntry("pipeline");
         heading = super.networkTable.getEntry("tx");
+        area = super.networkTable.getEntry("ta");
     }
 
     public boolean targetDetected()
@@ -72,10 +87,21 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         return heading.getDouble(0.0);
     }
 
+    public double getArea()
+    {
+        return area.getDouble(0.0);
+    }
+
     @Override
     public void setRingLightEnabled(boolean enabled)
     {
         setRingLightEnabled(enabled ? RingLightMode.ON : RingLightMode.OFF);
+    }
+
+    private boolean availableData(NetworkTableValue data)
+    {
+        return targetDetected() && ((depthApproximator == null && data.isDoubleArray()) || (depthApproximator != null
+            && data.isDouble()));
     }
 
     public void setRingLightEnabled(RingLightMode mode)
@@ -86,19 +112,31 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
     @Override
     protected RelativePose processData(NetworkTableValue data)
     {
-        if (!targetDetected() || !data.isDoubleArray())
+        if (!availableData(data))
         {
             return null;
         }
-        // According to LL docs, format is [x, y, z, pitch, yaw, roll]
-        double[] values = data.getDoubleArray();
+
         RelativePose pose = new RelativePose();
-        pose.x = -values[0]; // x axis is relative to target instead of robot, so invert
-        pose.y = -values[2]; // robot y axis is camera z axis, relative to target, invert
-        pose.r = TrcUtil.magnitude(pose.x, pose.y);
-        pose.theta = getHeading();
-        pose.objectYaw = values[4];
         pose.time = TrcUtil.getCurrentTime();
+        if (depthApproximator == null)
+        {
+            // According to LL docs, format is [x, y, z, pitch, yaw, roll]
+            double[] values = data.getDoubleArray();
+            pose.x = -values[0]; // x axis is relative to target instead of robot, so invert
+            pose.y = -values[2]; // robot y axis is camera z axis, relative to target, invert
+            pose.r = TrcUtil.magnitude(pose.x, pose.y);
+            pose.theta = getHeading();
+            pose.objectYaw = values[4];
+        }
+        else
+        {
+            pose.theta = getHeading();
+            pose.r = depthApproximator.applyAsDouble(getArea());
+            pose.x = Math.sin(Math.toRadians(pose.theta)) * pose.r;
+            pose.y = Math.cos(Math.toRadians(pose.theta)) * pose.r;
+            pose.objectYaw = 0.0;
+        }
         return pose;
     }
 }

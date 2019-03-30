@@ -41,7 +41,9 @@ public class VisionTargeting
         }
         else
         {
-            vision = new FrcLimeLightVisionProcessor("LimeLight");
+            // This linear equation is the best fit line for a few data points to convert target area -> depth
+            // TODO: This shouldn't be linear, i don't think. Get more data points.
+            vision = new FrcLimeLightVisionProcessor("LimeLight", area -> -4.11 * area + 59.48);
         }
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
