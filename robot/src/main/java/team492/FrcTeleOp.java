@@ -305,6 +305,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 robot.driveInverted = pressed;
                 robot.setHalfBrakeModeEnabled(true);
+                if (pressed)
+                {
+                    robot.autoHeadingAlign.cancel();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:

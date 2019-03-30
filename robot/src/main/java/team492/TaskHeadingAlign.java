@@ -36,7 +36,6 @@ public class TaskHeadingAlign
         START, DRIVE
     }
 
-
     private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
         270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
@@ -65,7 +64,8 @@ public class TaskHeadingAlign
 
     public void start(boolean pointToTarget)
     {
-        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH, pointToTarget);
+        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH,
+            pointToTarget);
     }
 
     public void start(TaskAutoDeploy.DeployType deployType, boolean pointToTarget)
