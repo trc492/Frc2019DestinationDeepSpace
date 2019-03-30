@@ -145,8 +145,8 @@ public class RobotInfo
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
     public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
 
-    public static final double CAMERA_DEPTH                     = -16; // Inches from center of EE to center of camera, + = forward
-    public static final double CAMERA_OFFSET                    = 2.5; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_DEPTH                     = -17; // Inches from center of EE to center of camera, + = forward
+    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
     public static final double CAMERA_PITCH                     = 0.0; // Down is positive
     public static final double CAMERA_DATA_TIMEOUT              = 0.5; // 500ms
     public static final double CAMERA_CENTERED_THRESHOLD        = 2; // +- 2 inches in x axis
@@ -300,6 +300,7 @@ public class RobotInfo
 
     public static final double ELEVATOR_POS_HATCH_SHIP          = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
+    public static final double ELEVATOR_POS_HATCH_PICKUP_GROUND = 9.91;
     public static final double ELEVATOR_POS_HATCH_PICKUP        = ELEVATOR_POS_HATCH_ROCKET_LOW;
 
     public static final double ROCKET_SIDE_ANGLE                = 61.23; // Angle in degrees between side wall and angled rocket side.
