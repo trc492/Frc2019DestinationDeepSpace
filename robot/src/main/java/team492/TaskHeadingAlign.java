@@ -147,7 +147,6 @@ public class TaskHeadingAlign
             switch (state)
             {
                 case START:
-                    robot.enableBigGains();
                     if (pointToTarget)
                     {
                         FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
@@ -160,6 +159,9 @@ public class TaskHeadingAlign
                     else
                     {
                         updateTarget(getTargetRotation());
+                        robot.globalTracer.traceInfo("TaskHeadingAlign.turnTask",
+                            "Starting rotation assist! rotation=%.1f,target=%.1f,deployType=%s",
+                            robot.driveBase.getHeading(), turnPidController.getTarget(), deployType.name());
                         sm.setState(State.DRIVE);
                     }
                     break;
