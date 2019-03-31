@@ -103,10 +103,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        if (Robot.USE_VISION_TARGETING)
-        {
-            robot.vision.setRingLightEnabled(false);
-        }
     } // stopMode
 
     private void showStatus()

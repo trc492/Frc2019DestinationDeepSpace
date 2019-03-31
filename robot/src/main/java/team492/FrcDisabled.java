@@ -41,6 +41,10 @@ public class FrcDisabled implements TrcRobot.RobotMode
     @Override
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
+        if (Robot.USE_VISION_TARGETING)
+        {
+            robot.vision.setRingLightEnabled(false);
+        }
     } // startMode
 
     @Override
