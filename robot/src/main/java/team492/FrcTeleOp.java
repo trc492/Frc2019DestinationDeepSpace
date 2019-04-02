@@ -78,10 +78,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
-        final String funcName = moduleName + ".runPeriodic";
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
-        double rightDriveX = robot.rightDriveStick.getXWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
 
         //

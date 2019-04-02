@@ -558,10 +558,13 @@ public abstract class TrcSerialBusDevice
         {
             request.buffer = readData(request.address, request.length);
             request.error = request.buffer == null;
-            if (debugEnabled && !request.error)
+            if (debugEnabled)
             {
-                dbgTrace.traceInfo(funcName, "readData(addr=0x%x,len=%d)=%s",
-                    request.address, request.length, Arrays.toString(request.buffer));
+                if (!request.error)
+                {
+                    dbgTrace.traceInfo(funcName, "readData(addr=0x%x,len=%d)=%s",
+                        request.address, request.length, Arrays.toString(request.buffer));
+                }
             }
         }
         else

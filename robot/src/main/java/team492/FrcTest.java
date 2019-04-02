@@ -24,7 +24,6 @@ package team492;
 
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
