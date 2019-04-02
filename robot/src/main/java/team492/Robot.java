@@ -42,6 +42,7 @@ import frclib.FrcI2cLEDPanel;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
 import frclib.FrcPneumatic;
+import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import hallib.HalDashboard;
@@ -87,8 +88,9 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
     private static final boolean DEBUG_PID_DRIVE = false;
-    private static final boolean DEBUG_SUBSYSTEMS = false;
+    private static final boolean DEBUG_SUBSYSTEMS = true;
     private static final boolean DEBUG_PIXY = false;
+    private static final boolean DEBUG_RASPI_VISION = true;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.
@@ -621,6 +623,21 @@ public class Robot extends FrcRobotBase
                         }
                     }
                 }
+
+                if (DEBUG_RASPI_VISION && vision != null)
+                {
+                    FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
+                    if (pose != null)
+                    {
+                        dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
+                            pose.objectYaw);
+                    }
+                    else
+                    {
+                        dashboard.displayPrintf(13, "RaspiVision: No target found!");
+                    }
+                }
+
             }
         }
     }   //updateDashboard
