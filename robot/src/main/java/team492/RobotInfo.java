@@ -148,6 +148,10 @@ public class RobotInfo
     public static final int USBCAM_FRAME_RATE                   = 15;
     public static final int USBCAM_BRIGHTNESS                   = 20;
 
+    public static final double CAMERA_DEPTH                     = -17; // Inches from center of EE to center of camera, + = forward
+    public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
+    public static final double CAMERA_DATA_TIMEOUT              = 0.5; // 500ms
+
     //
     // Ultrasonic sensors.
     //

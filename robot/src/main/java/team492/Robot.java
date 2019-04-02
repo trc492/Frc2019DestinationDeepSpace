@@ -77,11 +77,12 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_LIDAR = false;
     public static final boolean USE_USB_CAM = false;
     public static final boolean USE_PIXY_SPI = false;
-    public static final boolean USE_PIXY_I2C = true;
+    public static final boolean USE_PIXY_I2C = false;
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_TORQUE_BASED_DRIVING = false;
     public static final boolean USE_GYRO_ASSIST = false;
+    public static final boolean USE_VISION_TARGETING = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -140,6 +141,7 @@ public class Robot extends FrcRobotBase
     // VisionTarget subsystem.
     //
     public PixyVision pixy = null;
+    public VisionTargeting vision = null;
     //
     // Miscellaneous subsystem.
     //
@@ -239,6 +241,10 @@ public class Robot extends FrcRobotBase
             pixy = new PixyVision(
                 "PixyCam", this, RobotInfo.PIXY_POWER_CUBE_SIGNATURE, RobotInfo.PIXY_BRIGHTNESS,
                 RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
+        }
+        else if (USE_VISION_TARGETING)
+        {
+            vision = new VisionTargeting();
         }
 
         //
