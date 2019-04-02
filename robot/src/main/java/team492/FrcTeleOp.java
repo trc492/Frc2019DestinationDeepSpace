@@ -66,6 +66,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
+
+        robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
     } // startMode
 
     @Override
@@ -375,5 +377,50 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
         }
     } // operatorStickButtonEvent
+
+    public void switchPanelButtonEvent(int button, boolean pressed)
+    {
+        robot.dashboard.displayPrintf(8, "  SwitchPanel: button=0x%04x %s", button, pressed? "pressed": "released");
+
+        switch (button)
+        {
+            case FrcJoystick.LOGITECH_TRIGGER:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON3:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON5:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON6:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON7:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON8:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
+                driveInverted = pressed;
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON11:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON12:
+                break;
+        }
+    } // switchPanelButtonEvent
 
 } // class FrcTeleOp
