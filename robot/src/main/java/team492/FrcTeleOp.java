@@ -82,6 +82,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
+        double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
+        boolean driving = leftDriveX != 0.0 || leftDriveY != 0.0 || rightDriveY != 0.0 || rightTwist != 0.0;
+
+        if (driving && robot.visionPidDrive != null && robot.visionPidDrive.isActive())
+        {
+            // Allow joystick to override vision assisted driving.
+            robot.visionPidDrive.cancel();
+        }
 
         //
         // DriveBase operation.
@@ -96,7 +104,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     leftPower /= RobotInfo.DRIVE_SLOW_YSCALE;
                     rightPower /= RobotInfo.DRIVE_SLOW_YSCALE;
                 }
-                robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
+
+                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                {
+                    robot.driveBase.tankDrive(leftPower, rightPower, driveInverted);
+                }
                 break;
 
             case ARCADE_MODE:
@@ -107,24 +119,32 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     drivePower /= RobotInfo.DRIVE_SLOW_YSCALE;
                     turnPower /= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 }
-                robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
+
+                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                {
+                    robot.driveBase.arcadeDrive(drivePower, turnPower, driveInverted);
+                }
                 break;
 
             case MECANUM_MODE:
                 double x = leftDriveX;
                 double y = rightDriveY;
-                double rot = robot.rightDriveStick.getTwistWithDeadband(true);
+                double rot = rightTwist;
                 if (slowDriveOverride)
                 {
                     x /= RobotInfo.DRIVE_SLOW_XSCALE;
                     y /= RobotInfo.DRIVE_SLOW_YSCALE;
                     rot /= RobotInfo.DRIVE_SLOW_TURNSCALE;
                 }
-//                    double xForceOz = x * RobotInfo.MAX_WHEEL_FORCE_OZ;
-//                    double yForceOz = y * RobotInfo.MAX_WHEEL_FORCE_OZ;
-                robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
-//                    HalDashboard.putNumber("xForceOz", xForceOz);
-//                    HalDashboard.putNumber("yForceOz", yForceOz);
+
+                if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                {
+                    // double xForceOz = x * RobotInfo.MAX_WHEEL_FORCE_OZ;
+                    // double yForceOz = y * RobotInfo.MAX_WHEEL_FORCE_OZ;
+                    // HalDashboard.putNumber("xForceOz", xForceOz);
+                    // HalDashboard.putNumber("yForceOz", yForceOz);
+                    robot.driveBase.holonomicDrive(x, y, rot, driveInverted);
+                }
                 break;
         }
 
