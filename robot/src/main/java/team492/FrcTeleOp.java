@@ -67,6 +67,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
 
+        robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
     } // startMode
 
@@ -375,6 +376,54 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
         }
     } // operatorStickButtonEvent
+
+    public void buttonPanelButtonEvent(int button, boolean pressed)
+    {
+        robot.dashboard.displayPrintf(8, "  ButtonPanel: button=0x%04x %s", button, pressed? "pressed": "released");
+
+        switch (button)
+        {
+            case FrcJoystick.LOGITECH_TRIGGER:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON3:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON5:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON6:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON7:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON8:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
+                if (pressed && robot.visionPidDrive != null)
+                {
+                    robot.visionPidDrive.setTarget(0.0, 0.0, 0.0, false, null);
+                }
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON11:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON12:
+                break;
+        }
+    }
 
     public void switchPanelButtonEvent(int button, boolean pressed)
     {

@@ -59,6 +59,7 @@ public class RobotInfo
     public static final int JSPORT_LEFT_DRIVESTICK              = 0;
     public static final int JSPORT_RIGHT_DRIVESTICK             = 1;
     public static final int JSPORT_OPERATORSTICK                = 2;
+    public static final int JSPORT_BUTTON_PANEL                 = 3;
     public static final int JSPORT_SWITCH_PANEL                 = 4;
 
     //
@@ -222,6 +223,16 @@ public class RobotInfo
     public static final double GYRO_TURN_KD                     = 0.00175;
     public static final double GYRO_TURN_KF                     = 0.0;
     public static final double GYRO_TURN_TOLERANCE              = 2.0;
+
+    public static final double VISION_X_KP                      = 0.25;     //TODO: Need to tune this
+    public static final double VISION_X_KI                      = 0.0;
+    public static final double VISION_X_KD                      = 0.9;
+    public static final double VISION_X_TOLERANCE               = 1.0;
+
+    public static final double VISION_TURN_KP                   = 0.02;     //TODO: Need to tune this
+    public static final double VISION_TURN_KI                   = 0.0;
+    public static final double VISION_TURN_KD                   = 0.00175;
+    public static final double VISION_TURN_TOLERANCE            = 1.0;
 
     //
     // Elevator subsystem.
