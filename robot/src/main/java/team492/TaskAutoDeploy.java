@@ -277,7 +277,7 @@ public class TaskAutoDeploy
                     pose = null;
                     if (USE_VISION_YAW)
                     {
-                        pose = robot.vision.getAveragePose(5, false);
+                        pose = robot.vision.getMedianPose(5, false);
                         if (pose != null)
                         {
                             sm.setState(State.ORIENT);
@@ -328,7 +328,7 @@ public class TaskAutoDeploy
                     }
                     else
                     {
-                        pose = robot.vision.getAveragePose(5, false);
+                        pose = robot.vision.getMedianPose(5, false);
                         if (pose != null)
                         {
                             sm.setState(afterRefreshVision != null ? afterRefreshVision : State.DONE);

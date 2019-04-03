@@ -33,6 +33,7 @@ import trclib.TrcUtil;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class FrcRemoteVisionProcessor
 {
@@ -40,7 +41,7 @@ public abstract class FrcRemoteVisionProcessor
 
     private volatile RelativePose relativePose = null;
     protected NetworkTable networkTable;
-    private int maxAverageWindow = 10; // the last 10 frames
+    private int maxCachedFrames = 10; // the last 10 frames
     private List<RelativePose> frames = new LinkedList<>();
     private final Object framesLock = new Object();
     private Relay ringLight;
@@ -149,7 +150,7 @@ public abstract class FrcRemoteVisionProcessor
                 // Add the latest pose
                 frames.add(relativePose);
                 // Trim the list so only the last few are kept
-                while (frames.size() > maxAverageWindow)
+                while (frames.size() > maxCachedFrames)
                 {
                     frames.remove(0);
                 }
@@ -163,13 +164,13 @@ public abstract class FrcRemoteVisionProcessor
     }
 
     /**
-     * Get the average pose of the last n frames where n=maxAverageWindow.
+     * Get the average pose of the last n frames where n=maxCachedFrames.
      *
      * @return The average pose. (all attributes averaged)
      */
     public RelativePose getAveragePose()
     {
-        return getAveragePose(maxAverageWindow);
+        return getAveragePose(maxCachedFrames);
     }
 
     /**
@@ -231,17 +232,51 @@ public abstract class FrcRemoteVisionProcessor
     }
 
     /**
+     * Calculates the median pose of the last numFrames frames, optionally requiring numFrames frames.
+     *
+     * @param numFrames  How many frames to calculate with.
+     * @param requireAll If true, require at least numFrames frames.
+     * @return Median of last numFrames frames, or null if not enough frames and requireAll is true, or if all data is stale.
+     */
+    public RelativePose getMedianPose(int numFrames, boolean requireAll)
+    {
+        RelativePose median = new RelativePose();
+        synchronized (framesLock)
+        {
+            if ((requireAll && frames.size() < numFrames) || frames.isEmpty())
+            {
+                return null;
+            }
+            int fromIndex = Math.max(0, frames.size() - numFrames);
+            List<RelativePose> poses = frames.subList(fromIndex, frames.size());
+            poses = poses.stream().filter(this::isFresh).collect(Collectors.toList());
+            if (poses.isEmpty())
+            {
+                frames.clear();
+                return null;
+            }
+
+            median.x = TrcUtil.median(frames.stream().mapToDouble(e -> e.x).toArray());
+            median.y = TrcUtil.median(frames.stream().mapToDouble(e -> e.y).toArray());
+            median.r = TrcUtil.median(frames.stream().mapToDouble(e -> e.r).toArray());
+            median.theta = TrcUtil.median(frames.stream().mapToDouble(e -> e.theta).toArray());
+            median.objectYaw = TrcUtil.median(frames.stream().mapToDouble(e -> e.objectYaw).toArray());
+        }
+        return median;
+    }
+
+    /**
      * Set the max number of frames to keep. You will not be able to average more frames than this.
      *
      * @param numFrames How many frames to keep for averaging at maximum.
      */
-    public void setMaxAverageWindow(int numFrames)
+    public void setMaxCachedFrames(int numFrames)
     {
         if (numFrames < 0)
         {
             throw new IllegalArgumentException("numFrames must be >= 0!");
         }
-        this.maxAverageWindow = numFrames;
+        this.maxCachedFrames = numFrames;
     }
 
     /**

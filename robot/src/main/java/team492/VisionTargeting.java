@@ -59,8 +59,8 @@ public class VisionTargeting
         vision.setRingLightEnabled(enabled);
     }
 
-    public FrcRemoteVisionProcessor.RelativePose getAveragePose(int numFrames, boolean requireAll)
+    public FrcRemoteVisionProcessor.RelativePose getMedianPose(int numFrames, boolean requireAll)
     {
-        return vision.getAveragePose(numFrames, requireAll);
+        return vision.getMedianPose(numFrames, requireAll);
     }
 }

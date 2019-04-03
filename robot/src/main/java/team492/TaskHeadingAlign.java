@@ -149,7 +149,7 @@ public class TaskHeadingAlign
                 case START:
                     if (pointToTarget)
                     {
-                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
+                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getMedianPose(5, false);
                         if (pose != null)
                         {
                             updateTarget(pose.theta + robot.driveBase.getHeading());
@@ -172,7 +172,7 @@ public class TaskHeadingAlign
                     if (pointToTarget)
                     {
                         // Update vision information
-                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getAveragePose(5, false);
+                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getMedianPose(5, false);
                         if (pose != null)
                         {
                             updateTarget(pose.theta + currHeading);
