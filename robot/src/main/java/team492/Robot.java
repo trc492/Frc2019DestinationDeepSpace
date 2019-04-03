@@ -902,6 +902,10 @@ public class Robot extends FrcRobotBase
             return pose.y;
         }
         return 0.0;
+        // Alternate implementation:
+        // This implementation will allow the joystick Y to fully control the Y direction of the PID drive.
+        // So vision target has nothing to do with the Y direction.
+        // return -rightDriveStick.getYWithDeadband(true)/RobotInfo.VISION_Y_KP;
     }
 
     public double getVisionYaw()
