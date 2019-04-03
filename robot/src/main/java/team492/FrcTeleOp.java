@@ -146,13 +146,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
         double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
-        boolean driving = leftDriveX != 0.0 || leftDriveY != 0.0 || rightDriveY != 0.0 || rightTwist != 0.0;
- 
-        if (driving && robot.visionPidDrive != null && robot.visionPidDrive.isActive())
-        {
-            // Allow joystick to override vision assisted driving.
-            robot.visionPidDrive.cancel();
-        }
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
