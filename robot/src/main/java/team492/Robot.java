@@ -155,6 +155,7 @@ public class Robot extends FrcRobotBase
     public TrcPidDrive pidDrive;
 
     public TrcPidController visionXPidCtrl = null;
+    public TrcPidController visionYPidCtrl = null;
     public TrcPidController visionTurnPidCtrl = null;
     public TrcPidDrive visionPidDrive = null;
 
@@ -321,6 +322,12 @@ public class Robot extends FrcRobotBase
                     RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
                 RobotInfo.VISION_X_TOLERANCE,
                 this::getVisionX);
+            visionYPidCtrl = new TrcPidController(
+                "visionYPidCtrl",
+                new PidCoefficients(
+                    RobotInfo.VISION_Y_KP, RobotInfo.VISION_Y_KI, RobotInfo.VISION_Y_KD),
+                RobotInfo.VISION_Y_TOLERANCE,
+                this::getVisionY);
             visionTurnPidCtrl = new TrcPidController(
                 "visionTurnPidCtrl",
                 new PidCoefficients(
@@ -328,8 +335,10 @@ public class Robot extends FrcRobotBase
                 RobotInfo.VISION_TURN_TOLERANCE,
                 this::getVisionYaw);
             visionXPidCtrl.setInverted(true);
+            visionYPidCtrl.setInverted(true);
             visionTurnPidCtrl.setInverted(true);
-            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, null, visionTurnPidCtrl);
+            visionPidDrive = new TrcPidDrive(
+                "visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl, visionTurnPidCtrl);
             visionPidDrive.setMsgTracer(globalTracer);
         }
 
@@ -879,6 +888,18 @@ public class Robot extends FrcRobotBase
         if (pose != null)
         {
             return pose.x;
+        }
+        return 0.0;
+    }
+
+    public double getVisionY()
+    {
+        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
+        if (pose != null)
+        {
+            double outputLimit = Math.abs(rightDriveStick.getYWithDeadband(true));
+            visionYPidCtrl.setOutputRange(-outputLimit, outputLimit);
+            return pose.y;
         }
         return 0.0;
     }

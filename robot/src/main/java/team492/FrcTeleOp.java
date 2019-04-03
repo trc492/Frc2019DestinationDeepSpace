@@ -401,6 +401,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
+                if (robot.visionPidDrive != null)
+                {
+                    if (pressed)
+                    {
+                        robot.visionPidDrive.setTarget(0.0, 0.0, 0.0, true, null);
+                    }
+                    else
+                    {
+                        robot.visionPidDrive.cancel();
+                    }
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
@@ -628,17 +639,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
-                if (robot.visionPidDrive != null)
-                {
-                    if (pressed)
-                    {
-                        robot.visionPidDrive.setTarget(0.0, 0.0, 0.0, true, null);
-                    }
-                    else
-                    {
-                        robot.visionPidDrive.cancel();
-                    }
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:

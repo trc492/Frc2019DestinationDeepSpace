@@ -225,14 +225,19 @@ public class RobotInfo
     public static final double GYRO_TURN_KF_SMALL               = 0.0;
     public static final double GYRO_TURN_TOLERANCE_SMALL        = 1.5;
 
-    public static final double VISION_X_KP                      = 0.25;     //TODO: Need to tune this
+    public static final double VISION_X_KP                      = 0.022;    //TODO: Need to tune this
     public static final double VISION_X_KI                      = 0.0;
-    public static final double VISION_X_KD                      = 0.9;
+    public static final double VISION_X_KD                      = 0.001;
     public static final double VISION_X_TOLERANCE               = 1.0;
 
-    public static final double VISION_TURN_KP                   = 0.02;     //TODO: Need to tune this
+    public static final double VISION_Y_KP                      = 0.011;    //TODO: Need to tune this
+    public static final double VISION_Y_KI                      = 0.0;
+    public static final double VISION_Y_KD                      = 0.0;
+    public static final double VISION_Y_TOLERANCE               = 1.0;
+
+    public static final double VISION_TURN_KP                   = 0.0085;   //TODO: Need to tune this
     public static final double VISION_TURN_KI                   = 0.0;
-    public static final double VISION_TURN_KD                   = 0.00175;
+    public static final double VISION_TURN_KD                   = 0.0;
     public static final double VISION_TURN_TOLERANCE            = 1.0;
 
     //
