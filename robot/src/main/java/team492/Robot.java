@@ -83,7 +83,7 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_PID_DRIVE = false;
     private static final boolean DEBUG_SUBSYSTEMS = false;
     private static final boolean DEBUG_PIXY = false;
-    private static final boolean DEBUG_RASPI_VISION = false;
+    private static final boolean DEBUG_VISION_TARGET = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.
@@ -153,6 +153,11 @@ public class Robot extends FrcRobotBase
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
+
+    public TrcPidController visionXPidCtrl = null;
+    public TrcPidController visionTurnPidCtrl = null;
+    public TrcPidDrive visionPidDrive = null;
+
     //
     // Primary robot subystems
     //
@@ -307,6 +312,26 @@ public class Robot extends FrcRobotBase
         encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
         encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
         gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
+
+        if (USE_VISION_TARGETING)
+        {
+            visionXPidCtrl = new TrcPidController(
+                "visionXPidCtrl",
+                new PidCoefficients(
+                    RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
+                RobotInfo.VISION_X_TOLERANCE,
+                this::getVisionX);
+            visionTurnPidCtrl = new TrcPidController(
+                "visionTurnPidCtrl",
+                new PidCoefficients(
+                    RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
+                RobotInfo.VISION_TURN_TOLERANCE,
+                this::getVisionYaw);
+            visionXPidCtrl.setInverted(true);
+            visionTurnPidCtrl.setInverted(true);
+            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, null, visionTurnPidCtrl);
+            visionPidDrive.setMsgTracer(globalTracer);
+        }
 
         //
         // Create other hardware subsystems.
@@ -627,17 +652,17 @@ public class Robot extends FrcRobotBase
                     }
                 }
 
-                if (DEBUG_RASPI_VISION && vision != null)
+                if (DEBUG_VISION_TARGET && vision != null)
                 {
                     FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
                     if (pose != null)
                     {
-                        dashboard.displayPrintf(13, "RaspiVision: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
+                        dashboard.displayPrintf(13, "VisionTarget: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
                             pose.objectYaw);
                     }
                     else
                     {
-                        dashboard.displayPrintf(13, "RaspiVision: No target found!");
+                        dashboard.displayPrintf(13, "VisionTarget: No target found!");
                     }
                 }
             }
@@ -847,4 +872,25 @@ public class Robot extends FrcRobotBase
 
         return targetInfo != null ? targetInfo.yDistance : null;
     }
+
+    public double getVisionX()
+    {
+        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
+        if (pose != null)
+        {
+            return pose.x;
+        }
+        return 0.0;
+    }
+
+    public double getVisionYaw()
+    {
+        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
+        if (pose != null)
+        {
+            return pose.objectYaw;
+        }
+        return 0.0;
+    }
+
 }   //class Robot

@@ -146,6 +146,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
         double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
+        boolean driving = leftDriveX != 0.0 || leftDriveY != 0.0 || rightDriveY != 0.0 || rightTwist != 0.0;
+ 
+        if (driving && robot.visionPidDrive != null && robot.visionPidDrive.isActive())
+        {
+            // Allow joystick to override vision assisted driving.
+            robot.visionPidDrive.cancel();
+        }
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
@@ -210,7 +217,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 rightPower *= RobotInfo.DRIVE_FAST_YSCALE;
                                 break;
                         }
-                        robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
+
+                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                        {
+                            robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
+                        }
                         break;
 
                     case ARCADE_MODE:
@@ -233,7 +244,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 turnPower *= RobotInfo.DRIVE_FAST_TURNSCALE;
                                 break;
                         }
-                        robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
+
+                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                        {
+                            robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
+                        }
                         break;
 
                     case MECANUM_MODE:
@@ -260,7 +275,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
                                 break;
                         }
-                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
+
+                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                        {
+                            robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
+                        }
                         break;
                 }
             }
@@ -609,6 +628,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON9:
+                if (robot.visionPidDrive != null)
+                {
+                    if (pressed)
+                    {
+                        robot.visionPidDrive.setTarget(0.0, 0.0, 0.0, true, null);
+                    }
+                    else
+                    {
+                        robot.visionPidDrive.cancel();
+                    }
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON10:
