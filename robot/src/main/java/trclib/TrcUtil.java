@@ -23,6 +23,7 @@
 package trclib;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -160,6 +161,31 @@ public class TrcUtil
     }   //sum
 
     /**
+     * This method calculates and returns the medians of the numbers in the given array.
+     *
+     * @param num specifies the number array.
+     * @return Median of
+     */
+    public static double median(double... num)
+    {
+        if (num.length == 0)
+        {
+            return 0;
+        }
+
+        double[] nums = num.clone();
+        Arrays.sort(nums);
+        if (nums.length % 2 == 0)
+        {
+            return TrcUtil.average(nums[(nums.length / 2) - 1], nums[nums.length / 2]);
+        }
+        else
+        {
+            return nums[nums.length / 2];
+        }
+    }
+
+    /**
      * This method calculates and returns the average of the numbers in the given array.
      *
      * @param nums specifies the number array.
@@ -167,8 +193,11 @@ public class TrcUtil
      */
     public static double average(double... nums)
     {
+        if (nums.length == 0)
+        {
+            return 0;
+        }
         return sum(nums) / nums.length;
-        // return Arrays.stream(nums).average().orElse(0.0);
     }   //average
 
     /**
