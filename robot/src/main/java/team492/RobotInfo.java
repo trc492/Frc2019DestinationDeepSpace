@@ -111,7 +111,8 @@ public class RobotInfo
     //
     // Solenoid channels.
     //
-    public static final int SOL_ALIGN_GUIDES                    = 1;
+    public static final int SOL_HATCH_GRABBER_EXTEND            = 0;
+    public static final int SOL_HATCH_GRABBER_RETRACT           = 1;
     public static final int SOL_HATCH_DEPLOYER_EXTEND           = 2;
     public static final int SOL_HATCH_DEPLOYER_RETRACT          = 3;
 

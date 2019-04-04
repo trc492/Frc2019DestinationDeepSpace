@@ -468,6 +468,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON2:
                 if (pressed)
                 {
+                    robot.pickup.retractHatchGrabber();
                     robot.pickup.extendHatchDeployer();
                 }
                 else
@@ -490,11 +491,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON4:
                 if (pressed)
                 {
-                    robot.pickup.extendAlignGuides();
-                }
-                else
-                {
-                    robot.pickup.retractAlignGuides();
+                    robot.pickup.extendHatchGrabber();
                 }
                 break;
 

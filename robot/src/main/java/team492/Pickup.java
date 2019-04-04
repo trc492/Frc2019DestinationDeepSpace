@@ -47,6 +47,7 @@ public class Pickup
     private FrcCANTalon pitchMotor;
     private TrcPidActuator pitchController;
     private FrcPneumatic hatchDeployer;
+    private FrcPneumatic hatchGrabber;
     private FrcDigitalInput cargoSensor;
     private TrcDigitalTrigger cargoTrigger;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
@@ -54,7 +55,6 @@ public class Pickup
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
     private boolean manualOverrideEnabled;
-    private FrcPneumatic alignGuide;
 
     public Pickup(Robot robot)
     {
@@ -72,10 +72,8 @@ public class Pickup
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
 
-        robot.pdp.registerEnergyUsed(
-            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_PICKUP, "Pickup"),
+        robot.pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_PICKUP, "Pickup"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_PICKUP_PITCH, "PickupPitch"));
-
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.PICKUP_KP,
@@ -96,10 +94,11 @@ public class Pickup
         cargoTrigger = new TrcDigitalTrigger(instanceName + ".cargoTrigger", cargoSensor, this::cargoDetectedEvent);
         cargoTrigger.setEnabled(false);
 
+        hatchGrabber = new FrcPneumatic(instanceName + ".hatchGrabber", RobotInfo.CANID_PCM1,
+            RobotInfo.SOL_HATCH_GRABBER_EXTEND, RobotInfo.SOL_HATCH_GRABBER_RETRACT);
+
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
-
-        alignGuide = new FrcPneumatic(instanceName + ".alignGuide", RobotInfo.CANID_PCM1, RobotInfo.SOL_ALIGN_GUIDES);
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
@@ -163,17 +162,6 @@ public class Pickup
     public double getPitchPower()
     {
         return pitchMotor.getPower();
-    }
-
-
-    public void extendAlignGuides()
-    {
-        alignGuide.extend();
-    }
-
-    public void retractAlignGuides()
-    {
-        alignGuide.retract();
     }
 
     public boolean isUpperLimitSwitchActive()
@@ -280,6 +268,16 @@ public class Pickup
         {
             event.set(true);
         }
+    }
+
+    public void extendHatchGrabber()
+    {
+        hatchGrabber.extend();
+    }
+
+    public void retractHatchGrabber()
+    {
+        hatchGrabber.retract();
     }
 
     public void extendHatchDeployer()
