@@ -45,7 +45,6 @@ public class TaskHeadingAlign
     private TrcStateMachine<State> sm;
     private TrcTaskMgr.TaskObject turnTaskObj;
     private TrcWarpSpace warpSpace;
-    private TaskAutoAlign.DeployType deployType;
     private double lastElevatorPower = 0.0;
     private TrcPidController turnPidController;
     private boolean pointToTarget = true; // if false, be flush with target. if true, point at it.
@@ -64,18 +63,11 @@ public class TaskHeadingAlign
 
     public void start(boolean pointToTarget)
     {
-        start(robot.pickup.cargoDetected() ? TaskAutoAlign.DeployType.CARGO : TaskAutoAlign.DeployType.HATCH,
-            pointToTarget);
-    }
-
-    public void start(TaskAutoAlign.DeployType deployType, boolean pointToTarget)
-    {
         if (isActive())
         {
             cancel();
         }
         this.pointToTarget = pointToTarget;
-        this.deployType = deployType;
         sm.start(State.START);
         turnPidController.reset();
         setEnabled(true);
@@ -99,12 +91,7 @@ public class TaskHeadingAlign
 
     private double getTargetRotation()
     {
-        if (deployType == TaskAutoAlign.DeployType.PICKUP_HATCH)
-        {
-            return 180.0;
-        }
-
-        double[] yaws = deployType == TaskAutoAlign.DeployType.CARGO ? CARGO_YAWS : HATCH_YAWS;
+        double[] yaws = robot.pickup.cargoDetected() ? CARGO_YAWS : HATCH_YAWS;
 
         double currentRot = robot.driveBase.getHeading();
         double targetYaw = yaws[0];
@@ -160,8 +147,8 @@ public class TaskHeadingAlign
                     {
                         updateTarget(getTargetRotation());
                         robot.globalTracer.traceInfo("TaskHeadingAlign.turnTask",
-                            "Starting rotation assist! rotation=%.1f,target=%.1f,deployType=%s",
-                            robot.driveBase.getHeading(), turnPidController.getTarget(), deployType.name());
+                            "Starting rotation assist! rotation=%.1f,target=%.1f,cargo=%b",
+                            robot.driveBase.getHeading(), turnPidController.getTarget(), robot.pickup.cargoDetected());
                         sm.setState(State.DRIVE);
                     }
                     break;

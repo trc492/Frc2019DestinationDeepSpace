@@ -68,6 +68,7 @@ public class TaskAutoAlign
                 RobotInfo.ENCODER_Y_KD), 1.0, robot.driveBase::getYPosition);
         turnPidController = new TrcPidController("TurnPid",
             new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL), 1.0, robot.driveBase::getHeading);
+        turnPidController.setAbsoluteSetPoint(true);
     }
 
     /**
