@@ -45,7 +45,7 @@ public class TaskHeadingAlign
     private TrcStateMachine<State> sm;
     private TrcTaskMgr.TaskObject turnTaskObj;
     private TrcWarpSpace warpSpace;
-    private TaskAutoDeploy.DeployType deployType;
+    private TaskAutoAlign.DeployType deployType;
     private double lastElevatorPower = 0.0;
     private TrcPidController turnPidController;
     private boolean pointToTarget = true; // if false, be flush with target. if true, point at it.
@@ -64,11 +64,11 @@ public class TaskHeadingAlign
 
     public void start(boolean pointToTarget)
     {
-        start(robot.pickup.cargoDetected() ? TaskAutoDeploy.DeployType.CARGO : TaskAutoDeploy.DeployType.HATCH,
+        start(robot.pickup.cargoDetected() ? TaskAutoAlign.DeployType.CARGO : TaskAutoAlign.DeployType.HATCH,
             pointToTarget);
     }
 
-    public void start(TaskAutoDeploy.DeployType deployType, boolean pointToTarget)
+    public void start(TaskAutoAlign.DeployType deployType, boolean pointToTarget)
     {
         if (isActive())
         {
@@ -99,12 +99,12 @@ public class TaskHeadingAlign
 
     private double getTargetRotation()
     {
-        if (deployType == TaskAutoDeploy.DeployType.PICKUP_HATCH)
+        if (deployType == TaskAutoAlign.DeployType.PICKUP_HATCH)
         {
             return 180.0;
         }
 
-        double[] yaws = deployType == TaskAutoDeploy.DeployType.CARGO ? CARGO_YAWS : HATCH_YAWS;
+        double[] yaws = deployType == TaskAutoAlign.DeployType.CARGO ? CARGO_YAWS : HATCH_YAWS;
 
         double currentRot = robot.driveBase.getHeading();
         double targetYaw = yaws[0];

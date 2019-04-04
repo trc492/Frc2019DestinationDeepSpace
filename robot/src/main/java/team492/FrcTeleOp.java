@@ -160,7 +160,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
         if (!robot.isAutoActive() || robot.climbingButDriving)
         {
-            // TODO: Test if this works
             if (elevatorPower != lastElevatorPower)
             {
                 robot.elevator.setPower(elevatorPower);
@@ -394,16 +393,13 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
-                if (robot.visionPidDrive != null)
+                if (pressed)
                 {
-                    if (pressed)
-                    {
-                        robot.visionPidDrive.setTarget(0.0, 0.0, 0.0, true, null);
-                    }
-                    else
-                    {
-                        robot.visionPidDrive.cancel();
-                    }
+                    robot.autoAlign.start();
+                }
+                else
+                {
+                    robot.autoAlign.cancel();
                 }
                 break;
 
@@ -548,79 +544,35 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
-                if (Robot.USE_VISION_TARGETING)
-                {
-                    if (pressed)
-                    {
-                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.HIGH);
-                    }
-                    else
-                    {
-                        robot.autoDeploy.cancel();
-                    }
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
-                if (Robot.USE_VISION_TARGETING)
-                {
-                    if (pressed)
-                    {
-                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.MEDIUM);
-                    }
-                    else
-                    {
-                        robot.autoDeploy.cancel();
-                    }
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
-                if (Robot.USE_VISION_TARGETING)
-                {
-                    if (pressed)
-                    {
-                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW);
-                    }
-                    else
-                    {
-                        robot.autoDeploy.cancel();
-                    }
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON4:
-                if (Robot.USE_VISION_TARGETING)
-                {
-                    if (pressed)
-                    {
-                        robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW, TaskAutoDeploy.DeployType.PICKUP_HATCH);
-                    }
-                    else
-                    {
-                        robot.autoDeploy.cancel();
-                    }
-                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON5:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.LOW);
+                    setElevatorHeight(RobotInfo.DeployLevel.LOW);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON6:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.MEDIUM);
+                    setElevatorHeight(RobotInfo.DeployLevel.MEDIUM);
                 }
                 break;
 
             case FrcJoystick.PANEL_BUTTON7:
                 if (pressed)
                 {
-                    setElevatorHeight(TaskAutoDeploy.DeployLevel.HIGH);
+                    setElevatorHeight(RobotInfo.DeployLevel.HIGH);
                 }
                 break;
 
@@ -701,7 +653,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         }
     }
 
-    private void setElevatorHeight(TaskAutoDeploy.DeployLevel level)
+    private void setElevatorHeight(RobotInfo.DeployLevel level)
     {
         boolean cargo = robot.pickup.cargoDetected();
         if (cargo)

@@ -169,9 +169,8 @@ public class Robot extends FrcRobotBase
     public boolean actuatorEnabled = false;
     public boolean climbingButDriving = false;
 
-    public TaskAutoDeploy autoDeploy;
+    public TaskAutoAlign autoAlign;
     public TaskHeadingAlign autoHeadingAlign;
-    public TaskAlignTarget autoAlignTarget;
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
@@ -258,8 +257,7 @@ public class Robot extends FrcRobotBase
         rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
         setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
 
-        pdp.registerEnergyUsed(
-            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
+        pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel"));
@@ -316,29 +314,20 @@ public class Robot extends FrcRobotBase
 
         if (USE_VISION_TARGETING)
         {
-            visionXPidCtrl = new TrcPidController(
-                "visionXPidCtrl",
-                new PidCoefficients(
-                    RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
-                RobotInfo.VISION_X_TOLERANCE,
-                this::getVisionX);
-            visionYPidCtrl = new TrcPidController(
-                "visionYPidCtrl",
-                new PidCoefficients(
-                    RobotInfo.VISION_Y_KP, RobotInfo.VISION_Y_KI, RobotInfo.VISION_Y_KD),
-                RobotInfo.VISION_Y_TOLERANCE,
-                this::getVisionY);
-            visionTurnPidCtrl = new TrcPidController(
-                "visionTurnPidCtrl",
-                new PidCoefficients(
-                    RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
-                RobotInfo.VISION_TURN_TOLERANCE,
-                this::getVisionYaw);
+            visionXPidCtrl = new TrcPidController("visionXPidCtrl",
+                new PidCoefficients(RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
+                RobotInfo.VISION_X_TOLERANCE, this::getVisionX);
+            visionYPidCtrl = new TrcPidController("visionYPidCtrl",
+                new PidCoefficients(RobotInfo.VISION_Y_KP, RobotInfo.VISION_Y_KI, RobotInfo.VISION_Y_KD),
+                RobotInfo.VISION_Y_TOLERANCE, this::getVisionY);
+            visionTurnPidCtrl = new TrcPidController("visionTurnPidCtrl",
+                new PidCoefficients(RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
+                RobotInfo.VISION_TURN_TOLERANCE, this::getVisionYaw);
             visionXPidCtrl.setInverted(true);
             visionYPidCtrl.setInverted(true);
             visionTurnPidCtrl.setInverted(true);
-            visionPidDrive = new TrcPidDrive(
-                "visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl, visionTurnPidCtrl);
+            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl,
+                visionTurnPidCtrl);
             visionPidDrive.setMsgTracer(globalTracer);
         }
 
@@ -359,10 +348,8 @@ public class Robot extends FrcRobotBase
         //
         // AutoAssist commands.
         //
-        autoDeploy = new TaskAutoDeploy(this);
-        autoDeploy.setAlignOnly(true);
+        autoAlign = new TaskAutoAlign(this);
         autoHeadingAlign = new TaskHeadingAlign(this);
-        autoAlignTarget = new TaskAlignTarget(this);
 
         //
         // Create Robot Modes.
@@ -727,8 +714,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoDeploy.isActive() || autoAlignTarget.isActive() || climber.isActive()
-            || autoHeadingAlign.isActive();
+        return autoMode.isAutoActive() || autoAlign.isActive() || climber.isActive() || autoHeadingAlign.isActive();
     }
 
     public void cancelAllAuto()
@@ -738,14 +724,9 @@ public class Robot extends FrcRobotBase
             autoMode.cancel();
         }
 
-        if (autoDeploy.isActive())
+        if (autoAlign.isActive())
         {
-            autoDeploy.cancel();
-        }
-
-        if (autoAlignTarget.isActive())
-        {
-            autoAlignTarget.cancel();
+            autoAlign.cancel();
         }
 
         if (climber.isActive())

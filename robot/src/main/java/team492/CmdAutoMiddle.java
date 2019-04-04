@@ -90,7 +90,7 @@ public class CmdAutoMiddle implements TrcRobot.RobotCommand
                     break;
 
                 case DEPLOY:
-                    robot.autoDeploy.start(TaskAutoDeploy.DeployLevel.LOW, event);
+                    robot.autoAlign.start(RobotInfo.DeployLevel.LOW, event);
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 

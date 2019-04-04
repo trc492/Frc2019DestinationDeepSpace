@@ -350,4 +350,21 @@ public class RobotInfo
     public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 32.0;
     public static final double CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE = 38.0;
     public static final double CLIMBER_ELEVATOR_DONE_POS        = 11.0; // inches
+
+    public enum DeployLevel
+    {
+        LOW(0), MEDIUM(1), HIGH(2); // For rocket (cargo and hatch). Low is also cargo ship hatch.
+
+        private int index;
+
+        DeployLevel(int i)
+        {
+            this.index = i;
+        }
+
+        public int getIndex()
+        {
+            return index;
+        }
+    }
 }   // class RobotInfo
