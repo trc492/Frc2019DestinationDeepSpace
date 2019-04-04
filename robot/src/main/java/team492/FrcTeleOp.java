@@ -651,6 +651,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.PANEL_BUTTON1:
+                if (pressed)
+                {
+                    robot.pickup.retractHatchGrabber();
+                }
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
