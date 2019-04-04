@@ -107,6 +107,8 @@ public class TaskAutoAlign
         robot.pidDrive.cancel();
         setEnabled(false);
         lastElevatorPower = 0.0;
+        robot.dashboard.displayPrintf(12, "Curr State: DISABLED");
+        robot.globalTracer.traceInfo("AutoAlign.stop", "AutoAlign cancelled!");
     }
 
     private void setEnabled(boolean enabled)
