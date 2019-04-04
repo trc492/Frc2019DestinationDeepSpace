@@ -387,6 +387,7 @@ public class TrcPidDrive
             double xTarget, double yTarget, double turnTarget, boolean holdTarget, TrcEvent event, double timeout)
     {
         final String funcName = "setTarget";
+        double xError = 0.0, yError = 0.0, turnError = 0.0;
 
         if (debugEnabled)
         {
@@ -398,16 +399,19 @@ public class TrcPidDrive
         if (xPidCtrl != null)
         {
             xPidCtrl.setTarget(xTarget);
+            xError = xPidCtrl.getError();
         }
 
         if (yPidCtrl != null)
         {
             yPidCtrl.setTarget(yTarget);
+            yError = yPidCtrl.getError();
         }
 
         if (turnPidCtrl != null)
         {
             turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled? warpSpace: null);
+            turnError = turnPidCtrl.getError();
         }
 
         if (event != null)
@@ -423,7 +427,7 @@ public class TrcPidDrive
         }
 
         this.holdTarget = holdTarget;
-        this.turnOnly = xTarget == 0.0 && yTarget == 0.0 && turnTarget != 0.0;
+        this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
         driveBase.resetStallTimer();
 
         setTaskEnabled(true);

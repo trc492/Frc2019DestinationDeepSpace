@@ -335,8 +335,11 @@ public class Robot extends FrcRobotBase
                 RobotInfo.VISION_TURN_TOLERANCE,
                 this::getVisionYaw);
             visionXPidCtrl.setInverted(true);
+            visionXPidCtrl.setAbsoluteSetPoint(true);
             visionYPidCtrl.setInverted(true);
+            visionYPidCtrl.setAbsoluteSetPoint(true);
             visionTurnPidCtrl.setInverted(true);
+            visionTurnPidCtrl.setAbsoluteSetPoint(true);
             visionPidDrive = new TrcPidDrive(
                 "visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl, visionTurnPidCtrl);
             visionPidDrive.setMsgTracer(globalTracer);
