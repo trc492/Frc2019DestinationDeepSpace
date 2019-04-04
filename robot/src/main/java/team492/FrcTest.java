@@ -353,11 +353,9 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
-                robot.climber.setWheelPower(pressed ? -1 : 0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON11:
-                robot.climber.setWheelPower(pressed ? 1 : 0);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON12:
