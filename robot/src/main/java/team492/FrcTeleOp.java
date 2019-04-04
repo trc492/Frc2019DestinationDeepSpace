@@ -210,10 +210,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
-                        }
+                        robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
                         break;
 
                     case ARCADE_MODE:
@@ -237,10 +234,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
-                        }
+                        robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
                         break;
 
                     case MECANUM_MODE:
@@ -268,10 +262,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
-                        }
+                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
                         break;
                 }
             }

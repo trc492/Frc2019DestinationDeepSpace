@@ -154,11 +154,6 @@ public class Robot extends FrcRobotBase
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
 
-    public TrcPidController visionXPidCtrl = null;
-    public TrcPidController visionYPidCtrl = null;
-    public TrcPidController visionTurnPidCtrl = null;
-    public TrcPidDrive visionPidDrive = null;
-
     //
     // Primary robot subystems
     //
@@ -311,25 +306,6 @@ public class Robot extends FrcRobotBase
         encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
         encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
         gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
-
-        if (USE_VISION_TARGETING)
-        {
-            visionXPidCtrl = new TrcPidController("visionXPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
-                RobotInfo.VISION_X_TOLERANCE, this::getVisionX);
-            visionYPidCtrl = new TrcPidController("visionYPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_Y_KP, RobotInfo.VISION_Y_KI, RobotInfo.VISION_Y_KD),
-                RobotInfo.VISION_Y_TOLERANCE, this::getVisionY);
-            visionTurnPidCtrl = new TrcPidController("visionTurnPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
-                RobotInfo.VISION_TURN_TOLERANCE, this::getVisionYaw);
-            visionXPidCtrl.setInverted(true);
-            visionYPidCtrl.setInverted(true);
-            visionTurnPidCtrl.setInverted(true);
-            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl,
-                visionTurnPidCtrl);
-            visionPidDrive.setMsgTracer(globalTracer);
-        }
 
         //
         // Create other hardware subsystems.
@@ -862,41 +838,4 @@ public class Robot extends FrcRobotBase
 
         return targetInfo != null ? targetInfo.yDistance : null;
     }
-
-    public double getVisionX()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            return pose.x;
-        }
-        return 0.0;
-    }
-
-    public double getVisionY()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            double outputLimit = Math.abs(rightDriveStick.getYWithDeadband(true));
-            visionYPidCtrl.setOutputRange(-outputLimit, outputLimit);
-            return pose.y;
-        }
-        return 0.0;
-        // Alternate implementation:
-        // This implementation will allow the joystick Y to fully control the Y direction of the PID drive.
-        // So vision target has nothing to do with the Y direction.
-        // return -rightDriveStick.getYWithDeadband(true)/RobotInfo.VISION_Y_KP;
-    }
-
-    public double getVisionYaw()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            return pose.objectYaw;
-        }
-        return 0.0;
-    }
-
 }   //class Robot
