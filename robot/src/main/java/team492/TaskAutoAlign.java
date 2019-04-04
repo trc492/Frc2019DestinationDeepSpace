@@ -159,6 +159,7 @@ public class TaskAutoAlign
 
                 case ORIENT:
                     targetHeading = getTargetRotation();
+                    robot.globalTracer.traceInfo("AlignTask", "State=ORIENT, heading=%.1f,targetHeading=%.1f");
                     robot.pidDrive.setTarget(0.0, 0.0, targetHeading, false, event);
                     sm.waitForSingleEvent(event, State.REFRESH_VISION);
                     break;
@@ -169,7 +170,8 @@ public class TaskAutoAlign
                     {
                         sm.setState(State.ALIGN);
                         robot.globalTracer
-                            .traceInfo("DeployTask", "State=REFRESH_VISION, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y, robot.targetHeading);
+                            .traceInfo("AlignTask", "State=REFRESH_VISION, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
+                                robot.targetHeading);
                     }
                     break;
 
@@ -179,7 +181,8 @@ public class TaskAutoAlign
                     {
                         pose = newPose;
                         robot.globalTracer
-                            .traceInfo("DeployTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y, robot.targetHeading);
+                            .traceInfo("AlignTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
+                                robot.targetHeading);
                     }
                     xPidController.setTarget(pose.x);
                     yPidController.setTarget(pose.y);
@@ -192,7 +195,9 @@ public class TaskAutoAlign
                         turnPidController.setTarget(targetHeading);
                     }
                     double xPower = xPidController.getOutput();
-                    double yPower = USE_DRIVER_Y ? robot.rightDriveStick.getYWithDeadband(true) : yPidController.getOutput();
+                    double yPower = USE_DRIVER_Y ?
+                        robot.rightDriveStick.getYWithDeadband(true) :
+                        yPidController.getOutput();
                     double turnPower = turnPidController.getOutput();
                     robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
 
