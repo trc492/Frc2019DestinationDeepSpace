@@ -41,9 +41,9 @@ public class VisionTargeting
         }
         else
         {
-            // This equation is the best fit curve for a few data points to convert target area -> depth
+            // This equation is the best fit line for a few data points to convert target height -> depth
             vision = new FrcLimeLightVisionProcessor("LimeLight");
-            ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(area -> (76.1687 / Math.sqrt(area)) + 1.75338);
+            ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(height -> -0.341895 * height + 81.4745);
         }
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);

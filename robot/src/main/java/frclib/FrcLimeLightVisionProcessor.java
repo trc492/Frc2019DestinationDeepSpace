@@ -47,7 +47,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         }
     }
 
-    private NetworkTableEntry tv, heading, area, camtran;
+    private NetworkTableEntry tv, heading, area, height, camtran;
     private NetworkTableEntry ledMode, pipeline;
     private DoubleUnaryOperator depthApproximator;
     private boolean use3D = true;
@@ -68,6 +68,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         heading = super.networkTable.getEntry("tx");
         area = super.networkTable.getEntry("ta");
         camtran = super.networkTable.getEntry("camtran");
+        height = super.networkTable.getEntry("tvert");
     }
 
     /**
@@ -104,9 +105,14 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         return heading.getDouble(0.0);
     }
 
-    public double getArea()
+    public double getTargetArea()
     {
         return area.getDouble(0.0);
+    }
+
+    public double getTargetHeight()
+    {
+        return height.getDouble(0.0);
     }
 
     @Override
@@ -143,7 +149,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         else
         {
             pose.theta = getHeading();
-            pose.r = depthApproximator.applyAsDouble(getArea());
+            pose.r = depthApproximator.applyAsDouble(getTargetHeight());
             pose.x = Math.sin(Math.toRadians(pose.theta)) * pose.r;
             pose.y = Math.cos(Math.toRadians(pose.theta)) * pose.r;
             pose.objectYaw = 0.0;
