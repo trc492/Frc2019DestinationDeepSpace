@@ -372,15 +372,9 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     public void rightDriveStickButtonEvent(int button, boolean pressed)
     {
-        boolean isAutoActive = robot.isAutoActive();
         robot.dashboard
             .displayPrintf(8, "RightDriveStick: button=0x%04x %s, auto=%b", button, pressed ? "pressed" : "released",
-                isAutoActive);
-
-        if (isAutoActive && (pressed || button != FrcJoystick.SIDEWINDER_BUTTON2))
-        {
-            return;
-        }
+                robot.isAutoActive());
 
         switch (button)
         {
