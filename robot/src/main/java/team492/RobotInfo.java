@@ -250,7 +250,7 @@ public class RobotInfo
     public static final double PICKUP_KI                        = 0.0;
     public static final double PICKUP_KD                        = 0.0;
     public static final double PICKUP_TOLERANCE                 = 0.5; // 2 degrees
-    public static final double PICKUP_CALIBRATE_POWER           = 0.5;
+    public static final double PICKUP_CALIBRATE_POWER           = 0.6;
     public static final double PICKUP_MIN_POS                   = 6.0; // Perpendicular to ground
     public static final double PICKUP_MAX_POS                   = 88.71; // Parallel to ground
     public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 5.0;
