@@ -104,6 +104,7 @@ public class TaskAutoAlign
     {
         sm.stop();
         robot.driveBase.stop();
+        robot.pidDrive.cancel();
         setEnabled(false);
         lastElevatorPower = 0.0;
     }
@@ -159,7 +160,8 @@ public class TaskAutoAlign
 
                 case ORIENT:
                     targetHeading = getTargetRotation();
-                    robot.globalTracer.traceInfo("AlignTask", "State=ORIENT, heading=%.1f,targetHeading=%.1f");
+                    robot.globalTracer.traceInfo("AlignTask", "State=ORIENT, heading=%.1f,targetHeading=%.1f",
+                        robot.driveBase.getHeading(), targetHeading);
                     robot.pidDrive.setTarget(0.0, 0.0, targetHeading, false, event);
                     sm.waitForSingleEvent(event, State.REFRESH_VISION);
                     break;
@@ -180,9 +182,8 @@ public class TaskAutoAlign
                     if (newPose != null)
                     {
                         pose = newPose;
-                        robot.globalTracer
-                            .traceInfo("AlignTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
-                                robot.targetHeading);
+                        robot.globalTracer.traceInfo("AlignTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
+                            robot.targetHeading);
                     }
                     xPidController.setTarget(pose.x);
                     yPidController.setTarget(pose.y);
