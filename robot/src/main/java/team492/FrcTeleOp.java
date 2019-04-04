@@ -328,11 +328,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON4:
                 if (pressed)
                 {
-                    robot.autoHeadingAlign.start(true);
+                    robot.autoAlign.start(true);
                 }
                 else
                 {
-                    robot.autoHeadingAlign.cancel();
+                    robot.autoAlign.cancel();
                 }
                 break;
 
@@ -389,7 +389,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.SIDEWINDER_BUTTON3:
                 if (pressed)
                 {
-                    robot.autoAlign.start();
+                    robot.autoAlign.start(false);
                 }
                 else
                 {

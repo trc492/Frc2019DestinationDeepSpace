@@ -35,8 +35,9 @@ public class TaskAutoAlign
     private static final boolean USE_VISION_YAW = false;
     private static final boolean USE_DRIVER_Y = true;
 
-    private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
-        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
+    private static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
+        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    private static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0,
         270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
     private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
@@ -44,13 +45,13 @@ public class TaskAutoAlign
 
     private Robot robot;
     private TrcStateMachine<State> sm;
-    private TrcEvent event;
     private FrcRemoteVisionProcessor.RelativePose pose;
     private TrcTaskMgr.TaskObject alignmentTask;
     private TrcWarpSpace warpSpace;
     private TrcPidController xPidController, yPidController, turnPidController;
     private double targetHeading;
     private double lastElevatorPower;
+    private boolean deployAtAngle = false;
 
     public TaskAutoAlign(Robot robot)
     {
@@ -58,7 +59,6 @@ public class TaskAutoAlign
         alignmentTask = TrcTaskMgr.getInstance().createTask(instanceName + ".alignTask", this::alignTask);
 
         sm = new TrcStateMachine<>(instanceName + ".stateMachine");
-        event = new TrcEvent(instanceName + ".event");
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
 
         xPidController = new TrcPidController("XPid",
@@ -74,8 +74,9 @@ public class TaskAutoAlign
     /**
      * Automatically drive to the nearest hatch/cargo port and raise the elevator to the required height.
      */
-    public void start()
+    public void start(boolean deployAtAngle)
     {
+        this.deployAtAngle = deployAtAngle;
         setEnabled(true);
     }
 
@@ -126,7 +127,19 @@ public class TaskAutoAlign
 
     private double getTargetRotation()
     {
-        double[] yaws = robot.pickup.cargoDetected() ? CARGO_YAWS : HATCH_YAWS;
+        double[] yaws;
+        if (robot.pickup.cargoDetected())
+        {
+            yaws = CARGO_YAWS;
+        }
+        else if (deployAtAngle)
+        {
+            yaws = HATCH_YAWS_ANGLED;
+        }
+        else
+        {
+            yaws = HATCH_YAWS_FLAT;
+        }
 
         double currentRot = robot.driveBase.getHeading();
         double targetYaw = yaws[0];
