@@ -319,6 +319,58 @@ public class FrcTest extends FrcTeleOp
     }
 
     @Override
+    public void leftDriveStickButtonEvent(int button, boolean pressed)
+    {
+        boolean processedInput = false;
+
+        switch (button)
+        {
+            case FrcJoystick.LOGITECH_TRIGGER:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON2:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON3:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON4:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON5:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON6:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON7:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON8:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON9:
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON10:
+                robot.climber.setWheelPower(pressed ? -1 : 0);
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON11:
+                robot.climber.setWheelPower(pressed ? 1 : 0);
+                break;
+
+            case FrcJoystick.LOGITECH_BUTTON12:
+                break;
+        }
+
+        if (!processedInput)
+        {
+            super.operatorStickButtonEvent(button, pressed);
+        }
+    } // operatorStickButtonEvent
+
+    @Override
     public void operatorStickButtonEvent(int button, boolean pressed)
     {
         boolean processedInput = false;
