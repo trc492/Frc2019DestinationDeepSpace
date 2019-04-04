@@ -29,7 +29,7 @@ public class TaskAutoAlign
 {
     private enum State
     {
-        START, ORIENT, REFRESH_VISION, ALIGN
+        START, REFRESH_VISION, ALIGN
     }
 
     private static final boolean USE_VISION_YAW = false;
@@ -157,21 +157,14 @@ public class TaskAutoAlign
                 case START:
                     pose = null;
                     lastElevatorPower = 0.0;
-                    sm.setState(State.ORIENT);
-                    break;
-
-                case ORIENT:
-                    targetHeading = getTargetRotation();
-                    robot.globalTracer.traceInfo("AlignTask", "State=ORIENT, heading=%.1f,targetHeading=%.1f",
-                        robot.driveBase.getHeading(), targetHeading);
-                    robot.pidDrive.setTarget(0.0, 0.0, targetHeading, false, event);
-                    sm.waitForSingleEvent(event, State.REFRESH_VISION);
+                    sm.setState(State.REFRESH_VISION);
                     break;
 
                 case REFRESH_VISION:
                     pose = robot.vision.getMedianPose(5, false);
                     if (pose != null)
                     {
+                        targetHeading = getTargetRotation();
                         sm.setState(State.ALIGN);
                         robot.globalTracer
                             .traceInfo("AlignTask", "State=REFRESH_VISION, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
