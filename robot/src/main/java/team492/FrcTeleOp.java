@@ -584,6 +584,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     {
                         robot.elevator.zeroCalibrate();
                         robot.pickup.zeroCalibrate();
+                        robot.pickup.retractHatchGrabber();
+                        robot.pickup.retractHatchDeployer();
                     }
                 }
                 break;
