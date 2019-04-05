@@ -22,7 +22,6 @@
 
 package team492;
 
-import frclib.FrcRemoteVisionProcessor;
 import trclib.TrcPidController;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -36,9 +35,9 @@ public class TaskHeadingAlign
         START, DRIVE
     }
 
-    private static final double[] HATCH_YAWS = new double[] { 0.0, 90.0 - RobotInfo.ROCKET_SIDE_ANGLE, 90.0,
-        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 180.0, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0,
-        270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    private static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
+        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    private static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0 };
     private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
     private Robot robot;
@@ -47,7 +46,7 @@ public class TaskHeadingAlign
     private TrcWarpSpace warpSpace;
     private double lastElevatorPower = 0.0;
     private TrcPidController turnPidController;
-    private boolean pointToTarget = true; // if false, be flush with target. if true, point at it.
+    private boolean alignToAngle;
 
     public TaskHeadingAlign(Robot robot)
     {
@@ -61,15 +60,15 @@ public class TaskHeadingAlign
         turnPidController.setAbsoluteSetPoint(true);
     }
 
-    public void start(boolean pointToTarget)
+    public void start(boolean alignToAngle)
     {
         if (isActive())
         {
             cancel();
         }
-        this.pointToTarget = pointToTarget;
         sm.start(State.START);
         turnPidController.reset();
+        this.alignToAngle = alignToAngle;
         setEnabled(true);
     }
 
@@ -91,7 +90,19 @@ public class TaskHeadingAlign
 
     private double getTargetRotation()
     {
-        double[] yaws = robot.pickup.cargoDetected() ? CARGO_YAWS : HATCH_YAWS;
+        double[] yaws;
+        if (robot.pickup.cargoDetected())
+        {
+            yaws = CARGO_YAWS;
+        }
+        else if (alignToAngle)
+        {
+            yaws = HATCH_YAWS_ANGLED;
+        }
+        else
+        {
+            yaws = HATCH_YAWS_FLAT;
+        }
 
         double currentRot = robot.driveBase.getHeading();
         double targetYaw = yaws[0];
@@ -134,46 +145,21 @@ public class TaskHeadingAlign
             switch (state)
             {
                 case START:
-                    if (pointToTarget)
-                    {
-                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getMedianPose(5, false);
-                        if (pose != null)
-                        {
-                            updateTarget(pose.theta + robot.driveBase.getHeading());
-                            sm.setState(State.DRIVE);
-                        }
-                    }
-                    else
-                    {
-                        updateTarget(getTargetRotation());
-                        robot.globalTracer.traceInfo("TaskHeadingAlign.turnTask",
-                            "Starting rotation assist! rotation=%.1f,target=%.1f,cargo=%b",
-                            robot.driveBase.getHeading(), turnPidController.getTarget(), robot.pickup.cargoDetected());
-                        sm.setState(State.DRIVE);
-                    }
+                    updateTarget(getTargetRotation());
+                    String log = String
+                        .format("RotAssist: cargo=%b,alignToAngle=%b,currHeading=%.1f,targetHeading=%.1f",
+                            robot.pickup.cargoDetected(), alignToAngle, robot.driveBase.getHeading(),
+                            turnPidController.getTarget());
+                    robot.dashboard.displayPrintf(15, log);
+                    robot.globalTracer.traceInfo("TaskHeadingAlign.turnTask", log);
+                    sm.setState(State.DRIVE);
                     break;
 
                 case DRIVE:
-                    double currHeading = robot.driveBase.getHeading();
-                    // Only use vision data if we're pointing at the target
-                    if (pointToTarget)
-                    {
-                        // Update vision information
-                        FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getMedianPose(5, false);
-                        if (pose != null)
-                        {
-                            updateTarget(pose.theta + currHeading);
-                        }
-                    }
                     // Drive the robot towards the target
                     double turnPower = turnPidController.getOutput();
                     double xPower = robot.leftDriveStick.getXWithDeadband(true);
                     double yPower = robot.rightDriveStick.getYWithDeadband(true);
-                    String log = String.format(
-                        "HeadingAlign: targetHeading=%.1f,currHeading=%.1f,xPower=%.2f,yPower=%.2f,turnPower=%.2f",
-                        turnPidController.getTarget(), currHeading, xPower, yPower, turnPower);
-                    robot.globalTracer.traceInfo("turnTask", log);
-                    robot.dashboard.displayPrintf(15, log);
                     robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
                     // Drive the elevator. Operator controls will be run by the button callbacks in teleop
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);

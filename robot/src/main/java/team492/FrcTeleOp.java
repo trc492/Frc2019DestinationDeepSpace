@@ -170,7 +170,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             double actuatorPower = robot.actuatorEnabled ? robot.operatorStick.getTwistWithDeadband(true) : 0.0;
             if (actuatorPower != lastActuatorPower)
             {
-                robot.dashboard.displayPrintf(12, "ActuatorPower=%.1f", actuatorPower);
                 robot.climber.setActuatorPower(actuatorPower);
                 lastActuatorPower = actuatorPower;
             }
@@ -326,16 +325,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
-                /*
                 if (pressed)
                 {
-                    robot.autoAlign.start(true);
+                    robot.autoHeadingAlign.start(true);
                 }
                 else
                 {
-                    robot.autoAlign.cancel();
+                    robot.autoHeadingAlign.cancel();
                 }
-                */
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
