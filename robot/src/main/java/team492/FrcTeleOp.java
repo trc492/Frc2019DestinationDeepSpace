@@ -317,6 +317,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
+                /*
                 if (pressed)
                 {
                     robot.autoAlign.start(true);
@@ -325,6 +326,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.autoAlign.cancel();
                 }
+                */
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:
@@ -378,6 +380,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
+                /*
                 if (pressed)
                 {
                     robot.autoAlign.start(false);
@@ -386,6 +389,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.autoAlign.cancel();
                 }
+                */
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
@@ -473,7 +477,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.pickup.extendHatchGrabber();
-                    robot.pickup.setPickupAngle(robot.pickup.getPickupAngle() + 15.0);
+                    // robot.pickup.setPickupAngle(robot.pickup.getPickupAngle() + 15.0);
                 }
                 break;
 
