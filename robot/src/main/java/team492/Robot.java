@@ -324,10 +324,13 @@ public class Robot extends FrcRobotBase
                 new PidCoefficients(RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
                 RobotInfo.VISION_TURN_TOLERANCE, this::getVisionYaw);
             visionXPidCtrl.setInverted(true);
+            visionXPidCtrl.setAbsoluteSetPoint(true);
             visionYPidCtrl.setInverted(true);
+            visionYPidCtrl.setAbsoluteSetPoint(true);
             visionTurnPidCtrl.setInverted(true);
-            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl,
-                visionTurnPidCtrl);
+            visionTurnPidCtrl.setAbsoluteSetPoint(true);
+            visionPidDrive = new TrcPidDrive(
+                "visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl, visionTurnPidCtrl);
             visionPidDrive.setMsgTracer(globalTracer);
         }
 
