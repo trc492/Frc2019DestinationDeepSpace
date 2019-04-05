@@ -269,18 +269,33 @@ public abstract class TrcRevBlinkin
 
         if (ledPriorities != null)
         {
+            PatternState[] oldPriorities = patternPriorities;
             patternPriorities = new PatternState[ledPriorities.length];
 
             for (int i = 0; i < patternPriorities.length; i++)
             {
                 patternPriorities[i] = new PatternState(ledPriorities[i]);
             }
+
+            // If we had a previous priority list, make sure patterns persist
+            if (oldPriorities != null)
+            {
+                for (PatternState patternState : oldPriorities)
+                {
+                    if (patternState.enabled)
+                    {
+                        // This will silently fail if this pattern is not in the priority list
+                        setPatternState(patternState.pattern, true);
+                    }
+                }
+            }
+            updateLED();
         }
         else
         {
             patternPriorities = null;
+            setPattern(LEDPattern.SolidBlack);
         }
-        setPattern(LEDPattern.SolidBlack);
 
         if (debugEnabled)
         {
