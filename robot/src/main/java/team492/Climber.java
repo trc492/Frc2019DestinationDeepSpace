@@ -267,7 +267,14 @@ public class Climber
                         // Because if we release the BLUE button too early, we are setting elevator power zero here
                         // meaning the robot front will start to drop and we don't want it drop unless the front wheels
                         // pass above the HAB platform.
-                        setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
+                        if (robot.buttonPanel.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON9)))
+                        {
+                            setActuatorPower(-0.1);
+                        }
+                        else
+                        {
+                            setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
+                        }
                         robot.elevator.setPower(0.0);
                     }
 
