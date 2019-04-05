@@ -486,7 +486,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 if (pressed)
                 {
                     robot.pickup.extendHatchGrabber();
-                    // robot.pickup.setPickupAngle(robot.pickup.getPickupAngle() + 15.0);
                 }
                 break;
 
