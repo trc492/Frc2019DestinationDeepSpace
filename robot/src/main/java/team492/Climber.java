@@ -292,7 +292,8 @@ public class Climber
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
                     {
                         wheelContacted = true;
-                        robot.pickup.setPickupAngle(RobotInfo.PICKUP_MIN_POS);
+                        robot.pickup.setManualOverrideEnabled(true);
+                        robot.pickup.setPitchPower(-0.6);
                     }
 
                     robot.globalTracer
