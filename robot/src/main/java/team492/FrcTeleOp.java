@@ -28,6 +28,7 @@ import hallib.HalDashboard;
 import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
+import trclib.TrcUtil;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
@@ -510,7 +511,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                setAllManualOverrideEnabled(pressed);
+                // Ignore this button if the switch is flipped.
+                // NOTE: If the switch binding changes, this WILL break!
+                if (!robot.switchPanel.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON2) + 1))
+                {
+                    setAllManualOverrideEnabled(pressed);
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
@@ -607,6 +613,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_BUTTON2:
+                setAllManualOverrideEnabled(pressed);
                 break;
 
             case FrcJoystick.PANEL_BUTTON3:
