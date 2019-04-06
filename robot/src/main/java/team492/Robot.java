@@ -206,6 +206,12 @@ public class Robot extends FrcRobotBase
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
 
+        leftDriveStick.setButtonLoggingEnabled(true);
+        rightDriveStick.setButtonLoggingEnabled(true);
+        operatorStick.setButtonLoggingEnabled(true);
+        buttonPanel.setButtonLoggingEnabled(true);
+        switchPanel.setButtonLoggingEnabled(true);
+
         //
         // Sensors.
         //
@@ -329,8 +335,8 @@ public class Robot extends FrcRobotBase
             visionYPidCtrl.setAbsoluteSetPoint(true);
             visionTurnPidCtrl.setInverted(true);
             visionTurnPidCtrl.setAbsoluteSetPoint(true);
-            visionPidDrive = new TrcPidDrive(
-                "visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl, visionTurnPidCtrl);
+            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl,
+                visionTurnPidCtrl);
             visionPidDrive.setMsgTracer(globalTracer);
         }
 
