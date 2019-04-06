@@ -171,19 +171,23 @@ public class Climber
             switch (state)
             {
                 case PREP_ELEVATOR:
+                    boolean levelThree;
                     robot.climbingButDriving = true;
                     if (robot.switchPanel
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
                     {
+                        levelThree = false;
                         robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE, event);
                     }
                     else
                     {
+                        levelThree = true;
                         robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE, event);
                     }
+                    robot.globalTracer.traceInfo("climbTask", "Climb state=PREP_ELEVATOR,level3=%b", levelThree);
                     robot.pickup.setManualOverrideEnabled(true);
                     robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
-                    sm.waitForSingleEvent(event, State.CALIB_ELEVATOR);
+                    sm.waitForSingleEvent(event, State.CALIB_ELEVATOR, 2.0);
                     break;
 
                 case CALIB_ELEVATOR:
@@ -200,6 +204,7 @@ public class Climber
                     if (robot.buttonPanel
                         .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
                     {
+                        robot.globalTracer.traceInfo("climbTask", "Starting climb! level3=%b", !levelTwo);
                         robot.climbingButDriving = false;
                         if (levelTwo)
                         {
@@ -214,6 +219,7 @@ public class Climber
                     break;
 
                 case INIT_SUBSYSTEMS:
+                    robot.globalTracer.traceInfo("climbTask", "Initializing climb!");
                     robot.setHalfBrakeModeEnabled(true);
                     climberWheels.set(0.0);
                     climberWheels.setBrakeModeEnabled(true);
@@ -267,7 +273,8 @@ public class Climber
                         // Because if we release the BLUE button too early, we are setting elevator power zero here
                         // meaning the robot front will start to drop and we don't want it drop unless the front wheels
                         // pass above the HAB platform.
-                        if (robot.buttonPanel.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON9)))
+                        if (robot.buttonPanel
+                            .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON9)))
                         {
                             setActuatorPower(-0.1);
                         }
