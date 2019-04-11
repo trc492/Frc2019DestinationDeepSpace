@@ -418,6 +418,10 @@ public class TrcTaskMgr
          */
         private synchronized double getAverageTaskElapsedTime(TaskType taskType)
         {
+            if (taskTimeSlotCounts[taskType.value] == 0)
+            {
+                return 0;
+            }
             return taskTotalNanoTimes[taskType.value]/taskTimeSlotCounts[taskType.value]/1000000000.0;
         } //getAverageTaskElapsedTime
 

@@ -55,6 +55,7 @@ public class TrcDigitalTrigger
     private final TriggerHandler eventHandler;
     private final TrcTaskMgr.TaskObject triggerTaskObj;
     private Boolean prevState = null;
+    private boolean enabled = false;
 
     /**
      * Constructor: Create an instance of the object.
@@ -95,7 +96,7 @@ public class TrcDigitalTrigger
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.FUNC, "enabled=%b", enabled);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "enabled=%b", enabled);
         }
 
         if (enabled)
@@ -107,12 +108,31 @@ public class TrcDigitalTrigger
         {
             triggerTaskObj.unregisterTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);
         }
+        this.enabled = enabled;
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.FUNC);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
     }   //setEnabled
+
+    /**
+     * This method checks if the digital trigger is enabled.
+     *
+     * @return true if enabled, false otherwise.
+     */
+    public synchronized boolean isEnabled()
+    {
+        final String funcName = "isEnabled";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%b", enabled);
+        }
+
+        return enabled;
+    }   //isEnabled
 
     /**
      * This method is called periodically to check if the digital input device has changed state.

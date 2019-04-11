@@ -22,6 +22,8 @@
 
 package frclib;
 
+import java.util.Arrays;
+
 import edu.wpi.first.wpilibj.PowerDistributionPanel;
 import edu.wpi.first.wpilibj.Sendable;
 import edu.wpi.first.wpilibj.SensorUtil;
@@ -45,6 +47,36 @@ public class FrcPdp extends PowerDistributionPanel
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     public static final int kPDPChannels = SensorUtil.kPDPChannels;
     private TrcDbgTrace dbgTrace = null;
+
+    /**
+     * This class contains the info of a PDP channel.
+     */
+    public static class Channel
+    {
+        public int channel;
+        public String name;
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param channel specifies the PDP channel number.
+         * @param name specifies the name associated with the channel.
+         */
+        public Channel(int channel, String name)
+        {
+            this.channel = channel;
+            this.name = name;
+        }   //Channel
+
+        /**
+         * This method returns the string representation of the object.
+         */
+        public String toString()
+        {
+            return channel + ":" + name;
+        }   //toString
+
+    }   //class Channel
 
     private final TrcTaskMgr.TaskObject energyUsedTaskObj;
     private String[] channelNames = new String[kPDPChannels];
@@ -144,6 +176,67 @@ public class FrcPdp extends PowerDistributionPanel
     }   //registerEnergyUsed
 
     /**
+     * This method registers a PDP channel for monitoring its energy used.
+     *
+     * @param channelInfo specifies the array of channels to be registered.
+     * @return true if registered successfully, false if channel is invalid or already registered.
+     */
+    public synchronized boolean registerEnergyUsed(Channel... channels)
+    {
+        final String funcName = "registerEnergyUsed";
+        boolean success = true;
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "channels=%s", Arrays.toString(channels));
+        }
+
+        for (Channel ch: channels)
+        {
+            success = registerEnergyUsed(ch.channel, ch.name);
+            if (!success)
+            {
+                break;
+            }
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%b", success);
+        }
+
+        return success;
+    }   //registerEnergyUsed
+
+    /**
+     * This method registers all currently unregistered PDP channels for monitoring its energy used
+     * with a default name based on the channel number.
+     */
+    public synchronized void registerEnergyUsedForAllUnregisteredChannels()
+    {
+        final String funcName = "registerEnergyUsedForAllUnregisteredChannels";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
+        for (int i = 0; i < kPDPChannels; i++)
+        {
+            if (channelNames[i] == null)
+            {
+                channelNames[i] = "Channel_" + i;
+                channelEnergyUsed[i] = 0.0;
+            }
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //registerEnergyUsed
+
+    /**
      * This method unregisters a PDP channel for monitoring its energy used.
      *
      * @param channel specifies the channel to be unregistered.
@@ -172,6 +265,30 @@ public class FrcPdp extends PowerDistributionPanel
 
         return success;
     }   //unregisterEnergyUsed
+
+    /**
+     * This method unregisters all PDP channel for monitoring its energy used.
+     *
+     * @return true if unregistered successfully, false if channel is not registered.
+     */
+    public synchronized void unregisterAllEnergyUsed()
+    {
+        final String funcName = "unregisterAllEnergyUsed";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+
+        for (int i = 0; i < kPDPChannels; i++)
+        {
+            if (channelNames[i] != null)
+            {
+                unregisterEnergyUsed(i);
+            }
+        }
+    }   //unregisterAllEnergyUsed
 
     /**
      * This method returns the energy consumed so far by the specified channel in the unit of Watt-Hour.
@@ -233,7 +350,7 @@ public class FrcPdp extends PowerDistributionPanel
         {
             if (channelNames[i] != null)
             {
-                channelEnergyUsed[i] += voltage*getCurrent(i)*(currTime - lastTimestamp);
+                channelEnergyUsed[i] += voltage*getCurrent(i)*(currTime - lastTimestamp)/3600.0;
             }
         }
 

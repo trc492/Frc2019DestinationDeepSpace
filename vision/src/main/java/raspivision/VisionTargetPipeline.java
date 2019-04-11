@@ -35,21 +35,21 @@ import org.opencv.imgproc.*;
 
 public class VisionTargetPipeline implements VisionPipeline
 {
-    private static final double ROTATED_RECT_RATIO_MIN = 0.7 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
-    private static final double ROTATED_RECT_RATIO_MAX = 1.3 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
+    public double rotatedRectRatioMin = 0.5 * 2 / 5.5; // 80% of the aspect ratio of the vision tape
+    public double rotatedRectRatioMax = 1.3 * 2 / 5.5; // 120% of the aspect ratio of the vision tape
 
     //Outputs
     private Mat input = new Mat();
-    private Mat hslThresholdOutput = new Mat();
+    private Mat hsvThresholdOutput = new Mat();
     private ArrayList<MatOfPoint> findContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> filterContoursOutput = new ArrayList<>();
     private ArrayList<MatOfPoint> convexHullsOutput = new ArrayList<>();
     private List<TargetData> detectedTargets = new ArrayList<>();
     private TargetData selectedTarget = null;
 
-    public double[] hslThresholdHue = { 0, 180 };
-    public double[] hslThresholdSaturation = { 12, 255 };
-    public double[] hslThresholdLuminance = { 160, 255 };
+    public double[] hsvThresholdHue = { 20, 120 };
+    public double[] hsvThresholdSaturation = { 150, 255 };
+    public double[] hsvThresholdValue = { 130, 255 };
 
     /**
      * This is the primary method that runs the entire pipeline and updates the outputs.
@@ -65,13 +65,13 @@ public class VisionTargetPipeline implements VisionPipeline
             selectedTarget = null;
 
             source0.copyTo(input);
-            // Step HSL_Threshold0:
-            Mat hslThresholdInput = source0;
-            hslThreshold(hslThresholdInput, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance,
-                hslThresholdOutput);
+            // Step HSV_Threshold0:
+            Mat hsvThresholdInput = source0;
+            hsvThreshold(hsvThresholdInput, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue,
+                hsvThresholdOutput);
 
             // Step Find_Contours0:
-            Mat findContoursInput = hslThresholdOutput;
+            Mat findContoursInput = hsvThresholdOutput;
             findContours(findContoursInput, true, findContoursOutput);
 
             // Step Filter_Contours0:
@@ -85,12 +85,9 @@ public class VisionTargetPipeline implements VisionPipeline
             double[] filterContoursSolidity = { 50, 100 };
             double filterContoursMaxVertices = 1000000.0;
             double filterContoursMinVertices = 0.0;
-            double filterContoursMinRatio = 0.55;
-            double filterContoursMaxRatio = 0.85;
             filterContours(filterContoursContours, filterContoursMinArea, filterContoursMinPerimeter,
                 filterContoursMinWidth, filterContoursMaxWidth, filterContoursMinHeight, filterContoursMaxHeight,
-                filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursMinRatio,
-                filterContoursMaxRatio, filterContoursOutput);
+                filterContoursSolidity, filterContoursMaxVertices, filterContoursMinVertices, filterContoursOutput);
 
             // Step Convex_Hulls0:
             ArrayList<MatOfPoint> convexHullsContours = filterContoursOutput;
@@ -129,13 +126,22 @@ public class VisionTargetPipeline implements VisionPipeline
                 }
             }
 
-            if (isValid(visionTargets))
+            List<TargetData> datas = new ArrayList<>();
+            for (int i = 0; i < visionTargets.size() - 1; i++)
             {
-                detectedTargets = detectTargets(visionTargets);
-                int width = source0.width();
-                selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
-                    .orElseThrow(IllegalStateException::new);
+                VisionTarget left = visionTargets.get(i);
+                VisionTarget right = visionTargets.get(i + 1);
+                if (left.isLeftTarget && !right.isLeftTarget)
+                {
+                    datas.add(getTargetData(left, right));
+                    i++;
+                }
             }
+
+            detectedTargets = datas;
+            int width = source0.width();
+            selectedTarget = detectedTargets.stream().min(Comparator.comparingInt(e -> Math.abs(e.x - width)))
+                .orElseThrow(IllegalStateException::new);
         }
         finally
         {
@@ -147,9 +153,9 @@ public class VisionTargetPipeline implements VisionPipeline
         }
     }
 
-    public Mat getHslThresholdOutput()
+    public Mat getHsvThresholdOutput()
     {
-        return hslThresholdOutput;
+        return hsvThresholdOutput;
     }
 
     public TargetData getSelectedTarget()
@@ -180,16 +186,16 @@ public class VisionTargetPipeline implements VisionPipeline
     /**
      * Segment an image based on hue, saturation, and luminance ranges.
      *
-     * @param input The image on which to perform the HSL threshold.
+     * @param input The image on which to perform the HSV threshold.
      * @param hue   The min and max hue
      * @param sat   The min and max saturation
-     * @param lum   The min and max luminance
+     * @param val   The min and max value
      * @param out   The image in which to store the output.
      */
-    private void hslThreshold(Mat input, double[] hue, double[] sat, double[] lum, Mat out)
+    private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val, Mat out)
     {
-        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HLS);
-        Core.inRange(out, new Scalar(hue[0], lum[0], sat[0]), new Scalar(hue[1], lum[1], sat[1]), out);
+        Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
+        Core.inRange(out, new Scalar(hue[0], val[0], sat[0]), new Scalar(hue[1], val[1], sat[1]), out);
     }
 
     private void findContours(Mat input, boolean externalOnly, List<MatOfPoint> contours)
@@ -223,12 +229,10 @@ public class VisionTargetPipeline implements VisionPipeline
      * @param solidity       the minimum and maximum solidity of a contour
      * @param minVertexCount minimum vertex Count of the contours
      * @param maxVertexCount maximum vertex Count
-     * @param minRatio       minimum ratio of width to height
-     * @param maxRatio       maximum ratio of width to height
      */
     private void filterContours(List<MatOfPoint> inputContours, double minArea, double minPerimeter, double minWidth,
         double maxWidth, double minHeight, double maxHeight, double[] solidity, double maxVertexCount,
-        double minVertexCount, double minRatio, double maxRatio, List<MatOfPoint> output)
+        double minVertexCount, List<MatOfPoint> output)
     {
         final MatOfInt hull = new MatOfInt();
         output.clear();
@@ -259,9 +263,6 @@ public class VisionTargetPipeline implements VisionPipeline
             if (solid < solidity[0] || solid > solidity[1])
                 continue;
             if (contour.rows() < minVertexCount || contour.rows() > maxVertexCount)
-                continue;
-            final double ratio = bb.width / (double) bb.height;
-            if (ratio < minRatio || ratio > maxRatio)
                 continue;
             output.add(contour);
         }
@@ -331,31 +332,23 @@ public class VisionTargetPipeline implements VisionPipeline
         }
     }
 
-    private List<TargetData> detectTargets(List<VisionTarget> targets)
+    private TargetData getTargetData(VisionTarget left, VisionTarget right)
     {
-        List<TargetData> targetDatas = new ArrayList<>(); // Yes I know datas isn't a word.
-        // Pair vision targets and get the enclosing bounding box.
-        for (int i = 0; i < targets.size(); i += 2)
-        {
-            VisionTarget left = targets.get(i);
-            VisionTarget right = targets.get(i + 1);
-            int leftBound = left.x - left.w / 2;
-            int rightBound = right.x + right.w / 2;
-            int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
-            int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
-            TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
-                rightBound - leftBound, Math.abs(bottomBound - topBound));
-            data.leftTarget = left;
-            data.rightTarget = right;
-            targetDatas.add(data);
-        }
-        return targetDatas;
+        int leftBound = left.x - left.w / 2;
+        int rightBound = right.x + right.w / 2;
+        int topBound = Math.max(left.y + left.h / 2, right.y + right.h / 2);
+        int bottomBound = Math.min(left.y - left.h / 2, right.y - right.h / 2);
+        TargetData data = new TargetData((leftBound + rightBound) / 2, (topBound + bottomBound) / 2,
+            rightBound - leftBound, Math.abs(bottomBound - topBound));
+        data.leftTarget = left;
+        data.rightTarget = right;
+        return data;
     }
 
     private boolean isValidRect(RotatedRect rect)
     {
         double ratio = Math.min(rect.size.width, rect.size.height) / Math.max(rect.size.width, rect.size.height);
-        return ROTATED_RECT_RATIO_MIN <= ratio && ratio <= ROTATED_RECT_RATIO_MAX;
+        return rotatedRectRatioMin <= ratio && ratio <= rotatedRectRatioMax;
     }
 
     private VisionTarget mapContourToVisionTarget(MatOfPoint m)

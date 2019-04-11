@@ -28,11 +28,11 @@ import edu.wpi.cscore.CvSource;
 import edu.wpi.cscore.UsbCamera;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import org.opencv.calib3d.Calib3d;
-import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfDouble;
@@ -44,9 +44,10 @@ import org.opencv.core.Point3;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.function.DoubleUnaryOperator;
+import java.util.List;
 
 public class RaspiVision
 {
@@ -56,56 +57,29 @@ public class RaspiVision
     }
 
     private static final int TEAM_NUMBER = 492;
-    private static final boolean SERVER = true; // true for debugging only
+    private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds
-    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.BOUNDING_BOX;
+    private static final DebugDisplayType DEBUG_DISPLAY = DebugDisplayType.MASK;
 
     private static final boolean APPROXIMATE_CAMERA_MATRIX = true;
     private static final boolean FLIP_Y_AXIS = true;
-
-    // Default image resolution, in pixels
-    private static final int DEFAULT_WIDTH = 320;
-    private static final int DEFAULT_HEIGHT = 240;
-
-    // These are for the Logitech c920
-    private static final double CAMERA_FOV_X = 70.42; // 62.2; (for Raspi)
-    private static final double CAMERA_FOV_Y = 43.3; // 48.8;
-
-    // These were calculated using the game manual specs on vision target
-    // Origin is center of bounding box
-    // Order is leftbottomcorner, lefttopcorner, rightbottomcorner, righttopcorner
-    private static final Point3[] TARGET_WORLD_COORDS = new Point3[] { new Point3(-5.375, -2.9375, 0),
-        new Point3(-5.9375, 2.9375, 0), new Point3(5.375, -2.9375, 0), new Point3(5.9375, 2.9375, 0) };
-
-    // Calculated by calibrating the camera
-    private static double[] CAMERA_MATRIX = new double[] { 250.22788401, 0.0, 177.6591477, 0.0, 249.78546762,
-        119.9751127, 0.0, 0.0, 0.5 };
-
-    // Calculated by calibrating the camera
-    private static double[] DISTORTION_MATRIX = new double[] { 0.21809204, -0.76028143, -0.00155715, 0.02590141,
-        0.21755087 };
-
-    public static void main(String[] args)
-    {
-        // Load the C++ native code
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
-        RaspiVision vision = new RaspiVision();
-        vision.start();
-    }
 
     private Gson gson;
     private Thread visionThread;
     private Thread calcThread;
     private Thread cameraThread;
 
+    private NetworkTableInstance instance;
     private NetworkTableEntry visionData;
-    private NetworkTableEntry cameraData;
 
     private int numFrames = 0;
     private double startTime = 0;
     private CvSource dashboardDisplay;
+
+    private volatile double cameraPitch = 0.0;
+
+    private volatile boolean useDebugDisplay;
 
     private int width, height; // in pixels
 
@@ -118,9 +92,9 @@ public class RaspiVision
     private Mat image = null;
 
     // Instantiating Mats are expensive, so do it all up here, and just use the put methods.
-    private MatOfDouble dist = null;
+    private MatOfDouble dist;
     private MatOfPoint2f imagePoints = new MatOfPoint2f();
-    private MatOfPoint3f worldPoints = new MatOfPoint3f(TARGET_WORLD_COORDS);
+    private MatOfPoint3f worldPoints = new MatOfPoint3f(CameraConstants.TARGET_WORLD_COORDS);
     private Mat cameraMat = Mat.zeros(3, 3, CvType.CV_64F);
     private Mat rotationVector = new Mat();
     private Mat translationVector = new Mat();
@@ -129,15 +103,11 @@ public class RaspiVision
     private MatOfPoint3f pointToProject = new MatOfPoint3f();
     private MatOfPoint contourPoints = new MatOfPoint();
 
-    // Screw it the yaw is off by a pretty linear amount to just map it using a best line fit.
-    // This was calculated using measurements and comparing to solvePNP output.
-    private DoubleUnaryOperator yawMapper = yaw -> yaw * 1.6677 + 2.95847;
-
-    public RaspiVision()
+    public RaspiVision(int cameraIndex)
     {
         gson = new Gson();
 
-        NetworkTableInstance instance = NetworkTableInstance.getDefault();
+        instance = NetworkTableInstance.getDefault();
         if (SERVER)
         {
             System.out.print("Initializing server...");
@@ -147,7 +117,24 @@ public class RaspiVision
         else
         {
             System.out.print("Connecting to server...");
-            instance.startClientTeam(TEAM_NUMBER);
+            boolean done = false;
+            while (!done)
+            {
+                instance.startClient("10.4.92.2");
+                try
+                {
+                    Thread.sleep(1000);
+                }
+                catch (InterruptedException e)
+                {
+                    e.printStackTrace();
+                }
+                done = instance.isConnected();
+                if (!done)
+                {
+                    System.out.print("\nConnection failed! Retrying...");
+                }
+            }
             System.out.println("Done!");
         }
 
@@ -156,25 +143,34 @@ public class RaspiVision
         NetworkTable table = instance.getTable("RaspiVision");
         NetworkTableEntry cameraConfig = table.getEntry("CameraConfig");
         visionData = table.getEntry("VisionData");
-        cameraData = table.getEntry("CameraData");
+        NetworkTableEntry useDebugDisplay = table.getEntry("UseDebugDisplay");
         NetworkTableEntry hueLow = table.getEntry("HueLow");
         NetworkTableEntry hueHigh = table.getEntry("HueHigh");
         NetworkTableEntry satLow = table.getEntry("SatLow");
         NetworkTableEntry satHigh = table.getEntry("SatHigh");
-        NetworkTableEntry luminanceLow = table.getEntry("LuminanceLow");
-        NetworkTableEntry luminanceHigh = table.getEntry("LuminanceHigh");
+        NetworkTableEntry valueLow = table.getEntry("ValueLow");
+        NetworkTableEntry valueHigh = table.getEntry("ValueHigh");
+        NetworkTableEntry ratioLow = table.getEntry("RatioLow");
+        NetworkTableEntry ratioHigh = table.getEntry("RatioHigh");
+        NetworkTableEntry cameraPitch = table.getEntry("CameraPitch");
 
-        cameraData.setDoubleArray(new double[] { DEFAULT_WIDTH, DEFAULT_HEIGHT });
+        useDebugDisplay.addListener(event -> this.useDebugDisplay = event.value.isBoolean() && event.value.getBoolean(),
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
+        useDebugDisplay.setBoolean(useDebugDisplay.getBoolean(false));
+
+        cameraPitch.addListener(event -> this.cameraPitch = event.value.isDouble() ? event.value.getDouble() : 0.0,
+            EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         if (DEBUG_DISPLAY != DebugDisplayType.NONE)
         {
-            dashboardDisplay = CameraServer.getInstance().putVideo("RaspiVision", DEFAULT_WIDTH, DEFAULT_HEIGHT);
+            dashboardDisplay = CameraServer.getInstance()
+                .putVideo("RaspiVision", CameraConstants.DEFAULT_WIDTH, CameraConstants.DEFAULT_HEIGHT);
         }
 
         if (!APPROXIMATE_CAMERA_MATRIX)
         {
-            cameraMat.put(0, 0, CAMERA_MATRIX);
-            dist = new MatOfDouble(DISTORTION_MATRIX);
+            cameraMat.put(0, 0, CameraConstants.CAMERA_MATRIX);
+            dist = new MatOfDouble(CameraConstants.DISTORTION_MATRIX);
         }
         else
         {
@@ -184,34 +180,53 @@ public class RaspiVision
         cameraThread = new Thread(this::cameraCaptureThread);
         calcThread = new Thread(this::calculationThread);
 
-        camera = CameraServer.getInstance().startAutomaticCapture();
-        camera.setResolution(DEFAULT_WIDTH, DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
-        camera.setBrightness(40);
+        camera = CameraServer.getInstance().startAutomaticCapture(cameraIndex);
+        if (CameraConstants.correctlyInitialized && !"".equals(CameraConstants.defaultJsonConfig.strip()))
+        {
+            cameraConfig.setString(CameraConstants.defaultJsonConfig);
+        }
+        else
+        {
+            camera.setResolution(CameraConstants.DEFAULT_WIDTH,
+                CameraConstants.DEFAULT_HEIGHT); // Default to 320x240, unless overridden by json config
+            camera.setBrightness(CameraConstants.DEFAULT_BRIGHTNESS);
+        }
         pipeline = new VisionTargetPipeline();
         visionThread = new Thread(this::visionProcessingThread);
         visionThread.setDaemon(false);
 
         int flag = EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
 
-        hueHigh.setDouble(pipeline.hslThresholdHue[1]);
-        hueHigh.addListener(event -> pipeline.hslThresholdHue[1] = event.value.getDouble(), flag);
-        hueLow.setDouble(pipeline.hslThresholdHue[0]);
-        hueLow.addListener(event -> pipeline.hslThresholdHue[0] = event.value.getDouble(), flag);
+        hueHigh.setDouble(pipeline.hsvThresholdHue[1]);
+        hueHigh.addListener(event -> pipeline.hsvThresholdHue[1] = getDouble(event), flag);
+        hueLow.setDouble(pipeline.hsvThresholdHue[0]);
+        hueLow.addListener(event -> pipeline.hsvThresholdHue[0] = getDouble(event), flag);
 
-        satHigh.setDouble(pipeline.hslThresholdSaturation[1]);
-        satHigh.addListener(event -> pipeline.hslThresholdSaturation[1] = event.value.getDouble(), flag);
-        satLow.setDouble(pipeline.hslThresholdSaturation[0]);
-        satLow.addListener(event -> pipeline.hslThresholdSaturation[0] = event.value.getDouble(), flag);
+        satHigh.setDouble(pipeline.hsvThresholdSaturation[1]);
+        satHigh.addListener(event -> pipeline.hsvThresholdSaturation[1] = getDouble(event), flag);
+        satLow.setDouble(pipeline.hsvThresholdSaturation[0]);
+        satLow.addListener(event -> pipeline.hsvThresholdSaturation[0] = getDouble(event), flag);
 
-        luminanceHigh.setDouble(pipeline.hslThresholdLuminance[1]);
-        luminanceHigh.addListener(event -> pipeline.hslThresholdLuminance[1] = event.value.getDouble(), flag);
-        luminanceLow.setDouble(pipeline.hslThresholdLuminance[0]);
-        luminanceLow.addListener(event -> pipeline.hslThresholdLuminance[0] = event.value.getDouble(), flag);
+        valueHigh.setDouble(pipeline.hsvThresholdValue[1]);
+        valueHigh.addListener(event -> pipeline.hsvThresholdValue[1] = getDouble(event), flag);
+        valueLow.setDouble(pipeline.hsvThresholdValue[0]);
+        valueLow.addListener(event -> pipeline.hsvThresholdValue[0] = getDouble(event), flag);
+
+        ratioLow.setDouble(pipeline.rotatedRectRatioMin);
+        ratioLow.addListener(event -> pipeline.rotatedRectRatioMin = getDouble(event), flag);
+
+        ratioHigh.setDouble(pipeline.rotatedRectRatioMax);
+        ratioHigh.addListener(event -> pipeline.rotatedRectRatioMax = getDouble(event), flag);
 
         cameraConfig.addListener(event -> configCamera(camera, event.value.getString()),
             EntryListenerFlags.kNew | EntryListenerFlags.kUpdate | EntryListenerFlags.kImmediate);
 
         System.out.println("Done!\nInitialization complete!");
+    }
+
+    private double getDouble(EntryNotification event)
+    {
+        return event.value.isDouble() ? event.value.getDouble() : 0.0;
     }
 
     private void configCamera(UsbCamera camera, String json)
@@ -243,6 +258,7 @@ public class RaspiVision
         CvSink sink = new CvSink("RaspiVision");
         sink.setSource(camera);
         Mat image = new Mat();
+
         while (!Thread.interrupted())
         {
             long response = sink.grabFrame(image);
@@ -257,9 +273,10 @@ public class RaspiVision
             }
             else
             {
-                System.err.println(sink.getError());
+                System.err.println("Camera Error: " + sink.getError());
             }
         }
+        sink.close();
     }
 
     private void visionProcessingThread()
@@ -278,7 +295,7 @@ public class RaspiVision
                     image = this.image;
                 }
                 pipeline.process(image);
-                processImage(pipeline);
+                processImage(image, pipeline);
                 // I don't need the image anymore, so release the memory
                 image.release();
             }
@@ -311,6 +328,7 @@ public class RaspiVision
                     dataString = gson.toJson(pose);
                 }
                 visionData.setString(dataString);
+                instance.flush(); // Write all the network table data
                 // If fps counter is enabled, calculate fps
                 // TODO: Measure fps even if data is null, since null data isn't fresh, so the fps seems to drop.
                 if (MEASURE_FPS)
@@ -325,19 +343,17 @@ public class RaspiVision
         }
     }
 
-    private void processImage(VisionTargetPipeline pipeline)
+    private void processImage(Mat frame, VisionTargetPipeline pipeline)
     {
         // If the resolution changed, update the camera data network tables entry
-        if (width != pipeline.getInput().width() || height != pipeline.getInput().height())
+        if (width != frame.width() || height != frame.height())
         {
             width = pipeline.getInput().width();
             height = pipeline.getInput().height();
-            cameraData.setDoubleArray(new double[] { width, height });
-            double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_X / 2.0)));
-            double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CAMERA_FOV_Y / 2.0)));
-            // TODO: Should this be separate x and y focal lengths, or the average? test.
             if (APPROXIMATE_CAMERA_MATRIX)
             {
+                double focalLengthX = (width / 2.0) / (Math.tan(Math.toRadians(CameraConstants.CAMERA_FOV_X / 2.0)));
+                double focalLengthY = (height / 2.0) / (Math.tan(Math.toRadians(CameraConstants.CAMERA_FOV_Y / 2.0)));
                 cameraMat.put(0, 0, focalLengthX, 0, width / 2.0, 0, focalLengthY, height / 2.0, 0, 0, 1);
             }
         }
@@ -350,8 +366,8 @@ public class RaspiVision
         }
 
         // If debug display is enabled, render it
-        if (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX || DEBUG_DISPLAY == DebugDisplayType.MASK
-            || DEBUG_DISPLAY == DebugDisplayType.REGULAR)
+        if (useDebugDisplay && (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX || DEBUG_DISPLAY == DebugDisplayType.MASK
+            || DEBUG_DISPLAY == DebugDisplayType.REGULAR))
         {
             debugDisplay(pipeline);
         }
@@ -361,9 +377,10 @@ public class RaspiVision
     {
         Mat image;
         Scalar color = new Scalar(0, 255, 0);
+        boolean release = false;
         if (DEBUG_DISPLAY == DebugDisplayType.MASK)
         {
-            image = pipeline.getHslThresholdOutput();
+            image = pipeline.getHsvThresholdOutput();
             color = new Scalar(255);
         }
         else
@@ -372,6 +389,7 @@ public class RaspiVision
         }
         if (DEBUG_DISPLAY == DebugDisplayType.BOUNDING_BOX)
         {
+            release = true; // Release the image later if we clone it.
             image = image.clone();
             for (TargetData data : pipeline.getDetectedTargets())
             {
@@ -386,6 +404,10 @@ public class RaspiVision
             }
         }
         dashboardDisplay.putFrame(image);
+        if (release)
+        {
+            image.release();
+        }
     }
 
     private void measureFps()
@@ -430,9 +452,9 @@ public class RaspiVision
         if (FLIP_Y_AXIS)
         {
             // Invert the y axis of the image points. This is an in-place operation, so the MatOfPoint doesn't need to be updated.
-            for (int i = 0; i < points.length; i++)
+            for (Point point : points)
             {
-                points[i].y = height - points[i].y;
+                point.y = height - point.y;
             }
         }
 
@@ -450,31 +472,31 @@ public class RaspiVision
         Calib3d.solvePnP(worldPoints, imagePoints, cameraMat, dist, rotationVector, translationVector);
         // Get the distances in the x and z axes. (or in robot space, x and y)
         double x = translationVector.get(0, 0)[0];
-        double z = translationVector.get(2, 0)[0];
-        // Convert x,y to r,theta
-        double distance = Math.sqrt(x * x + z * z);
-        double heading = Math.toDegrees(Math.atan2(x, z));
+        double zRot = translationVector.get(2, 0)[0]; // This is uncorrected for pitch
+
+        double z = Math.cos(Math.toRadians(cameraPitch)) * zRot;
 
         // Convert the axis-angle rotation vector into a rotation matrix
         Calib3d.Rodrigues(rotationVector, rotationMatrix);
 
         // Convert the rotation matrix to euler angles
         double[] angles = convertRotMatrixToEulerAngles(rotationMatrix);
-        // Convert the yaw to actual yaw with my fuckit (tm) method.
-        double objectYaw = angles[1]; // yawMapper.applyAsDouble(angles[1]);
+        double objectYaw = angles[1];
 
         // Write to the debug display, if necessary
-        if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS)
+        if (useDebugDisplay && (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP || DEBUG_DISPLAY == DebugDisplayType.CORNERS))
         {
             Mat image = pipeline.getInput().clone();
 
             // Draw the contours first, so the corners get put on top
             if (DEBUG_DISPLAY == DebugDisplayType.FULL_PNP)
             {
+                List<MatOfPoint> contours = new ArrayList<>();
                 contourPoints.fromArray(data.leftTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                contours.add(contourPoints);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
                 contourPoints.fromArray(data.rightTarget.contour.toArray());
-                Imgproc.drawContours(image, Arrays.asList(contourPoints), 0, new Scalar(255, 0, 255), 2);
+                Imgproc.drawContours(image, contours, 0, new Scalar(255, 0, 255), 2);
             }
 
             // Draw the left and right target corners. First you have to re-flip the y coordinate
@@ -503,7 +525,7 @@ public class RaspiVision
             image.release();
         }
 
-        return new RelativePose(heading, distance, objectYaw);
+        return new RelativePose(x, z, objectYaw);
     }
 
     private double[] convertRotMatrixToEulerAngles(Mat rotationMatrix)

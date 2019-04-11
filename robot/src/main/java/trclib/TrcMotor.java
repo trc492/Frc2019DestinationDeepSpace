@@ -46,11 +46,20 @@ public abstract class TrcMotor implements TrcMotorController
     protected static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     protected TrcDbgTrace dbgTrace = null;
 
-    public void follow(TrcMotor motor)
+    /**
+     * This interface, if provided, is called if a digital input device is registered to reset the motor position
+     * on trigger and a trigger event occurred.
+     */
+    public interface DigitalTriggerHandler
     {
-        throw new UnsupportedOperationException(
-            String.format("This motor does not support following motors of type: %s!", motor.getClass().toString()));
-    }
+        /**
+         * This method is called when a digital trigger event occurred.
+         *
+         * @param active specifies true if the digital input is active, false if inactive.
+         */
+        void digitalTriggerEvent(boolean active);
+
+    }   //interface DigitalTriggerHandler
 
     /**
      * This method returns the motor position by reading the position sensor. The position sensor can be an encoder
@@ -88,6 +97,8 @@ public abstract class TrcMotor implements TrcMotorController
     private boolean odometryEnabled = false;
     private double maxMotorVelocity = 0.0;
     private TrcPidController velocityPidCtrl = null;
+    private DigitalTriggerHandler digitalTriggerHandler = null;
+    private boolean calibrating = false;
 
     /**
      * Constructor: Create an instance of the object.
@@ -458,8 +469,9 @@ public abstract class TrcMotor implements TrcMotorController
      * reading when the digital input is triggered.
      *
      * @param digitalInput specifies the digital input sensor that will trigger a position reset.
+     * @param triggerHandler specifies an event callback if the trigger occurred, null if none specified.
      */
-    public void resetPositionOnDigitalInput(TrcDigitalInput digitalInput)
+    public void resetPositionOnDigitalInput(TrcDigitalInput digitalInput, DigitalTriggerHandler triggerHandler)
     {
         final String funcName = "resetPositionOnDigitalInput";
 
@@ -469,8 +481,20 @@ public abstract class TrcMotor implements TrcMotorController
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
+        digitalTriggerHandler = triggerHandler;
         digitalTrigger = new TrcDigitalTrigger(instanceName, digitalInput, this::triggerEvent);
         digitalTrigger.setEnabled(true);
+    }   //resetPositionOnDigitalInput
+
+    /**
+     * This method creates a digital trigger on the given digital input sensor. It resets the position sensor
+     * reading when the digital input is triggered.
+     *
+     * @param digitalInput specifies the digital input sensor that will trigger a position reset.
+     */
+    public void resetPositionOnDigitalInput(TrcDigitalInput digitalInput)
+    {
+        resetPositionOnDigitalInput(digitalInput, null);
     }   //resetPositionOnDigitalInput
 
     /**
@@ -480,6 +504,35 @@ public abstract class TrcMotor implements TrcMotorController
     {
         resetPosition(false);
     }   //resetPosition
+
+    /**
+     * This method performs a zero calibration on the motor by slowly turning in reverse. When the lower limit switch
+     * is triggered, it stops the motor and resets the motor position.
+     *
+     * @param calibratePower specifies the motor power to perform zero calibration (must be positive value).
+     */
+    public void zeroCalibrate(double calibratePower)
+    {
+        //
+        // Only do this if there is a digital trigger.
+        //
+        if (digitalTrigger != null && digitalTrigger.isEnabled())
+        {
+            set(-Math.abs(calibratePower));
+            calibrating = true;
+        }
+    }   //zeroCalibrate
+
+    /**
+     * This method sets this motor to follow another motor. This method should be overridden by the subclass. If the
+     * subclass is not capable of following another motor, this method will be called instead and will throw an
+     * UnsupportedOperation exception.
+     */
+    public void follow(TrcMotor motor)
+    {
+        throw new UnsupportedOperationException(
+            String.format("This motor does not support following motors of type: %s!", motor.getClass().toString()));
+    }   //follow
 
     //
     // Implements the TrcMotorController interface.
@@ -565,6 +618,7 @@ public abstract class TrcMotor implements TrcMotorController
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "value=%f", value);
         }
 
+        calibrating = false;
         if (velocityPidCtrl != null)
         {
             velocityPidCtrl.setTarget(value);
@@ -599,7 +653,23 @@ public abstract class TrcMotor implements TrcMotorController
                 Boolean.toString(active));
         }
 
+        TrcDbgTrace.getGlobalTracer()
+            .traceInfo("triggerEvent", "TrcMotor encoder reset! motor=%s,pos=%.2f", instanceName, getMotorPosition());
+
+        if (calibrating)
+        {
+            //
+            // set(0.0) will turn off calibration mode.
+            //
+            set(0.0);
+        }
+
         resetPosition(false);
+
+        if (digitalTriggerHandler != null)
+        {
+            digitalTriggerHandler.digitalTriggerEvent(active);
+        }
 
         if (debugEnabled)
         {

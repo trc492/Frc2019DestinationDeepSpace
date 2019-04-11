@@ -35,9 +35,9 @@ public class FrcAuto extends FrcTeleOp
     private static final String moduleName = "FrcAuto";
     private static final boolean DO_UPDATES = false;
 
-    public static enum AutoStrategy
+    public enum AutoStrategy
     {
-        X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        VIDEO_DRIVE, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     } // enum AutoStrategy
 
     private Robot robot;
@@ -63,6 +63,7 @@ public class FrcAuto extends FrcTeleOp
         //
         // Populate Autonomous Mode menus.
         //
+        autoStrategyMenu.addChoice("Video Stream Drive", AutoStrategy.VIDEO_DRIVE, true, false);
         autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
@@ -71,6 +72,7 @@ public class FrcAuto extends FrcTeleOp
         autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
     } // FrcAuto
 
+    // CodeReview: Where is the auto tie-in???
     public boolean isAutoActive()
     {
         return autoCommand != null && autoCommand.isActive();
@@ -95,6 +97,10 @@ public class FrcAuto extends FrcTeleOp
     {
         // Init teleop since we're in sandstorm mode
         super.startMode(prevMode, nextMode);
+        robot.driveBase.resetOdometry(true, true);
+        robot.elevator.zeroCalibrate(); // zero calibrate the elevator
+        robot.pickup.zeroCalibrate(); // zero calibrate the pickup
+        robot.climber.zeroCalibrateActuator();
 
         final String funcName = moduleName + ".startMode";
 
@@ -134,6 +140,8 @@ public class FrcAuto extends FrcTeleOp
                     robot.drivePowerLimit, false);
                 break;
 
+            default:
+            case VIDEO_DRIVE:
             case DO_NOTHING:
                 autoCommand = null;
                 break;
@@ -155,7 +163,7 @@ public class FrcAuto extends FrcTeleOp
             robot.announceSafety();
         }
 
-        if (!robot.isAutoActive())
+        if (autoStrategy == AutoStrategy.VIDEO_DRIVE || !robot.isAutoActive())
         {
             super.runPeriodic(elapsedTime);
         }

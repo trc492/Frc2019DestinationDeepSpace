@@ -23,6 +23,7 @@
 package trclib;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 
@@ -34,6 +35,7 @@ public class TrcUtil
 {
     public static final double INCHES_PER_CM = 0.393701;
     public static final double MM_PER_INCH = 25.4;
+    public static final double EARTH_GRAVITATIONAL_CONSTANT = 9.807;
 
     /**
      * This interface provides the method to get data of the specified type. This is to replaced the Supplier
@@ -159,6 +161,31 @@ public class TrcUtil
     }   //sum
 
     /**
+     * This method calculates and returns the medians of the numbers in the given array.
+     *
+     * @param num specifies the number array.
+     * @return Median of
+     */
+    public static double median(double... num)
+    {
+        if (num.length == 0)
+        {
+            return 0;
+        }
+
+        double[] nums = num.clone();
+        Arrays.sort(nums);
+        if (nums.length % 2 == 0)
+        {
+            return TrcUtil.average(nums[(nums.length / 2) - 1], nums[nums.length / 2]);
+        }
+        else
+        {
+            return nums[nums.length / 2];
+        }
+    }
+
+    /**
      * This method calculates and returns the average of the numbers in the given array.
      *
      * @param nums specifies the number array.
@@ -166,8 +193,11 @@ public class TrcUtil
      */
     public static double average(double... nums)
     {
+        if (nums.length == 0)
+        {
+            return 0;
+        }
         return sum(nums) / nums.length;
-        // return Arrays.stream(nums).average().orElse(0.0);
     }   //average
 
     /**
@@ -212,6 +242,92 @@ public class TrcUtil
     }   //maxMagnitude
 
     /**
+     * This method returns a bit mask of the least significant set bit.
+     *
+     * @param data specifies the data to find the least significant set bit.
+     * @return bit mask that has only the least significant set bit.
+     */
+    public static int leastSignificantSetBit(int data)
+    {
+        int bitMask = 0;
+
+        if (data != 0)
+        {
+            bitMask = data & ~(data ^ -data);
+        }
+
+        return bitMask;
+    }   //leastSignificantSetBit
+
+    /**
+     * This method returns the bit position of the least significant set bit of the given data.
+     *
+     * @param data specifies the data to determine its least significant set bit position.
+     * @return 0-based least significant set bit position. -1 if no set bit.
+     */
+    public static int leastSignificantSetBitPosition(int data)
+    {
+        int pos = -1;
+
+        if (data != 0)
+        {
+            for (int i = 0; ; i++)
+            {
+                if ((data & (1 << i)) != 0)
+                {
+                    pos = i;
+                    break;
+                }
+            }
+        }
+
+        return pos;
+    }   //leastSignificantSetBitPosition
+
+    /**
+     * This method returns the bit position of the most significant set bit of the given data.
+     *
+     * @param data specifies the data to determine its most significant set bit position.
+     * @return 0-based most significant set bit position. -1 if no set bit.
+     */
+    public static int mostSignificantSetBitPosition(int data)
+    {
+        int pos = -1;
+
+        if (data != 0)
+        {
+            for (int i = 0; ; i++)
+            {
+                if ((data >>= 1) == 0)
+                {
+                    pos = i;
+                    break;
+                }
+            }
+        }
+
+        return pos;
+    }   //mostSignificantSetBitPosition
+
+    /**
+     * This method sets a bitmask with the given bit positions.
+     *
+     * @param bitPositions specifies the bit positions to be set to 1. Bit positions are 0-based.
+     * @return bit mask.
+     */
+    public static int setBitMask(int... bitPositions)
+    {
+        int bitMask = 0;
+
+        for (int pos : bitPositions)
+        {
+            bitMask |= 1 << pos;
+        }
+
+        return bitMask;
+    }   //setBitMask
+
+    /**
      * This method normalizes the given array of numbers such that no number exceeds +/- 1.0. If no number exceeds
      * the magnitude of 1.0, nothing will change, otherwise the original nums array will be modified in place.
      *
@@ -243,8 +359,6 @@ public class TrcUtil
         normalizeInPlace(result);
 
         return result;
-        // double maxMagnitude = Arrays.stream(nums).map(Math::abs).max().orElse(0.0);
-        // return maxMagnitude > 1.0? Arrays.stream(nums).map(x -> x/maxMagnitude).toArray(): nums;
     }   //normalize
 
     /**
@@ -261,15 +375,15 @@ public class TrcUtil
     /**
      * This method checks if the given value is within the specified range.
      *
-     * @param value  The value to be checked.
-     * @param low    The low limit of the range.
-     * @param high   The high limit of the range.
+     * @param value     The value to be checked.
+     * @param low       The low limit of the range.
+     * @param high      The high limit of the range.
      * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low, high).
      * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(int value, int low, int high, boolean inclusive)
     {
-        return inclusive ? value >= low && value <= high: value > low && value < high;
+        return inclusive ? value >= low && value <= high : value > low && value < high;
     }   //inRange
 
     /**
@@ -288,15 +402,15 @@ public class TrcUtil
     /**
      * This method checks if the given value is within the specified range.
      *
-     * @param value  The value to be checked.
-     * @param low    The low limit of the range.
-     * @param high   The high limit of the range.
+     * @param value     The value to be checked.
+     * @param low       The low limit of the range.
+     * @param high      The high limit of the range.
      * @param inclusive specifies true if the range is inclusive [low, high], otherwise the range is exclusive (low,high).
      * @return true if the value is within range, false otherwise.
      */
     public static boolean inRange(double value, double low, double high, boolean inclusive)
     {
-        return inclusive ? value >= low && value <= high: value > low && value < high;
+        return inclusive ? value >= low && value <= high : value > low && value < high;
     }   //inRange
 
     /**
@@ -396,7 +510,7 @@ public class TrcUtil
     /**
      * This method returns the indexed byte of an integer.
      *
-     * @param data specifies the integer value.
+     * @param data  specifies the integer value.
      * @param index specifies the byte index.
      * @return indexed byte of the integer.
      */

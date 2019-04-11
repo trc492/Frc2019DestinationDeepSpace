@@ -23,7 +23,9 @@
 package team492;
 
 import frclib.FrcCANTalon;
+import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcDigitalInput;
+import frclib.FrcPdp;
 import frclib.FrcPneumatic;
 import trclib.TrcAnalogSensor;
 import trclib.TrcAnalogTrigger;
@@ -31,55 +33,57 @@ import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
+import trclib.TrcTimer;
 import trclib.TrcUtil;
 
 public class Pickup
 {
     private static final String instanceName = "Pickup";
 
-    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_FREE_SPIN_CURRENT,
-        RobotInfo.PICKUP_STALL_CURRENT };
+    private static double[] currentThresholds = new double[] { RobotInfo.PICKUP_CURRENT_THRESHOLD };
 
-    private enum State
-    {
-        START, MONITOR, DONE
-    }
-
+    private Robot robot;
     private FrcCANTalon pickupMotor;
     private FrcCANTalon pitchMotor;
     private TrcPidActuator pitchController;
     private FrcPneumatic hatchDeployer;
+    private FrcPneumatic hatchGrabber;
     private FrcDigitalInput cargoSensor;
     private TrcDigitalTrigger cargoTrigger;
-    private TrcAnalogSensor currentSensor;
     private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
+    private TrcPidController pitchPidController;
     private TrcEvent onFinishedEvent;
-    private Robot robot;
+    private TrcTimer timer;
+    private boolean manualOverrideEnabled;
 
     public Pickup(Robot robot)
     {
         this.robot = robot;
 
-        pickupMotor = new FrcCANTalon("PickupMaster", RobotInfo.CANID_PICKUP);
-        pickupMotor.setInverted(true);                         // Set opposite directions.
+        pickupMotor = new FrcCANTalon("PickupMotor", RobotInfo.CANID_PICKUP);
+        pickupMotor.setInverted(true);                          // Set opposite directions.
         pickupMotor.setBrakeModeEnabled(false);                 // We don't really need brakes
         pickupMotor.motor.overrideLimitSwitchesEnable(false);   // No limit switches, make sure they are disabled.
 
         pitchMotor = new FrcCANTalon("PickupPitchMotor", RobotInfo.CANID_PICKUP_PITCH);
         pitchMotor.setInverted(false);
         pitchMotor.setBrakeModeEnabled(true);
-        pitchMotor.motor.overrideLimitSwitchesEnable(false); // for debugging only
+        pitchMotor.motor.overrideLimitSwitchesEnable(true);
         pitchMotor.configFwdLimitSwitchNormallyOpen(false);
         pitchMotor.configRevLimitSwitchNormallyOpen(false);
+
+        robot.pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_PICKUP, "Pickup"),
+            new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_PICKUP_PITCH, "PickupPitch"));
 
         // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.PICKUP_KP,
             RobotInfo.PICKUP_KI, RobotInfo.PICKUP_KD);
-        TrcPidController pidController = new TrcPidController("PickupPidController", pidCoefficients,
-            RobotInfo.PICKUP_TOLERANCE, this::getPickupAngle);
-        pitchController = new TrcPidActuator("PICKUPActuator", pitchMotor, pidController,
+        pitchPidController = new TrcPidController("PickupPidController", pidCoefficients, RobotInfo.PICKUP_TOLERANCE,
+            this::getPickupAngle);
+        FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("PitchLowerSwitch", pitchMotor, false);
+        pitchController = new TrcPidActuator("PickupActuator", pitchMotor, lowerLimitSwitch, pitchPidController,
             RobotInfo.PICKUP_CALIBRATE_POWER, RobotInfo.PICKUP_PID_FLOOR, RobotInfo.PICKUP_PID_CEILING,
-            () -> RobotInfo.PICKUP_GRAVITY_COMP);   // CodeReview: TODO: This should not be a constant.
+            this::getGravityCompensation);
         pitchController.setPositionScale(RobotInfo.PICKUP_DEGREES_PER_COUNT, RobotInfo.PICKUP_MIN_POS);
         pitchController.setStallProtection(RobotInfo.PICKUP_STALL_MIN_POWER, RobotInfo.PICKUP_STALL_TIMEOUT,
             RobotInfo.PICKUP_STALL_RESET_TIMEOUT);
@@ -90,13 +94,17 @@ public class Pickup
         cargoTrigger = new TrcDigitalTrigger(instanceName + ".cargoTrigger", cargoSensor, this::cargoDetectedEvent);
         cargoTrigger.setEnabled(false);
 
+        hatchGrabber = new FrcPneumatic(instanceName + ".hatchGrabber", RobotInfo.CANID_PCM1,
+            RobotInfo.SOL_HATCH_GRABBER_EXTEND, RobotInfo.SOL_HATCH_GRABBER_RETRACT);
+
         hatchDeployer = new FrcPneumatic(instanceName + ".hatchDeployer", RobotInfo.CANID_PCM1,
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
 
-        currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent",
-            () -> pickupMotor.motor.getOutputCurrent());
+        TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
         currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
-            TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent);
+            TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent, false);
+
+        timer = new TrcTimer(instanceName + ".timer");
     }
 
     private void currentTriggerEvent(int currZone, int prevZone, double value)
@@ -134,6 +142,48 @@ public class Pickup
         }
     }
 
+    /**
+     * This method calculates the gravitation pull on the pickup endeffector in terms of percentage motor power.
+     * Meaning it will return a power value that will hold the endeffector suspend in any valid position. Since
+     * gravitational pull of the endeffector depends on its angle, this is proportional to the sine of the
+     * endeffector angle (endeffector is at zero degree when it is in the vertical position).
+     * EndEffectorMaxTorqueAtFulcrum = EndEffectorWeight * EndEffectorCGDistanceFromFulcrum
+     * PercentageMotorPower = sin(EndEffectorAngle) * EndEffectorMaxTorqueAtFulcrum /
+     * (MotorStallTorque * GearRatio)
+     *
+     * @return gravity compensation value.
+     */
+    private double getGravityCompensation()
+    {
+        // This needs to be negative since negative = up
+        return -Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
+    }
+
+    public double getPitchPower()
+    {
+        return pitchMotor.getPower();
+    }
+
+    public boolean isUpperLimitSwitchActive()
+    {
+        return pitchMotor.isUpperLimitSwitchActive();
+    }
+
+    public boolean isLowerLimitSwitchActive()
+    {
+        return pitchMotor.isLowerLimitSwitchActive();
+    }
+
+    public double getPickupCurrent()
+    {
+        return pickupMotor.motor.getOutputCurrent();
+    }
+
+    public boolean cargoDetected()
+    {
+        return cargoSensor.isActive();
+    }
+
     public void cancel()
     {
         setPickupPower(0.0);
@@ -143,18 +193,25 @@ public class Pickup
         {
             onFinishedEvent.set(true);
         }
+
+        currentTrigger.setEnabled(false);
+        cargoTrigger.setEnabled(false);
+        timer.cancel();
     }
 
     public void deployCargo(TrcEvent event)
     {
-        if (event != null)
+        if (!manualOverrideEnabled)
         {
-            event.clear();
+            if (event != null)
+            {
+                event.clear();
+            }
+            onFinishedEvent = event;
+            cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
+            currentTrigger.setEnabled(true);
         }
-        onFinishedEvent = event;
-        cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
-        currentTrigger.setEnabled(true);
-        setPickupPower(-0.7);
+        setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
     }
 
     public void deployHatch(TrcEvent event)
@@ -168,29 +225,59 @@ public class Pickup
 
     public void pickupCargo(TrcEvent event)
     {
-        if (cargoSensor.isActive())
+        if (manualOverrideEnabled)
         {
-            // Return early if we already have a cargo
-            event.set(true);
+            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
         }
         else
         {
-            // The cargo trigger will signal the event when it detects the cargo
             if (event != null)
             {
                 event.clear();
             }
-            this.onFinishedEvent = event;
-            currentTrigger.setEnabled(false); // make sure the current trigger is disabled
-            cargoTrigger.setEnabled(true);
-            setPickupPower(1.0);
+
+            if (cargoDetected())
+            {
+                // Return early if we already have a cargo
+                if (event != null)
+                {
+                    event.set(true);
+                }
+            }
+            else
+            {
+                if (event != null)
+                {
+                    // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+                    // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
+                    timer.cancel();
+                    timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                }
+                this.onFinishedEvent = event;
+                currentTrigger.setEnabled(false); // make sure the current trigger is disabled
+                cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
+                setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+            }
         }
     }
 
     public void pickupHatch(TrcEvent event)
     {
         // Since this is literally driving into the hatch panel, it's already finished.
-        event.set(true);
+        if (event != null)
+        {
+            event.set(true);
+        }
+    }
+
+    public void extendHatchGrabber()
+    {
+        hatchGrabber.extend();
+    }
+
+    public void retractHatchGrabber()
+    {
+        hatchGrabber.retract();
     }
 
     public void extendHatchDeployer()
@@ -205,6 +292,7 @@ public class Pickup
 
     public void setManualOverrideEnabled(boolean enabled)
     {
+        this.manualOverrideEnabled = enabled;
         pitchController.setManualOverride(enabled);
     }
 
@@ -213,26 +301,74 @@ public class Pickup
         pitchController.zeroCalibrate();
     }
 
+    /**
+     * Get the angle of the pickup. The angle is relative to vertical.
+     *
+     * @return The angle in degrees.
+     */
     public double getPickupAngle()
     {
         return pitchController.getPosition();
     }
 
+    public double getRawPickupAngle()
+    {
+        return pitchMotor.getPosition();
+    }
+
+    /**
+     * Set the angle of the pickup pitch. The angle is relative to vertical.
+     *
+     * @param angle The angle in degrees to set.
+     */
     public void setPickupAngle(double angle)
     {
         pitchController.setTarget(angle, true);
     }
 
+    public void setPickupAngle(double angle, TrcEvent onFinishedEvent)
+    {
+        setPickupAngle(angle, onFinishedEvent, 0.0);
+    }
+
+    public void setPickupAngle(double angle, TrcEvent onFinishedEvent, double timeout)
+    {
+        pitchController.setTarget(angle, onFinishedEvent, timeout);
+    }
+
+    public TrcPidController getPitchPidController()
+    {
+        return pitchPidController;
+    }
+
+    /**
+     * Set the power to the pitch motor. Positive power is a greater angle relative to vertical.
+     *
+     * @param power Power to set to the motor, in the range [-1,1].
+     */
     public void setPitchPower(double power)
     {
         setPitchPower(power, true);
     }
 
+    /**
+     * Set the power to the pitch motor. Positive power is a greater angle relative to vertical.
+     *
+     * @param power Power to set to the motor, in the range [-1,1].
+     * @param hold  True to hold the position when power is zero.
+     */
     public void setPitchPower(double power, boolean hold)
     {
-        pitchMotor.set(power);
-        //        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        //        pitchController.setPower(power, hold);
+        power = TrcUtil.clipRange(power, -1.0, 1.0);
+        if (pitchController.isManualOverride())
+        {
+            pitchController.cancel();
+            pitchMotor.set(power);
+        }
+        else
+        {
+            pitchController.setPower(power, hold);
+        }
     }
 
     public void setPickupPower(double power)

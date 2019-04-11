@@ -45,75 +45,140 @@ public class FrcJoystick extends Joystick
 
     //
     // Logitech Joystick:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
-    public static final int LOGITECH_TRIGGER    = (1 << 0);
-    public static final int LOGITECH_BUTTON2    = (1 << 1);
-    public static final int LOGITECH_BUTTON3    = (1 << 2);
-    public static final int LOGITECH_BUTTON4    = (1 << 3);
-    public static final int LOGITECH_BUTTON5    = (1 << 4);
-    public static final int LOGITECH_BUTTON6    = (1 << 5);
-    public static final int LOGITECH_BUTTON7    = (1 << 6);
-    public static final int LOGITECH_BUTTON8    = (1 << 7);
-    public static final int LOGITECH_BUTTON9    = (1 << 8);
-    public static final int LOGITECH_BUTTON10   = (1 << 9);
-    public static final int LOGITECH_BUTTON11   = (1 << 10);
-    public static final int LOGITECH_BUTTON12   = (1 << 11);
+    public static final int LOGITECH_TRIGGER = (1 << 0);
+    public static final int LOGITECH_BUTTON2 = (1 << 1);
+    public static final int LOGITECH_BUTTON3 = (1 << 2);
+    public static final int LOGITECH_BUTTON4 = (1 << 3);
+    public static final int LOGITECH_BUTTON5 = (1 << 4);
+    public static final int LOGITECH_BUTTON6 = (1 << 5);
+    public static final int LOGITECH_BUTTON7 = (1 << 6);
+    public static final int LOGITECH_BUTTON8 = (1 << 7);
+    public static final int LOGITECH_BUTTON9 = (1 << 8);
+    public static final int LOGITECH_BUTTON10 = (1 << 9);
+    public static final int LOGITECH_BUTTON11 = (1 << 10);
+    public static final int LOGITECH_BUTTON12 = (1 << 11);
+    // public static final int LOGITECH_TRIGGER    = 1;
+    // public static final int LOGITECH_BUTTON2    = 2;
+    // public static final int LOGITECH_BUTTON3    = 3;
+    // public static final int LOGITECH_BUTTON4    = 4;
+    // public static final int LOGITECH_BUTTON5    = 5;
+    // public static final int LOGITECH_BUTTON6    = 6;
+    // public static final int LOGITECH_BUTTON7    = 7;
+    // public static final int LOGITECH_BUTTON8    = 8;
+    // public static final int LOGITECH_BUTTON9    = 9;
+    // public static final int LOGITECH_BUTTON10   = 10;
+    // public static final int LOGITECH_BUTTON11   = 11;
+    // public static final int LOGITECH_BUTTON12   = 12;
     //
     // Logitech DualAction Game Controller:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
-    public static final int DUALACTION_BUTTONX  = (1 << 0);
-    public static final int DUALACTION_BUTTONA  = (1 << 1);
-    public static final int DUALACTION_BUTTONB  = (1 << 2);
-    public static final int DUALACTION_BUTTONY  = (1 << 3);
-    public static final int DUALACTION_LB       = (1 << 4);
-    public static final int DUALACTION_RB       = (1 << 5);
-    public static final int DUALACTION_LT       = (1 << 6);
-    public static final int DUALACTION_RT       = (1 << 7);
-    public static final int DUALACTION_BACK     = (1 << 8);
-    public static final int DUALACTION_START    = (1 << 9);
-    public static final int DUALACTION_LTOP     = (1 << 10);
-    public static final int DUALACTION_RTOP     = (1 << 11);
+    public static final int DUALACTION_BUTTONX = (1 << 0);
+    public static final int DUALACTION_BUTTONA = (1 << 1);
+    public static final int DUALACTION_BUTTONB = (1 << 2);
+    public static final int DUALACTION_BUTTONY = (1 << 3);
+    public static final int DUALACTION_LB = (1 << 4);
+    public static final int DUALACTION_RB = (1 << 5);
+    public static final int DUALACTION_LT = (1 << 6);
+    public static final int DUALACTION_RT = (1 << 7);
+    public static final int DUALACTION_BACK = (1 << 8);
+    public static final int DUALACTION_START = (1 << 9);
+    public static final int DUALACTION_LTOP = (1 << 10);
+    public static final int DUALACTION_RTOP = (1 << 11);
+    // public static final int DUALACTION_BUTTONX  = 1;
+    // public static final int DUALACTION_BUTTONA  = 2;
+    // public static final int DUALACTION_BUTTONB  = 3;
+    // public static final int DUALACTION_BUTTONY  = 4;
+    // public static final int DUALACTION_LB       = 5;
+    // public static final int DUALACTION_RB       = 6;
+    // public static final int DUALACTION_LT       = 7;
+    // public static final int DUALACTION_RT       = 8;
+    // public static final int DUALACTION_BACK     = 9;
+    // public static final int DUALACTION_START    = 10;
+    // public static final int DUALACTION_LTOP     = 11;
+    // public static final int DUALACTION_RTOP     = 12;
     //
     // Microsoft SideWinder Joystick:
-    // UsagePage=0x01, Usage-0x04
+    // UsagePage=0x01, Usage=0x04
     //
-    public static final int SIDEWINDER_TRIGGER  = (1 << 0);
-    public static final int SIDEWINDER_BUTTON2  = (1 << 1);
-    public static final int SIDEWINDER_BUTTON3  = (1 << 2);
-    public static final int SIDEWINDER_BUTTON4  = (1 << 3);
-    public static final int SIDEWINDER_BUTTON5  = (1 << 4);
-    public static final int SIDEWINDER_BUTTON6  = (1 << 5);
-    public static final int SIDEWINDER_BUTTON7  = (1 << 6);
-    public static final int SIDEWINDER_BUTTON8  = (1 << 7);
-    public static final int SIDEWINDER_BUTTON9  = (1 << 8);
+    public static final int SIDEWINDER_TRIGGER = (1 << 0);
+    public static final int SIDEWINDER_BUTTON2 = (1 << 1);
+    public static final int SIDEWINDER_BUTTON3 = (1 << 2);
+    public static final int SIDEWINDER_BUTTON4 = (1 << 3);
+    public static final int SIDEWINDER_BUTTON5 = (1 << 4);
+    public static final int SIDEWINDER_BUTTON6 = (1 << 5);
+    public static final int SIDEWINDER_BUTTON7 = (1 << 6);
+    public static final int SIDEWINDER_BUTTON8 = (1 << 7);
+    public static final int SIDEWINDER_BUTTON9 = (1 << 8);
+    // public static final int SIDEWINDER_TRIGGER  = 1;
+    // public static final int SIDEWINDER_BUTTON2  = 2;
+    // public static final int SIDEWINDER_BUTTON3  = 3;
+    // public static final int SIDEWINDER_BUTTON4  = 4;
+    // public static final int SIDEWINDER_BUTTON5  = 5;
+    // public static final int SIDEWINDER_BUTTON6  = 6;
+    // public static final int SIDEWINDER_BUTTON7  = 7;
+    // public static final int SIDEWINDER_BUTTON8  = 8;
+    // public static final int SIDEWINDER_BUTTON9  = 9;
     //
     // Microsoft XBox Game Controller:
-    // UsagePage=0x01, Usage-0x05
+    // UsagePage=0x01, Usage=0x05
     //
-    public static final int XBOX_BUTTONA        = (1 << 0);
-    public static final int XBOX_BUTTONB        = (1 << 1);
-    public static final int XBOX_BUTTONX        = (1 << 2);
-    public static final int XBOX_BUTTONY        = (1 << 3);
-    public static final int XBOX_LB             = (1 << 4);
-    public static final int XBOX_RB             = (1 << 5);
-    public static final int XBOX_BACK           = (1 << 6);
-    public static final int XBOX_START          = (1 << 7);
+    public static final int XBOX_BUTTONA = (1 << 0);
+    public static final int XBOX_BUTTONB = (1 << 1);
+    public static final int XBOX_BUTTONX = (1 << 2);
+    public static final int XBOX_BUTTONY = (1 << 3);
+    public static final int XBOX_LB = (1 << 4);
+    public static final int XBOX_RB = (1 << 5);
+    public static final int XBOX_BACK = (1 << 6);
+    public static final int XBOX_START = (1 << 7);
+    // public static final int XBOX_BUTTONA        = 1;
+    // public static final int XBOX_BUTTONB        = 2;
+    // public static final int XBOX_BUTTONX        = 3;
+    // public static final int XBOX_BUTTONY        = 4;
+    // public static final int XBOX_LB             = 5;
+    // public static final int XBOX_RB             = 6;
+    // public static final int XBOX_BACK           = 7;
+    // public static final int XBOX_START          = 8;
     //
-    // Button panel:
-    // UsagePage=0x01, Usage-0x04 (i have no idea what this means)
+    // Generic USB Button Panel:
+    // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
     //
-    public static final int PANEL_BUTTON1    = (1 << 0);
-    public static final int PANEL_BUTTON2    = (1 << 1);
-    public static final int PANEL_BUTTON3    = (1 << 2);
-    public static final int PANEL_BUTTON4    = (1 << 3);
-    public static final int PANEL_BUTTON5    = (1 << 4);
-    public static final int PANEL_BUTTON6    = (1 << 5);
-    public static final int PANEL_BUTTON7    = (1 << 6);
-    public static final int PANEL_BUTTON8    = (1 << 7);
-    public static final int PANEL_BUTTON9    = (1 << 8);
-    public static final int PANEL_BUTTON10   = (1 << 9);
+    public static final int PANEL_BUTTON1 = (1 << 0);
+    public static final int PANEL_BUTTON2 = (1 << 1);
+    public static final int PANEL_BUTTON3 = (1 << 2);
+    public static final int PANEL_BUTTON4 = (1 << 3);
+    public static final int PANEL_BUTTON5 = (1 << 4);
+    public static final int PANEL_BUTTON6 = (1 << 5);
+    public static final int PANEL_BUTTON7 = (1 << 6);
+    public static final int PANEL_BUTTON8 = (1 << 7);
+    public static final int PANEL_BUTTON9 = (1 << 8);
+    public static final int PANEL_BUTTON10 = (1 << 9);
+    public static final int PANEL_BUTTON_RED1 = 1;
+    public static final int PANEL_BUTTON_GREEN1 = 2;
+    public static final int PANEL_BUTTON_BLUE1 = 3;
+    public static final int PANEL_BUTTON_YELLOW1 = 4;
+    public static final int PANEL_BUTTON_WHITE1 = 5;
+    public static final int PANEL_BUTTON_RED2 = 6;
+    public static final int PANEL_BUTTON_GREEN2 = 7;
+    public static final int PANEL_BUTTON_BLUE2 = 8;
+    public static final int PANEL_BUTTON_YELLOW2 = 9;
+    public static final int PANEL_BUTTON_WHITE2 = 10;
+    //
+    // Generic USB Switch Panel:
+    // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
+    //
+    public static final int PANEL_SWITCH_WHITE1 = 1;
+    public static final int PANEL_SWTICH_RED1 = 2;
+    public static final int PANEL_SWTICH_GREEN1 = 3;
+    public static final int PANEL_SWTICH_BLUE1 = 4;
+    public static final int PANEL_SWTICH_YELLOW1 = 5;
+    public static final int PANEL_SWTICH_WHITE2 = 6;
+    public static final int PANEL_SWTICH_RED2 = 7;
+    public static final int PANEL_SWTICH_GREEN2 = 8;
+    public static final int PANEL_SWTICH_BLUE2 = 9;
+    public static final int PANEL_SWTICH_YELLOW2 = 10;
 
     /**
      * This interface, if provided, will allow this class to do a notification callback when there are button
@@ -124,7 +189,7 @@ public class FrcJoystick extends Joystick
         /**
          * This method is called when button event is detected.
          *
-         * @param button specifies the button ID that generates the event
+         * @param button  specifies the button ID that generates the event
          * @param pressed specifies true if the button is pressed, false otherwise.
          */
         void joystickButtonEvent(int button, boolean pressed);
@@ -143,12 +208,13 @@ public class FrcJoystick extends Joystick
     private int prevButtons;
     private ButtonHandler buttonHandler = null;
     private int ySign = 1;
+    private boolean logButtons = false;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param port specifies the joystick port ID.
+     * @param port         specifies the joystick port ID.
      */
     public FrcJoystick(final String instanceName, final int port)
     {
@@ -156,8 +222,8 @@ public class FrcJoystick extends Joystick
 
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                TrcDbgTrace.getGlobalTracer():
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -166,24 +232,28 @@ public class FrcJoystick extends Joystick
         ds = DriverStation.getInstance();
         prevButtons = ds.getStickButtons(port);
 
-        TrcTaskMgr.TaskObject buttonEventTaskObj = TrcTaskMgr.getInstance().createTask(
-            instanceName + ".buttonEvent", this::buttonEventTask);
+        TrcTaskMgr.TaskObject buttonEventTaskObj = TrcTaskMgr.getInstance()
+            .createTask(instanceName + ".buttonEvent", this::buttonEventTask);
         buttonEventTaskObj.registerTask(TrcTaskMgr.TaskType.PREPERIODIC_TASK);
     }   //FrcJoystick
 
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param instanceName specifies the instance name.
-     * @param port specifies the joystick port ID.
+     * @param instanceName      specifies the instance name.
+     * @param port              specifies the joystick port ID.
      * @param deadbandThreshold specifies the deadband of the analog sticks.
      */
-    public FrcJoystick(
-        final String instanceName, final int port, final double deadbandThreshold)
+    public FrcJoystick(final String instanceName, final int port, final double deadbandThreshold)
     {
         this(instanceName, port);
         this.deadbandThreshold = deadbandThreshold;
     }   //FrcJoystick
+
+    public void setButtonLoggingEnabled(boolean enabled)
+    {
+        this.logButtons = enabled;
+    }
 
     /**
      * This method returns the instance name.
@@ -200,7 +270,7 @@ public class FrcJoystick extends Joystick
      * no longer receive events.
      *
      * @param buttonHandler specifies the object that will handle the button events. Set to null clear previously
-     *        set handler.
+     *                      set handler.
      */
     public void setButtonHandler(ButtonHandler buttonHandler)
     {
@@ -214,6 +284,11 @@ public class FrcJoystick extends Joystick
 
         this.buttonHandler = buttonHandler;
     } //setButtonHandler
+
+    public ButtonHandler getButtonHandler()
+    {
+        return buttonHandler;
+    }
 
     /**
      * This method sets the joystick button sampling period. By default, it is sampling at 50Hz. One could change
@@ -248,7 +323,7 @@ public class FrcJoystick extends Joystick
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "inverted=%s", Boolean.toString(inverted));
         }
 
-        ySign = inverted? -1: 1;
+        ySign = inverted ? -1 : 1;
 
         if (debugEnabled)
         {
@@ -259,7 +334,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the X analog stick.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the X analog stick.
      */
@@ -297,7 +372,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the Y analog stick.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the Y analog stick.
      */
@@ -311,7 +386,7 @@ public class FrcJoystick extends Joystick
                 Boolean.toString(squared), deadbandThreshold);
         }
 
-        double value = adjustValueWithDeadband(ySign*getY(Hand.kRight), squared, deadbandThreshold);
+        double value = adjustValueWithDeadband(ySign * getY(Hand.kRight), squared, deadbandThreshold);
 
         if (debugEnabled)
         {
@@ -335,7 +410,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the Z analog stick.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the Z analog stick.
      */
@@ -373,7 +448,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the Twist analog stick.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the Twist analog stick.
      */
@@ -411,7 +486,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the analog Throttle.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the analog Throttle.
      */
@@ -449,7 +524,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the analog magnitude.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the analog magnitude.
      */
@@ -463,10 +538,7 @@ public class FrcJoystick extends Joystick
                 Boolean.toString(squared), deadbandThreshold);
         }
 
-        double value = adjustValueWithDeadband(
-                getMagnitude(),
-                squared,
-                deadbandThreshold);
+        double value = adjustValueWithDeadband(getMagnitude(), squared, deadbandThreshold);
 
         if (debugEnabled)
         {
@@ -490,7 +562,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the analog stick direction in radians.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the analog stick direction in radians.
      */
@@ -528,7 +600,7 @@ public class FrcJoystick extends Joystick
     /**
      * This method returns the value of the analog stick direction in degrees.
      *
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply on this stick.
      * @return adjusted value of the analog stick direction in degrees.
      */
@@ -568,7 +640,7 @@ public class FrcJoystick extends Joystick
      * the button handler is called if one exists.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode specifies the current robot run mode.
+     * @param runMode  specifies the current robot run mode.
      */
     public void buttonEventTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
@@ -587,7 +659,7 @@ public class FrcJoystick extends Joystick
             int currButtons = ds.getStickButtons(port);
             if (buttonHandler != null && runMode != TrcRobot.RunMode.DISABLED_MODE)
             {
-                int changedButtons = prevButtons^currButtons;
+                int changedButtons = prevButtons ^ currButtons;
                 int buttonMask;
 
                 while (changedButtons != 0)
@@ -595,8 +667,19 @@ public class FrcJoystick extends Joystick
                     //
                     // buttonMask contains the least significant set bit.
                     //
-                    buttonMask = changedButtons & ~(changedButtons^-changedButtons);
-                    if ((currButtons & buttonMask) != 0)
+                    buttonMask = changedButtons & ~(changedButtons ^ -changedButtons);
+                    boolean pressed = (currButtons & buttonMask) != 0;
+                    if (logButtons)
+                    {
+                        TrcDbgTrace dbgTrace = TrcDbgTrace.getGlobalTracer();
+                        if (dbgTrace != null)
+                        {
+                            dbgTrace
+                                .traceInfo(funcName, "[%.3f] joystick=%s,button=%d,pressed=%b", currTime, instanceName,
+                                    TrcUtil.mostSignificantSetBitPosition(buttonMask) + 1, pressed);
+                        }
+                    }
+                    if (pressed)
                     {
                         //
                         // Button is pressed.
@@ -606,6 +689,8 @@ public class FrcJoystick extends Joystick
                             dbgTrace.traceInfo(funcName, "Button %x pressed", buttonMask);
                         }
                         buttonHandler.joystickButtonEvent(buttonMask, true);
+                        // buttonHandler.joystickButtonEvent(
+                        //     TrcUtil.leastSignificantSetBitPosition(buttonMask) + 1, true);
                     }
                     else
                     {
@@ -617,6 +702,8 @@ public class FrcJoystick extends Joystick
                             dbgTrace.traceInfo(funcName, "Button %x released", buttonMask);
                         }
                         buttonHandler.joystickButtonEvent(buttonMask, false);
+                        // buttonHandler.joystickButtonEvent(
+                        //     TrcUtil.leastSignificantSetBitPosition(buttonMask) + 1, false);
                     }
                     //
                     // Clear the least significant set bit.
@@ -636,21 +723,18 @@ public class FrcJoystick extends Joystick
     /**
      * This method applies deadband to the value and squared the output if necessary.
      *
-     * @param value specifies the value to be processed.
-     * @param squared specifies true to apply a squared curve to the output value, false otherwise.
+     * @param value             specifies the value to be processed.
+     * @param squared           specifies true to apply a squared curve to the output value, false otherwise.
      * @param deadbandThreshold specifies the deadband value to apply to the value.
      * @return adjusted value.
      */
-    private double adjustValueWithDeadband(
-            double value,
-            boolean squared,
-            double deadbandThreshold)
+    private double adjustValueWithDeadband(double value, boolean squared, double deadbandThreshold)
     {
-        value = (Math.abs(value) >= deadbandThreshold)? value: 0.0;
+        value = (Math.abs(value) >= deadbandThreshold) ? value : 0.0;
 
         if (squared)
         {
-            value = Math.signum(value)*value*value;
+            value = Math.signum(value) * value * value;
         }
 
         return value;
