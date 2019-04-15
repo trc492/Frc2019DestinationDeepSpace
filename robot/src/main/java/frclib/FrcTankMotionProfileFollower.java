@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj.Notifier;
 
 import trclib.TrcEvent;
 import trclib.TrcTankMotionProfile;
-import trclib.TrcTankMotionProfile.TrcMotionProfilePoint;
+import trclib.TrcMotionProfilePoint;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;

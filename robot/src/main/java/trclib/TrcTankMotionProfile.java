@@ -181,34 +181,4 @@ public class TrcTankMotionProfile
         TrcMotionProfilePoint[] right = Arrays.copyOf(rightPoints, rightPoints.length);
         return new TrcTankMotionProfile(left, right);
     }
-
-    public static class TrcMotionProfilePoint
-    {
-        public double timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading;
-
-        public TrcMotionProfilePoint(double timeStep, double x, double y, double position, double velocity,
-            double acceleration, double jerk, double heading)
-        {
-            this.timeStep = timeStep;
-            this.x = x;
-            this.y = y;
-            this.encoderPosition = position;
-            this.velocity = velocity;
-            this.acceleration = acceleration;
-            this.jerk = jerk;
-            this.heading = heading;
-        }
-
-        public TrcMotionProfilePoint(TrcMotionProfilePoint other)
-        {
-            this.timeStep = other.timeStep;
-            this.x = other.x;
-            this.y = other.y;
-            this.encoderPosition = other.encoderPosition;
-            this.velocity = other.velocity;
-            this.acceleration = other.acceleration;
-            this.jerk = other.jerk;
-            this.heading = other.heading;
-        }
-    }
 }
