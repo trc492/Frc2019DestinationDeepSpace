@@ -22,8 +22,62 @@
 
 package trclib;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+
 public class TrcMotionProfilePoint
 {
+    public static TrcMotionProfilePoint[] loadPointsFromCsv(String path, boolean loadFromResources)
+    {
+        if (!path.endsWith(".csv"))
+        {
+            throw new IllegalArgumentException(String.format("%s is not a csv file!", path));
+        }
+        try
+        {
+            BufferedReader in;
+            if (loadFromResources)
+            {
+                in = new BufferedReader(
+                    new InputStreamReader(TrcMotionProfilePoint.class.getClassLoader().getResourceAsStream(path)));
+            }
+            else
+            {
+                in = new BufferedReader(new FileReader(path));
+            }
+
+            List<TrcMotionProfilePoint> points = new ArrayList<>();
+            String line;
+            in.readLine(); // Get rid of the first line
+            while ((line = in.readLine()) != null)
+            {
+                String[] tokens = line.split(",");
+                double[] parts = new double[tokens.length];
+                for (int i = 0; i < parts.length; i++)
+                {
+                    parts[i] = Double.parseDouble(tokens[i]);
+                }
+                if (parts.length != 8)
+                {
+                    throw new IllegalArgumentException("There must be 8 columns in the csv file!");
+                }
+                TrcMotionProfilePoint point = new TrcMotionProfilePoint(parts[0], parts[1], parts[2], parts[3],
+                    parts[4], parts[5], parts[6], parts[7]);
+                points.add(point);
+            }
+            in.close();
+            return points.toArray(new TrcMotionProfilePoint[0]);
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
+        }
+    }
+
     public double timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading;
 
     public TrcMotionProfilePoint(double timeStep, double x, double y, double position, double velocity,

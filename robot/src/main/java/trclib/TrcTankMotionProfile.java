@@ -40,46 +40,8 @@ public class TrcTankMotionProfile
 
     public static TrcTankMotionProfile loadProfileFromCsv(String leftPath, String rightPath, boolean loadFromResources)
     {
-        return new TrcTankMotionProfile(loadPointsFromCsv(leftPath, loadFromResources),
-            loadPointsFromCsv(rightPath, loadFromResources));
-    }
-
-    private static TrcMotionProfilePoint[] loadPointsFromCsv(String path, boolean loadFromResources)
-    {
-        if (!path.endsWith(".csv"))
-            throw new IllegalArgumentException(String.format("%s is not a csv file!", path));
-        try
-        {
-            BufferedReader in = loadFromResources ?
-                new BufferedReader(
-                    new InputStreamReader(TrcTankMotionProfile.class.getClassLoader().getResourceAsStream(path))) :
-                new BufferedReader(new FileReader(path));
-
-            List<TrcMotionProfilePoint> points = new ArrayList<>();
-            String line;
-            in.readLine(); // Get rid of the first line
-            while ((line = in.readLine()) != null)
-            {
-//                double[] parts = Arrays.stream(line.split(",")).mapToDouble(Double::parseDouble).toArray();
-                String[] tokens = line.split(",");
-                double[] parts = new double[tokens.length];
-                for (int i = 0; i < parts.length; i++)
-                {
-                    parts[i] = Double.parseDouble(tokens[i]);
-                }
-                if (parts.length != 8)
-                    throw new IllegalArgumentException("There must be 8 columns in the csv file!");
-                TrcMotionProfilePoint point = new TrcMotionProfilePoint(parts[0], parts[1], parts[2], parts[3],
-                    parts[4], parts[5], parts[6], parts[7]);
-                points.add(point);
-            }
-            in.close();
-            return points.toArray(new TrcMotionProfilePoint[0]);
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException(e);
-        }
+        return new TrcTankMotionProfile(TrcMotionProfilePoint.loadPointsFromCsv(leftPath, loadFromResources),
+            TrcMotionProfilePoint.loadPointsFromCsv(rightPath, loadFromResources));
     }
 
     private TrcMotionProfilePoint[] leftPoints, rightPoints;
