@@ -1038,14 +1038,14 @@ public abstract class TrcDriveBase
      * direction and how fast it will rotate.
      *
      * @param magnitude specifies the magnitude combining x and y axes.
-     * @param direction specifies the direction in degrees.
+     * @param direction specifies the direction in degrees. 0 is forward. Positive is clockwise.
      * @param rotation specifies the rotation power.
      * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation, boolean inverted)
     {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, inverted, 0.0);
+        holonomicDrive(magnitude*Math.sin(dirInRads), magnitude*Math.cos(dirInRads), rotation, inverted, 0.0);
     }   //holonomicDrive_Polar
 
     /**
@@ -1053,14 +1053,14 @@ public abstract class TrcDriveBase
      * direction and how fast it will rotate.
      *
      * @param magnitude specifies the magnitude combining x and y axes.
-     * @param direction specifies the direction in degrees.
+     * @param direction specifies the direction in degrees. 0 is forward. Positive is clockwise.
      * @param rotation specifies the rotation power.
      * @param gyroAngle specifies the current gyro heading. Use this to drive by the field reference frame.
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation, double gyroAngle)
     {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, gyroAngle);
+        holonomicDrive(magnitude*Math.sin(dirInRads), magnitude*Math.cos(dirInRads), rotation, false, gyroAngle);
     }   //holonomicDrive_Polar
 
     /**
@@ -1068,13 +1068,13 @@ public abstract class TrcDriveBase
      * direction and how fast it will rotate.
      *
      * @param magnitude specifies the magnitude combining x and y axes.
-     * @param direction specifies the direction in degrees.
+     * @param direction specifies the direction in degrees. 0 is forward. Positive is clockwise.
      * @param rotation specifies the rotation power.
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation)
     {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, 0.0);
+        holonomicDrive(magnitude*Math.sin(dirInRads), magnitude*Math.cos(dirInRads), rotation, false, 0.0);
     }   //holonomicDrive_Polar
 
     /**
