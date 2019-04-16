@@ -40,9 +40,18 @@ public class TrcHolonomicPurePursuitController
         double tolerance, TrcPidController.PidCoefficients pidCoefficients,
         TrcPidController.PidCoefficients turnPidCoefficients, TrcPidController.PidCoefficients velocityPidCoefficients)
     {
+        if (driveBase.supportsHolonomicDrive())
+        {
+            this.driveBase = driveBase;
+        }
+        else
+        {
+            throw new IllegalArgumentException(
+                "Only holonomic drive bases supported for this pure pursuit implementation!");
+        }
+
         this.instanceName = instanceName;
-        this.followingDistance = followingDistance;
-        this.tolerance = tolerance;
+        setToleranceAndFollowingDistance(tolerance, followingDistance);
 
         this.positionController = new TrcPidController(instanceName + ".positionController", pidCoefficients, 0.0,
             () -> positionInput);
@@ -55,17 +64,24 @@ public class TrcHolonomicPurePursuitController
         headingController.setAbsoluteSetPoint(false); // We'll be maintaining heading.
         velocityController.setAbsoluteSetPoint(true);
 
-        if (driveBase.supportsHolonomicDrive())
+        this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
+    }
+
+    /**
+     * Set both the position tolerance and following distance.
+     *
+     * @param tolerance         The distance at which the controller will stop itself.
+     * @param followingDistance The distance between the robot and following point.
+     */
+    public void setToleranceAndFollowingDistance(double tolerance, double followingDistance)
+    {
+        if (tolerance >= followingDistance)
         {
-            this.driveBase = driveBase;
-        }
-        else
-        {
-            throw new IllegalArgumentException(
-                "Only holonomic drive bases supported for this pure pursuit implementation!");
+            throw new IllegalArgumentException("tolerance must be less than followingDistance!");
         }
 
-        this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
+        this.followingDistance = followingDistance;
+        this.tolerance = tolerance;
     }
 
     /**
@@ -75,17 +91,17 @@ public class TrcHolonomicPurePursuitController
      */
     public void setTolerance(double tolerance)
     {
-        this.tolerance = tolerance;
+        setToleranceAndFollowingDistance(tolerance, followingDistance);
     }
 
     /**
      * Set the following distance for the pure pursuit controller.
      *
-     * @param distance The distance between the robot and following point.
+     * @param followingDistance The distance between the robot and following point.
      */
-    public void setFollowingDistance(double distance)
+    public void setFollowingDistance(double followingDistance)
     {
-        this.followingDistance = distance;
+        setToleranceAndFollowingDistance(tolerance, followingDistance);
     }
 
     /**
@@ -218,7 +234,7 @@ public class TrcHolonomicPurePursuitController
         double theta = Math.toRadians(point.heading);
 
         // If we have timed out or finished, stop the operation.
-        if (TrcUtil.getCurrentTime() >= timedOutTime || (point == path[path.length - 1] && dist <= tolerance))
+        if (TrcUtil.getCurrentTime() >= timedOutTime || (pathIndex == path.length - 1 && dist <= tolerance))
         {
             onFinishedEvent.set(true);
             stop();
@@ -229,9 +245,37 @@ public class TrcHolonomicPurePursuitController
         }
     }
 
+    private TrcMotionProfilePoint interpolate(TrcMotionProfilePoint point1, TrcMotionProfilePoint point2, double weight)
+    {
+        double timestep = interpolate(point1.timeStep, point2.timeStep, weight);
+        double x = interpolate(point1.x, point2.x, weight);
+        double y = interpolate(point1.y, point2.y, weight);
+        double position = interpolate(point1.encoderPosition, point2.encoderPosition, weight);
+        double velocity = interpolate(point1.velocity, point2.velocity, weight);
+        double acceleration = interpolate(point1.acceleration, point2.acceleration, weight);
+        double jerk = interpolate(point1.jerk, point2.jerk, weight);
+        double heading = interpolate(point1.heading, point2.heading, weight);
+        return new TrcMotionProfilePoint(timestep, x, y, position, velocity, acceleration, jerk, heading);
+    }
+
+    private double interpolate(double start, double end, double weight)
+    {
+        if (!TrcUtil.inRange(weight, 0.0, 1.0))
+        {
+            throw new IllegalArgumentException("Weight must be in range [0,1]!");
+        }
+        return (1.0 - weight) * start + weight * end;
+    }
+
     private TrcMotionProfilePoint getFollowingPoint(double robotX, double robotY)
     {
         Double prevDist = null;
+        if (pathIndex > 0)
+        {
+            TrcMotionProfilePoint point = path[pathIndex - 1];
+            prevDist = TrcUtil.magnitude(robotX - point.x, robotY - point.y);
+        }
+
         for (int i = pathIndex; i < path.length; i++)
         {
             TrcMotionProfilePoint point = path[i];
@@ -239,7 +283,11 @@ public class TrcHolonomicPurePursuitController
             if (prevDist != null && dist >= followingDistance && prevDist <= followingDistance)
             {
                 pathIndex = i;
-                return point;
+                if (prevDist == dist)
+                {
+                    return point;
+                }
+                return interpolate(path[i - 1], point, TrcUtil.scaleRange(followingDistance, prevDist, dist, 0.0, 1.0));
             }
             prevDist = dist;
         }
@@ -251,7 +299,7 @@ public class TrcHolonomicPurePursuitController
         {
             TrcMotionProfilePoint point = path[i];
             if (Math.abs(TrcUtil.magnitude(robotX - closestPoint.x, robotY - closestPoint.y) - followingDistance)
-                <= Math.abs(TrcUtil.magnitude(robotX - point.x, robotY - point.y) - followingDistance))
+                >= Math.abs(TrcUtil.magnitude(robotX - point.x, robotY - point.y) - followingDistance))
             {
                 closestPoint = point;
                 pathIndex = i;
