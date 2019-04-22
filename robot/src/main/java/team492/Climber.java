@@ -173,8 +173,7 @@ public class Climber
                 case PREP_ELEVATOR:
                     boolean levelThree;
                     robot.climbingButDriving = true;
-                    if (robot.switchPanel
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
+                    if (robot.switchPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
                         levelThree = false;
                         robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE, event);
@@ -191,8 +190,7 @@ public class Climber
                     break;
 
                 case CALIB_ELEVATOR:
-                    boolean levelTwo = robot.switchPanel
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1);
+                    boolean levelTwo = robot.switchPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB);
                     if (levelTwo)
                     {
                         robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE);
@@ -201,8 +199,7 @@ public class Climber
                     {
                         robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE);
                     }
-                    if (robot.buttonPanel
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
+                    if (robot.buttonPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
                         robot.globalTracer.traceInfo("climbTask", "Starting climb! level3=%b", !levelTwo);
                         robot.climbingButDriving = false;
@@ -244,8 +241,7 @@ public class Climber
                     // elevator power to level the robot. If the elevator has reached the lowest DONE position, robot
                     // front wheels must be over the HAB platform???, so turn elevator power off and let the front end
                     // drop onto the HAB.
-                    if (robot.buttonPanel
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON8) + 1))
+                    if (robot.buttonPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
                         setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
                         if (robot.elevator.getPosition() > RobotInfo.CLIMBER_ELEVATOR_DONE_POS)
@@ -273,8 +269,7 @@ public class Climber
                         // Because if we release the BLUE button too early, we are setting elevator power zero here
                         // meaning the robot front will start to drop and we don't want it drop unless the front wheels
                         // pass above the HAB platform.
-                        if (robot.buttonPanel
-                            .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON9)))
+                        if (robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON_YELLOW2))
                         {
                             setActuatorPower(-0.1);
                         }
@@ -288,8 +283,7 @@ public class Climber
                     // Driver presses left stick button 2 when the front wheel is completely above the HAB platform.
                     // So retract the pickup to upright position so the front end of the robot will drop onto the
                     // HAB platform.
-                    if (robot.leftDriveStick
-                        .getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.LOGITECH_BUTTON2) + 1))
+                    if (robot.leftDriveStick.getRawButton(FrcJoystick.LOGITECH_BUTTON2))
                     {
                         wheelContacted = true;
                         robot.pickup.setManualOverrideEnabled(true);

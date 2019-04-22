@@ -513,7 +513,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_BUTTON9:
                 // Ignore this button if the switch is flipped.
                 // NOTE: If the switch binding changes, this WILL break!
-                if (!robot.switchPanel.getRawButton(TrcUtil.mostSignificantSetBitPosition(FrcJoystick.PANEL_BUTTON2) + 1))
+                if (!robot.switchPanel.getRawButton(FrcJoystick.PANEL_BUTTON_GREEN1))
                 {
                     setAllManualOverrideEnabled(pressed);
                 }
@@ -544,46 +544,46 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         switch (button)
         {
-            case FrcJoystick.PANEL_BUTTON1:
+            case FrcJoystick.PANEL_BUTTON_RED1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON2:
+            case FrcJoystick.PANEL_BUTTON_GREEN1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON3:
+            case FrcJoystick.PANEL_BUTTON_BLUE1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON4:
+            case FrcJoystick.PANEL_BUTTON_YELLOW1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON5:
+            case FrcJoystick.PANEL_BUTTON_WHITE1:
                 if (pressed)
                 {
                     setElevatorHeight(RobotInfo.DeployLevel.LOW);
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON6:
+            case FrcJoystick.PANEL_BUTTON_RED2:
                 if (pressed)
                 {
                     setElevatorHeight(RobotInfo.DeployLevel.MEDIUM);
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON7:
+            case FrcJoystick.PANEL_BUTTON_GREEN2:
                 if (pressed)
                 {
                     setElevatorHeight(RobotInfo.DeployLevel.HIGH);
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON8:
+            case FrcJoystick.PANEL_BUTTON_BLUE2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON9:
+            case FrcJoystick.PANEL_BUTTON_YELLOW2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON10:
+            case FrcJoystick.PANEL_BUTTON_WHITE2:
                 if (pressed)
                 {
                     robot.climber.zeroCalibrateActuator();
@@ -604,7 +604,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.dashboard.displayPrintf(8, "  SwitchPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
         switch (button)
         {
-            case FrcJoystick.PANEL_BUTTON1:
+            case FrcJoystick.PANEL_BUTTON_RED1:
                 if (pressed)
                 {
                     robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_HATCH_PICKUP_GROUND);
@@ -612,29 +612,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON2:
+            case FrcJoystick.PANEL_BUTTON_GREEN1:
                 setAllManualOverrideEnabled(pressed);
                 break;
 
-            case FrcJoystick.PANEL_BUTTON3:
+            case FrcJoystick.PANEL_BUTTON_BLUE1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON4:
+            case FrcJoystick.PANEL_BUTTON_YELLOW1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON5:
+            case FrcJoystick.PANEL_BUTTON_WHITE1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON6:
+            case FrcJoystick.PANEL_BUTTON_RED2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON7:
+            case FrcJoystick.PANEL_BUTTON_GREEN2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON8:
+            case FrcJoystick.PANEL_BUTTON_BLUE2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON9:
+            case FrcJoystick.PANEL_BUTTON_YELLOW2:
                 if (pressed)
                 {
                     robot.climber.climb();
@@ -645,7 +645,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON10:
+            case FrcJoystick.PANEL_BUTTON_WHITE2:
                 //CodeReview: obsolete code???
                 robot.climber.cancel();
                 robot.actuatorEnabled = pressed;
