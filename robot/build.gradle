@@ -42,9 +42,6 @@ def includeDesktopSupport = true
 // Maven central needed for JUnit
 repositories {
     mavenCentral()
-    maven {
-        url 'https://raw.github.com/coolioasjulio/Java-RPC/mvn-repo/'
-    }
 }
 
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
