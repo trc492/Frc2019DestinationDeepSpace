@@ -42,6 +42,9 @@ def includeDesktopSupport = true
 // Maven central needed for JUnit
 repositories {
     mavenCentral()
+    maven {
+        url 'https://raw.github.com/coolioasjulio/Java-RPC/mvn-repo/'
+    }
 }
 
 // Defining my dependencies. In this case, WPILib (+ friends), and vendor libraries.
@@ -52,6 +55,7 @@ dependencies {
     nativeZip wpi.deps.vendor.jni(wpi.platforms.roborio)
     nativeDesktopZip wpi.deps.vendor.jni(wpi.platforms.desktop)
     compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
+    compile group: 'org.apache.commons', name: 'commons-math3', version: '3.6.1'
     testCompile 'junit:junit:4.12'
 }
 

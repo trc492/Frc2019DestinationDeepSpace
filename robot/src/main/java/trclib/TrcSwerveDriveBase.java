@@ -230,6 +230,20 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
                                 x, y, rotation, Boolean.toString(inverted), gyroAngle);
         }
 
+        if (x == 0.0 && y == 0.0 && rotation == 0.0)
+        {
+            lfModule.set(0.0);
+            rfModule.set(0.0);
+            lrModule.set(0.0);
+            rrModule.set(0.0);
+
+            lfModule.setSteerAngle(lfModule.getSteerAngle());
+            rfModule.setSteerAngle(rfModule.getSteerAngle());
+            lrModule.setSteerAngle(lrModule.getSteerAngle());
+            rrModule.setSteerAngle(rrModule.getSteerAngle());
+            return;
+        }
+
         x = TrcUtil.clipRange(x);
         y = TrcUtil.clipRange(y);
         rotation = TrcUtil.clipRange(rotation);

@@ -29,9 +29,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrcMotionProfilePoint
+public class TrcWaypoint
 {
-    public static TrcMotionProfilePoint[] loadPointsFromCsv(String path, boolean loadFromResources)
+    public static TrcWaypoint[] loadPointsFromCsv(String path, boolean loadFromResources)
     {
         if (!path.endsWith(".csv"))
         {
@@ -43,14 +43,14 @@ public class TrcMotionProfilePoint
             if (loadFromResources)
             {
                 in = new BufferedReader(
-                    new InputStreamReader(TrcMotionProfilePoint.class.getClassLoader().getResourceAsStream(path)));
+                    new InputStreamReader(TrcWaypoint.class.getClassLoader().getResourceAsStream(path)));
             }
             else
             {
                 in = new BufferedReader(new FileReader(path));
             }
 
-            List<TrcMotionProfilePoint> points = new ArrayList<>();
+            List<TrcWaypoint> points = new ArrayList<>();
             String line;
             in.readLine(); // Get rid of the first line
             while ((line = in.readLine()) != null)
@@ -65,12 +65,12 @@ public class TrcMotionProfilePoint
                 {
                     throw new IllegalArgumentException("There must be 8 columns in the csv file!");
                 }
-                TrcMotionProfilePoint point = new TrcMotionProfilePoint(parts[0], parts[1], parts[2], parts[3],
+                TrcWaypoint point = new TrcWaypoint(parts[0], parts[1], parts[2], parts[3],
                     parts[4], parts[5], parts[6], parts[7]);
                 points.add(point);
             }
             in.close();
-            return points.toArray(new TrcMotionProfilePoint[0]);
+            return points.toArray(new TrcWaypoint[0]);
         }
         catch (IOException e)
         {
@@ -80,7 +80,7 @@ public class TrcMotionProfilePoint
 
     public double timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading;
 
-    public TrcMotionProfilePoint(double timeStep, double x, double y, double position, double velocity,
+    public TrcWaypoint(double timeStep, double x, double y, double position, double velocity,
         double acceleration, double jerk, double heading)
     {
         this.timeStep = timeStep;
@@ -93,7 +93,7 @@ public class TrcMotionProfilePoint
         this.heading = heading;
     }
 
-    public TrcMotionProfilePoint(TrcMotionProfilePoint other)
+    public TrcWaypoint(TrcWaypoint other)
     {
         this.timeStep = other.timeStep;
         this.x = other.x;
@@ -103,5 +103,10 @@ public class TrcMotionProfilePoint
         this.acceleration = other.acceleration;
         this.jerk = other.jerk;
         this.heading = other.heading;
+    }
+
+    public double distanceTo(TrcWaypoint point)
+    {
+        return TrcUtil.magnitude(point.x - x, point.y - y);
     }
 }

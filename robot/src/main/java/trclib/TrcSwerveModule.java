@@ -162,9 +162,10 @@ public class TrcSwerveModule implements TrcMotorController
      * @param optimize specifies true to optimize steering angle to be no greater than 90 degrees, false otherwise.
      * @param hold specifies true to hold the angle, false otherwise.
      */
-    public void setSteerAngle(final double angle, boolean optimize, boolean hold)
+    public void setSteerAngle(double angle, boolean optimize, boolean hold)
     {
         final String funcName = "setSteerAngle";
+        angle = TrcUtil.modulo(angle, 360);
         double angleDelta = angle - prevSteerAngle;
         double newAngle = angle;
 

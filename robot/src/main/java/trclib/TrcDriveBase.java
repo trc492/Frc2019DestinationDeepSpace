@@ -41,15 +41,15 @@ public abstract class TrcDriveBase
 
     protected class Odometry
     {
-        double prevTimestamp;
-        double currTimestamp;
-        double[] currPositions;
-        double[] currVelocities;
-        double[] prevPositions;
-        double[] stallStartTimes;
-        double xRawPos, yRawPos, rotRawPos;
-        double xRawVel, yRawVel;
-        double gyroHeading, gyroTurnRate;
+        public double prevTimestamp;
+        public double currTimestamp;
+        public double[] currPositions;
+        public double[] currVelocities;
+        public double[] prevPositions;
+        public double[] stallStartTimes;
+        public double xRawPos, yRawPos, rotRawPos;
+        public double xRawVel, yRawVel;
+        public double gyroHeading, gyroTurnRate;
     }   //class Odometry
 
     /**

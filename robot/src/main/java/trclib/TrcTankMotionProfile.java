@@ -22,17 +22,10 @@
 
 package trclib;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 public class TrcTankMotionProfile
 {
-
     public static TrcTankMotionProfile loadProfileFromCsv(String leftPath, String rightPath)
     {
         return loadProfileFromCsv(leftPath, rightPath, false);
@@ -40,30 +33,30 @@ public class TrcTankMotionProfile
 
     public static TrcTankMotionProfile loadProfileFromCsv(String leftPath, String rightPath, boolean loadFromResources)
     {
-        return new TrcTankMotionProfile(TrcMotionProfilePoint.loadPointsFromCsv(leftPath, loadFromResources),
-            TrcMotionProfilePoint.loadPointsFromCsv(rightPath, loadFromResources));
+        return new TrcTankMotionProfile(TrcWaypoint.loadPointsFromCsv(leftPath, loadFromResources),
+            TrcWaypoint.loadPointsFromCsv(rightPath, loadFromResources));
     }
 
-    private TrcMotionProfilePoint[] leftPoints, rightPoints;
+    private TrcPath leftPath, rightPath;
 
-    public TrcTankMotionProfile(TrcMotionProfilePoint[] leftPoints, TrcMotionProfilePoint[] rightPoints)
+    public TrcTankMotionProfile(TrcWaypoint[] leftPoints, TrcWaypoint[] rightPoints)
     {
         if (leftPoints.length != rightPoints.length)
         {
             throw new IllegalArgumentException("leftPoints and rightPoints must have the same length!");
         }
-        this.leftPoints = leftPoints;
-        this.rightPoints = rightPoints;
+        this.leftPath = new TrcPath(true, leftPoints);
+        this.rightPath = new TrcPath(true, rightPoints);
     }
 
-    public TrcMotionProfilePoint[] getLeftPoints()
+    public TrcWaypoint[] getLeftPoints()
     {
-        return leftPoints;
+        return leftPath.getAllWaypoints();
     }
 
-    public TrcMotionProfilePoint[] getRightPoints()
+    public TrcWaypoint[] getRightPoints()
     {
-        return rightPoints;
+        return rightPath.getAllWaypoints();
     }
 
     /**
@@ -74,7 +67,7 @@ public class TrcTankMotionProfile
      */
     public void scale(double worldUnitsPerEncoderTick, double timeStep)
     {
-        for (TrcMotionProfilePoint point : leftPoints)
+        for (TrcWaypoint point : leftPath.getAllWaypoints())
         {
             point.encoderPosition /= worldUnitsPerEncoderTick;
             point.velocity /= worldUnitsPerEncoderTick / timeStep;
@@ -82,7 +75,7 @@ public class TrcTankMotionProfile
             point.jerk /= worldUnitsPerEncoderTick / Math.pow(timeStep, 3);
         }
 
-        for (TrcMotionProfilePoint point : rightPoints)
+        for (TrcWaypoint point : rightPath.getAllWaypoints())
         {
             point.encoderPosition /= worldUnitsPerEncoderTick;
             point.velocity /= worldUnitsPerEncoderTick / timeStep;
@@ -93,33 +86,26 @@ public class TrcTankMotionProfile
 
     public int getNumPoints()
     {
-        return leftPoints.length;
+        return leftPath.getSize();
     }
 
     public double getMinTimeStep()
     {
-//        OptionalDouble minTimeStep = Stream.concat(Arrays.stream(leftPoints), Arrays.stream(rightPoints))
-//            .mapToDouble(p -> p.timeStep).min();
-//        if (minTimeStep.isPresent())
-//        {
-//            return minTimeStep.getAsDouble();
-//        }
-//        throw new IllegalStateException("Empty motion profile!");
         double minTimeStep = Double.POSITIVE_INFINITY;
 
-        for (int i = 0; i < leftPoints.length; i++)
+        for (int i = 0; i < leftPath.getSize(); i++)
         {
-            if (leftPoints[i].timeStep < minTimeStep)
+            if (leftPath.getWaypoint(i).timeStep < minTimeStep)
             {
-                minTimeStep = leftPoints[i].timeStep;
+                minTimeStep = leftPath.getWaypoint(i).timeStep;
             }
         }
 
-        for (int i = 0; i < rightPoints.length; i++)
+        for (int i = 0; i < rightPath.getSize(); i++)
         {
-            if (rightPoints[i].timeStep < minTimeStep)
+            if (rightPath.getWaypoint(i).timeStep < minTimeStep)
             {
-                minTimeStep = leftPoints[i].timeStep;
+                minTimeStep = rightPath.getWaypoint(i).timeStep;
             }
         }
 
@@ -135,12 +121,8 @@ public class TrcTankMotionProfile
 
     public TrcTankMotionProfile copy()
     {
-//        TrcMotionProfilePoint[] left = Arrays.stream(leftPoints).map(TrcMotionProfilePoint::new)
-//            .toArray(TrcMotionProfilePoint[]::new);
-//        TrcMotionProfilePoint[] right = Arrays.stream(rightPoints).map(TrcMotionProfilePoint::new)
-//            .toArray(TrcMotionProfilePoint[]::new);
-        TrcMotionProfilePoint[] left = Arrays.copyOf(leftPoints, leftPoints.length);
-        TrcMotionProfilePoint[] right = Arrays.copyOf(rightPoints, rightPoints.length);
+        TrcWaypoint[] left = Arrays.copyOf(getLeftPoints(), leftPath.getSize());
+        TrcWaypoint[] right = Arrays.copyOf(getRightPoints(), rightPath.getSize());
         return new TrcTankMotionProfile(left, right);
     }
 }
