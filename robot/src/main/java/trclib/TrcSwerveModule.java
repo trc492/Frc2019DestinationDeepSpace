@@ -44,6 +44,7 @@ public class TrcSwerveModule implements TrcMotorController
     public final TrcEnhancedServo steerServo;
     private double prevSteerAngle = 0.0;
     private double optimizedWheelDir = 1.0;
+    private TrcWarpSpace warpSpace;
 
     /**
      * Constructor: Create an instance of the object.
@@ -68,6 +69,7 @@ public class TrcSwerveModule implements TrcMotorController
         this.driveMotor = driveMotor;
         this.steerMotor = steerMotor;
         this.steerServo = steerServo;
+        warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
     }   //TrcSwerveModule
 
     /**
@@ -158,14 +160,14 @@ public class TrcSwerveModule implements TrcMotorController
     /**
      * This method sets the steer angle.
      *
-     * @param angle specifies the angle in degrees to set the steer motor to, in the range [0,360).
+     * @param angle specifies the angle in degrees to set the steer motor to. Not necessarily within [0,360).
      * @param optimize specifies true to optimize steering angle to be no greater than 90 degrees, false otherwise.
      * @param hold specifies true to hold the angle, false otherwise.
      */
     public void setSteerAngle(double angle, boolean optimize, boolean hold)
     {
         final String funcName = "setSteerAngle";
-        angle = TrcUtil.modulo(angle, 360);
+        angle = warpSpace.getOptimizedTarget(angle, prevSteerAngle);
         double angleDelta = angle - prevSteerAngle;
         double newAngle = angle;
 
