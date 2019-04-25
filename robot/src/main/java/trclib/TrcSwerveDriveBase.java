@@ -241,75 +241,76 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             rfModule.setSteerAngle(rfModule.getSteerAngle());
             lrModule.setSteerAngle(lrModule.getSteerAngle());
             rrModule.setSteerAngle(rrModule.getSteerAngle());
-            return;
         }
-
-        x = TrcUtil.clipRange(x);
-        y = TrcUtil.clipRange(y);
-        rotation = TrcUtil.clipRange(rotation);
-
-        if(inverted)
+        else
         {
-            x = -x;
-            y = -y;
-        }
+            x = TrcUtil.clipRange(x);
+            y = TrcUtil.clipRange(y);
+            rotation = TrcUtil.clipRange(rotation);
 
-        if(gyroAngle != 0)
-        {
             if(inverted)
             {
-                globalTracer.traceWarn(
-                    funcName, "You should not be using inverted and field reference frame at the same time!");
+                x = -x;
+                y = -y;
             }
 
-            double gyroRadians = Math.toRadians(gyroAngle);
-            double temp = y * Math.cos(gyroRadians) + x * Math.sin(gyroRadians);
-            x = -y * Math.sin(gyroRadians) + x * Math.cos(gyroRadians);
-            y = temp;
+            if(gyroAngle != 0)
+            {
+                if(inverted)
+                {
+                    globalTracer.traceWarn(
+                        funcName, "You should not be using inverted and field reference frame at the same time!");
+                }
+
+                double gyroRadians = Math.toRadians(gyroAngle);
+                double temp = y * Math.cos(gyroRadians) + x * Math.sin(gyroRadians);
+                x = -y * Math.sin(gyroRadians) + x * Math.cos(gyroRadians);
+                y = temp;
+            }
+
+            double a = x - (rotation * wheelBaseLength/wheelBaseDiagonal);
+            double b = x + (rotation * wheelBaseLength/wheelBaseDiagonal);
+            double c = y - (rotation * wheelBaseWidth/wheelBaseDiagonal);
+            double d = y + (rotation * wheelBaseWidth/wheelBaseDiagonal);
+
+            // The white paper goes in order rf, lf, lr, rr. We like to do lf, rf, lr, rr.
+            // Note: atan2(y, x) in java will take care of x being zero.
+            //       If will return pi/2 for positive y and -pi/2 for negative y.
+            double lfAngle = Math.toDegrees(Math.atan2(b, d));
+            double rfAngle = Math.toDegrees(Math.atan2(b, c));
+            double lrAngle = Math.toDegrees(Math.atan2(a, d));
+            double rrAngle = Math.toDegrees(Math.atan2(a, c));
+
+            // The white paper goes in order rf, lf, lr, rr. We like to do lf, rf, lr, rr.
+            double lfPower = TrcUtil.magnitude(b, d);
+            double rfPower = TrcUtil.magnitude(b, c);
+            double lrPower = TrcUtil.magnitude(a, d);
+            double rrPower = TrcUtil.magnitude(a, c);
+
+            double[] normalizedPowers = TrcUtil.normalize(lfPower, rfPower, lrPower, rrPower);
+            lfPower = this.clipMotorOutput(normalizedPowers[0]);
+            rfPower = this.clipMotorOutput(normalizedPowers[1]);
+            lrPower = this.clipMotorOutput(normalizedPowers[2]);
+            rrPower = this.clipMotorOutput(normalizedPowers[3]);
+
+            if (motorPowerMapper != null)
+            {
+                lfPower = motorPowerMapper.translateMotorPower(lfPower, lfModule.getVelocity());
+                rfPower = motorPowerMapper.translateMotorPower(rfPower, rfModule.getVelocity());
+                lrPower = motorPowerMapper.translateMotorPower(lrPower, lrModule.getVelocity());
+                rrPower = motorPowerMapper.translateMotorPower(rrPower, rrModule.getVelocity());
+            }
+
+            lfModule.setSteerAngle(lfAngle);
+            rfModule.setSteerAngle(rfAngle);
+            lrModule.setSteerAngle(lrAngle);
+            rrModule.setSteerAngle(rrAngle);
+
+            lfModule.set(lfPower);
+            rfModule.set(rfPower);
+            lrModule.set(lrPower);
+            rrModule.set(rrPower);
         }
-
-        double a = x - (rotation * wheelBaseLength/wheelBaseDiagonal);
-        double b = x + (rotation * wheelBaseLength/wheelBaseDiagonal);
-        double c = y - (rotation * wheelBaseWidth/wheelBaseDiagonal);
-        double d = y + (rotation * wheelBaseWidth/wheelBaseDiagonal);
-
-        // The white paper goes in order rf, lf, lr, rr. We like to do lf, rf, lr, rr.
-        // Note: atan2(y, x) in java will take care of x being zero.
-        //       If will return pi/2 for positive y and -pi/2 for negative y.
-        double lfAngle = Math.toDegrees(Math.atan2(b, d));
-        double rfAngle = Math.toDegrees(Math.atan2(b, c));
-        double lrAngle = Math.toDegrees(Math.atan2(a, d));
-        double rrAngle = Math.toDegrees(Math.atan2(a, c));
-
-        // The white paper goes in order rf, lf, lr, rr. We like to do lf, rf, lr, rr.
-        double lfPower = TrcUtil.magnitude(b, d);
-        double rfPower = TrcUtil.magnitude(b, c);
-        double lrPower = TrcUtil.magnitude(a, d);
-        double rrPower = TrcUtil.magnitude(a, c);
-
-        double[] normalizedPowers = TrcUtil.normalize(lfPower, rfPower, lrPower, rrPower);
-        lfPower = this.clipMotorOutput(normalizedPowers[0]);
-        rfPower = this.clipMotorOutput(normalizedPowers[1]);
-        lrPower = this.clipMotorOutput(normalizedPowers[2]);
-        rrPower = this.clipMotorOutput(normalizedPowers[3]);
-
-        if (motorPowerMapper != null)
-        {
-            lfPower = motorPowerMapper.translateMotorPower(lfPower, lfModule.getVelocity());
-            rfPower = motorPowerMapper.translateMotorPower(rfPower, rfModule.getVelocity());
-            lrPower = motorPowerMapper.translateMotorPower(lrPower, lrModule.getVelocity());
-            rrPower = motorPowerMapper.translateMotorPower(rrPower, rrModule.getVelocity());
-        }
-
-        lfModule.setSteerAngle(lfAngle);
-        rfModule.setSteerAngle(rfAngle);
-        lrModule.setSteerAngle(lrAngle);
-        rrModule.setSteerAngle(rrAngle);
-
-        lfModule.set(lfPower);
-        rfModule.set(rfPower);
-        lrModule.set(lrPower);
-        rrModule.set(rrPower);
 
         if (debugEnabled)
         {

@@ -206,11 +206,11 @@ public class Robot extends FrcRobotBase
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
 
-        leftDriveStick.setButtonLoggingEnabled(true);
-        rightDriveStick.setButtonLoggingEnabled(true);
-        operatorStick.setButtonLoggingEnabled(true);
-        buttonPanel.setButtonLoggingEnabled(true);
-        switchPanel.setButtonLoggingEnabled(true);
+        leftDriveStick.setButtonEventTracer(globalTracer);
+        rightDriveStick.setButtonEventTracer(globalTracer);
+        operatorStick.setButtonEventTracer(globalTracer);
+        buttonPanel.setButtonEventTracer(globalTracer);
+        switchPanel.setButtonEventTracer(globalTracer);
 
         //
         // Sensors.

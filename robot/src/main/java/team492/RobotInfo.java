@@ -22,6 +22,7 @@
 
 package team492;
 
+import frclib.FrcJoystick;
 import frclib.FrcPixyCam1;
 import trclib.TrcUtil;
 
@@ -350,6 +351,8 @@ public class RobotInfo
     public static final double CLIMBER_ELEVATOR_POS_LVL_3       = 32.0;
     public static final double CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE = 38.0;
     public static final double CLIMBER_ELEVATOR_DONE_POS        = 11.0; // inches
+
+    public static final int PANEL_BUTTON_CLIMB                  = FrcJoystick.PANEL_BUTTON_BLUE2;
 
     public enum DeployLevel
     {
