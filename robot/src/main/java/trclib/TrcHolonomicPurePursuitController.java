@@ -55,6 +55,7 @@ public class TrcHolonomicPurePursuitController
     private double positionInput;
     private TrcEvent onFinishedEvent;
     private double timedOutTime;
+    private TrcWarpSpace warpSpace;
     private InterpolationType interpolationType = InterpolationType.LINEAR;
 
     public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
@@ -72,6 +73,7 @@ public class TrcHolonomicPurePursuitController
         }
 
         this.instanceName = instanceName;
+        warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
         setToleranceAndFollowingDistance(tolerance, followingDistance);
 
         this.positionController = new TrcPidController(instanceName + ".positionController", pidCoefficients, 0.0,
@@ -294,7 +296,8 @@ public class TrcHolonomicPurePursuitController
         double velocity = interpolate(point1.velocity, point2.velocity, weight);
         double acceleration = interpolate(point1.acceleration, point2.acceleration, weight);
         double jerk = interpolate(point1.jerk, point2.jerk, weight);
-        double heading = interpolate(point1.heading, point2.heading, weight);
+        double heading = interpolate(point1.heading, warpSpace.getOptimizedTarget(point2.heading, point1.heading),
+            weight);
         return new TrcWaypoint(timestep, x, y, position, velocity, acceleration, jerk, heading);
     }
 
