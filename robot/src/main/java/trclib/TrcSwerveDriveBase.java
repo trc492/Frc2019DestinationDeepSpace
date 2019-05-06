@@ -286,52 +286,6 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             double rfPower = TrcUtil.magnitude(b, c);
             double lrPower = TrcUtil.magnitude(a, d);
             double rrPower = TrcUtil.magnitude(a, c);
-            //
-            // Optimize the steering angle such that it will be steering between -90.0 to +90.0 and never beyond.
-            //
-            if (lfAngle < -90.0)
-            {
-                lfAngle += 180.0;
-                lfPower = -lfPower;
-            }
-            else if (lfAngle > 90.0)
-            {
-                lfAngle -= 180.0;
-                lfPower = -lfPower;
-            }
-
-            if (rfAngle < -90.0)
-            {
-                rfAngle += 180.0;
-                rfPower = -rfPower;
-            }
-            else if (rfAngle > 90.0)
-            {
-                rfAngle -= 180.0;
-                rfPower = -rfPower;
-            }
-
-            if (lrAngle < -90.0)
-            {
-                lrAngle += 180.0;
-                lrPower = -lrPower;
-            }
-            else if (lrAngle > 90.0)
-            {
-                lrAngle -= 180.0;
-                lrPower = -lrPower;
-            }
-
-            if (rrAngle < -90.0)
-            {
-                rrAngle += 180.0;
-                rrPower = -rrPower;
-            }
-            else if (rrAngle > 90.0)
-            {
-                rrAngle -= 180.0;
-                rrPower = -rrPower;
-            }
 
             double[] normalizedPowers = TrcUtil.normalize(lfPower, rfPower, lrPower, rrPower);
             lfPower = this.clipMotorOutput(normalizedPowers[0]);
