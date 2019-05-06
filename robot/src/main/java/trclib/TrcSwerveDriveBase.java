@@ -287,7 +287,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             double lrPower = TrcUtil.magnitude(a, d);
             double rrPower = TrcUtil.magnitude(a, c);
             //
-            // Optimize the steering angle such that it will be steering between -90.0 to +90.0 never beyond.
+            // Optimize the steering angle such that it will be steering between -90.0 to +90.0 and never beyond.
             //
             if (lfAngle < -90.0)
             {
