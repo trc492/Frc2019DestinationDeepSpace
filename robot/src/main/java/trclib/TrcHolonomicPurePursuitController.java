@@ -66,7 +66,6 @@ public class TrcHolonomicPurePursuitController
     {
         this(instanceName, driveBase, followingDistance, tolerance, 5.0, pidCoefficients, turnPidCoefficients,
             velocityPidCoefficients);
-        ;
         setMaintainHeading(true);
     }
 
@@ -89,11 +88,11 @@ public class TrcHolonomicPurePursuitController
         setToleranceAndFollowingDistance(tolerance, followingDistance);
 
         this.positionController = new TrcPidController(instanceName + ".positionController", pidCoefficients, 0.0,
-            () -> positionInput);
+            this::getPositionInput);
         this.headingController = new TrcPidController(instanceName + ".headingController", turnPidCoefficients,
             headingTolerance, driveBase::getHeading);
         this.velocityController = new TrcPidController(instanceName + ".velocityController", velocityPidCoefficients,
-            0.0, () -> TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity()));
+            0.0, this::getVelocityInput);
 
         positionController.setAbsoluteSetPoint(true);
         headingController.setAbsoluteSetPoint(true);
@@ -275,6 +274,16 @@ public class TrcHolonomicPurePursuitController
             }
             stop();
         }
+    }
+
+    private double getPositionInput()
+    {
+        return positionInput;
+    }
+
+    private double getVelocityInput()
+    {
+        return TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity());
     }
 
     private synchronized void stop()
