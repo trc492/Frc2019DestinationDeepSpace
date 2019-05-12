@@ -57,9 +57,21 @@ public class TrcHolonomicPurePursuitController
     private double timedOutTime;
     private TrcWarpSpace warpSpace;
     private InterpolationType interpolationType = InterpolationType.LINEAR;
+    private volatile boolean maintainHeading = false;
+    private double startHeading;
 
     public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
         double tolerance, TrcPidController.PidCoefficients pidCoefficients,
+        TrcPidController.PidCoefficients turnPidCoefficients, TrcPidController.PidCoefficients velocityPidCoefficients)
+    {
+        this(instanceName, driveBase, followingDistance, tolerance, 5.0, pidCoefficients, turnPidCoefficients,
+            velocityPidCoefficients);
+        ;
+        setMaintainHeading(true);
+    }
+
+    public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
+        double tolerance, double headingTolerance, TrcPidController.PidCoefficients pidCoefficients,
         TrcPidController.PidCoefficients turnPidCoefficients, TrcPidController.PidCoefficients velocityPidCoefficients)
     {
         if (driveBase.supportsHolonomicDrive())
@@ -78,16 +90,37 @@ public class TrcHolonomicPurePursuitController
 
         this.positionController = new TrcPidController(instanceName + ".positionController", pidCoefficients, 0.0,
             () -> positionInput);
-        this.headingController = new TrcPidController(instanceName + ".headingController", turnPidCoefficients, 0.0,
-            driveBase::getHeading);
+        this.headingController = new TrcPidController(instanceName + ".headingController", turnPidCoefficients,
+            headingTolerance, driveBase::getHeading);
         this.velocityController = new TrcPidController(instanceName + ".velocityController", velocityPidCoefficients,
             0.0, () -> TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity()));
 
         positionController.setAbsoluteSetPoint(true);
-        headingController.setAbsoluteSetPoint(false); // We'll be maintaining heading.
+        headingController.setAbsoluteSetPoint(true);
         velocityController.setAbsoluteSetPoint(true);
 
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
+    }
+
+    /**
+     * Maintain heading during path following, or follow the heading values in the path. If not maintaining heading,
+     * remember to set the heading tolerance!
+     *
+     * @param maintainHeading If true, maintain heading. If false, use closed loop to control heading.
+     */
+    public void setMaintainHeading(boolean maintainHeading)
+    {
+        this.maintainHeading = maintainHeading;
+    }
+
+    /**
+     * Set the heading tolerance for the closed loop control on heading. Only applicable if not maintaining heading.
+     *
+     * @param headingTolerance The heading tolerance, in degrees. Should be positive.
+     */
+    public void setHeadingTolerance(double headingTolerance)
+    {
+        headingController.setTargetTolerance(headingTolerance);
     }
 
     /**
@@ -205,13 +238,14 @@ public class TrcHolonomicPurePursuitController
         timedOutTime = timeout == 0.0 ? Double.POSITIVE_INFINITY : TrcUtil.getCurrentTime() + timeout;
         pathIndex = 1;
         positionInput = 0;
+        startHeading = driveBase.getHeading();
 
         positionController.reset();
         headingController.reset();
         velocityController.reset();
 
         positionController.setTarget(0.0);
-        headingController.setTarget(0.0); // This is a relative controller
+        headingController.setTarget(startHeading); // Maintain heading to start
 
         driveBase.resetOdometry(true, false);
         driveTaskObj.registerTask(TrcTaskMgr.TaskType.OUTPUT_TASK);
@@ -258,6 +292,11 @@ public class TrcHolonomicPurePursuitController
         double dist = TrcUtil.magnitude(robotX - point.x, robotY - point.y);
         positionInput = -dist; // Make this negative so the control effort is positive.
         velocityController.setTarget(point.velocity);
+        // Only follow heading if we're not maintaining heading
+        if (!maintainHeading)
+        {
+            headingController.setTarget(point.heading);
+        }
 
         double posPower = positionController.getOutput();
         double turnPower = headingController.getOutput();
@@ -268,12 +307,16 @@ public class TrcHolonomicPurePursuitController
 
         double velocity = TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity());
 
-        System.out.printf(
-            "Robot: (%.2f,%.2f), RobotVel: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
-            robotX, robotY, velocity, point.x, point.y, point.velocity, pathIndex, r, theta);
+        TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitController.driveTask",
+            "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
+            robotX, robotY, velocity, driveBase.getHeading(), point.x, point.y, point.velocity, point.heading,
+            pathIndex, r, theta);
 
         // If we have timed out or finished, stop the operation.
-        if (TrcUtil.getCurrentTime() >= timedOutTime || (pathIndex == path.getSize() - 1 && dist <= tolerance))
+        boolean timedOut = TrcUtil.getCurrentTime() >= timedOutTime;
+        boolean posOnTarget = dist <= tolerance;
+        boolean headingOnTarget = maintainHeading || (!maintainHeading && headingController.isOnTarget());
+        if (timedOut || (pathIndex == path.getSize() - 1 && posOnTarget && headingOnTarget))
         {
             if (onFinishedEvent != null)
             {
@@ -283,7 +326,7 @@ public class TrcHolonomicPurePursuitController
         }
         else
         {
-            driveBase.holonomicDrive_Polar(r, theta, turnPower);
+            driveBase.holonomicDrive_Polar(r, theta, turnPower, driveBase.getHeading() - startHeading);
         }
     }
 
