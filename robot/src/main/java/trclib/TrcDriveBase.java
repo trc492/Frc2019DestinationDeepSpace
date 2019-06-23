@@ -28,7 +28,7 @@ package trclib;
  * The subclasses must provide the tankDrive and holonomicDrive methods. If the subclass cannot support a certain
  * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException.
  */
-public abstract class TrcDriveBase implements TrcExclusiveAccess
+public abstract class TrcDriveBase implements TrcOwnedSubsystem
 {
     private static final String moduleName = "TrcDriveBase";
     protected static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
@@ -95,7 +95,6 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
 
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
-    protected TrcExclusiveOwner exclusiveOwner = null;
     private final Odometry odometry;
     private double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
@@ -124,8 +123,6 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
         this.motors = motors;
         this.gyro = gyro;
 
-        exclusiveOwner = new TrcExclusiveOwner();
-
         odometry = new Odometry();
         odometry.currPositions = new double[motors.length];
         odometry.currVelocities = new double[motors.length];
@@ -140,46 +137,6 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
                 moduleName + ".odometryTask", this::odometryTask);
         stopTaskObj = taskMgr.createTask(moduleName + ".stopTask", this::stopTask);
     }   //TrcDriveBase
-
-    //
-    // Implementing TrcExclusiveAccess interface methods.
-    //
-
-    /**
-     * This method acquires exclusive ownership of the subsystem.
-     *
-     * @param owner specifies the ID string of the caller requesting ownership.
-     * @return true if successfully acquired ownership, false otherwise.
-     */
-    @Override
-    public boolean acquireExclusiveAccess(String owner)
-    {
-        return exclusiveOwner.acquireOwnership(owner);
-    }   //acquireExclusiveAccess
-
-    /**
-     * This method release exclusive ownership of the subsystem.
-     *
-     * @param owner specifies the ID string of the caller releasing ownership.
-     * @return true if successfully releasing ownership, false otherwise.
-     */
-    @Override
-    public boolean releaseExclusiveAccess(String owner)
-    {
-        return exclusiveOwner.releaseOwnership(owner);
-    }   //releaseExclusiveAccess
-
-    /**
-     * This method checks if the caller has the exclusive ownership of the subsystem.
-     *
-     * @param owner specifies the ID string of the caller checking for ownership.
-     * @return true if the caller has ownership, false otherwise.
-     */
-    @Override
-    public boolean hasOwnership(String owner)
-    {
-        return exclusiveOwner.hasOwnership(owner);
-    }   //hasOwnership
 
     /**
      * This method is called to enable/disable the odometry task that keeps track of the robot position and orientation.
@@ -874,7 +831,7 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "owner=%s", owner);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             for (TrcMotorController motor: motors)
             {
@@ -962,7 +919,7 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
                 "owner=%s,mag=%f,curve=%f,inverted=%s", owner, magnitude, curve, inverted);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             if (curve < 0.0)
             {
@@ -1052,7 +1009,7 @@ public abstract class TrcDriveBase implements TrcExclusiveAccess
                 "owner=%s,drivePower=%f,turnPower=%f,inverted=%s", owner, drivePower, turnPower, inverted);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             drivePower = TrcUtil.clipRange(drivePower);
             turnPower = TrcUtil.clipRange(turnPower);
