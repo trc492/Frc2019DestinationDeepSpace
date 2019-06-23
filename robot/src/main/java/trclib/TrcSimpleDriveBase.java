@@ -212,107 +212,112 @@ public class TrcSimpleDriveBase extends TrcDriveBase
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
      * motors.
      *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
      * @param leftPower specifies left power value.
      * @param rightPower specifies right power value.
      * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
      */
     @Override
-    public void tankDrive(double leftPower, double rightPower, boolean inverted)
+    public void tankDrive(String owner, double leftPower, double rightPower, boolean inverted)
     {
         final String funcName = "tankDrive";
 
         if (debugEnabled)
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "leftPower=%f,rightPower=%f,inverted=%s", leftPower, rightPower, inverted);
+                "owner=%s,leftPower=%f,rightPower=%f,inverted=%s", owner, leftPower, rightPower, inverted);
         }
 
-        leftPower = TrcUtil.clipRange(leftPower);
-        rightPower = TrcUtil.clipRange(rightPower);
-
-        if (inverted)
+        if (exclusiveOwner.validateOwnership(owner))
         {
-            double swap = leftPower;
-            leftPower = -rightPower;
-            rightPower = -swap;
-        }
+            leftPower = TrcUtil.clipRange(leftPower);
+            rightPower = TrcUtil.clipRange(rightPower);
 
-        if (isGyroAssistEnabled())
-        {
-            double assistPower = getGyroAssistPower((leftPower - rightPower)/2.0);
-            leftPower += assistPower;
-            rightPower -= assistPower;
-            double maxMag = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-            if (maxMag > 1.0)
+            if (inverted)
             {
-                leftPower /= maxMag;
-                rightPower /= maxMag;
+                double swap = leftPower;
+                leftPower = -rightPower;
+                rightPower = -swap;
             }
-        }
 
-        leftPower = clipMotorOutput(leftPower);
-        rightPower = clipMotorOutput(rightPower);
-
-        double wheelPower;
-
-        if (leftFrontMotor != null)
-        {
-            wheelPower = leftPower;
-            if (motorPowerMapper != null)
+            if (isGyroAssistEnabled())
             {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftFrontMotor.getVelocity());
+                double assistPower = getGyroAssistPower((leftPower - rightPower)/2.0);
+                leftPower += assistPower;
+                rightPower -= assistPower;
+                double maxMag = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+                if (maxMag > 1.0)
+                {
+                    leftPower /= maxMag;
+                    rightPower /= maxMag;
+                }
             }
-            leftFrontMotor.set(wheelPower);
-        }
 
-        if (rightFrontMotor != null)
-        {
-            wheelPower = rightPower;
-            if (motorPowerMapper != null)
-            {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightFrontMotor.getVelocity());
-            }
-            rightFrontMotor.set(wheelPower);
-        }
+            leftPower = clipMotorOutput(leftPower);
+            rightPower = clipMotorOutput(rightPower);
 
-        if (leftRearMotor != null)
-        {
-            wheelPower = leftPower;
-            if (motorPowerMapper != null)
-            {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftRearMotor.getVelocity());
-            }
-            leftRearMotor.set(wheelPower);
-        }
+            double wheelPower;
 
-        if (rightRearMotor != null)
-        {
-            wheelPower = rightPower;
-            if (motorPowerMapper != null)
+            if (leftFrontMotor != null)
             {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightRearMotor.getVelocity());
+                wheelPower = leftPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftFrontMotor.getVelocity());
+                }
+                leftFrontMotor.set(wheelPower);
             }
-            rightRearMotor.set(wheelPower);
-        }
 
-        if (leftMidMotor != null)
-        {
-            wheelPower = leftPower;
-            if (motorPowerMapper != null)
+            if (rightFrontMotor != null)
             {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftMidMotor.getVelocity());
+                wheelPower = rightPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightFrontMotor.getVelocity());
+                }
+                rightFrontMotor.set(wheelPower);
             }
-            leftMidMotor.set(wheelPower);
-        }
 
-        if (rightMidMotor != null)
-        {
-            wheelPower = rightPower;
-            if (motorPowerMapper != null)
+            if (leftRearMotor != null)
             {
-                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightMidMotor.getVelocity());
+                wheelPower = leftPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftRearMotor.getVelocity());
+                }
+                leftRearMotor.set(wheelPower);
             }
-            rightMidMotor.set(wheelPower);
+
+            if (rightRearMotor != null)
+            {
+                wheelPower = rightPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightRearMotor.getVelocity());
+                }
+                rightRearMotor.set(wheelPower);
+            }
+
+            if (leftMidMotor != null)
+            {
+                wheelPower = leftPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftMidMotor.getVelocity());
+                }
+                leftMidMotor.set(wheelPower);
+            }
+
+            if (rightMidMotor != null)
+            {
+                wheelPower = rightPower;
+                if (motorPowerMapper != null)
+                {
+                    wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightMidMotor.getVelocity());
+                }
+                rightMidMotor.set(wheelPower);
+            }
         }
 
         if (debugEnabled)

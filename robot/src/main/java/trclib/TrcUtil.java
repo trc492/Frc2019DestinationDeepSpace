@@ -298,9 +298,9 @@ public class TrcUtil
         {
             for (int i = 0; ; i++)
             {
-                if ((data >>= 1) == 0)
+                if ((data & (0x80000000 >> i)) != 0)
                 {
-                    pos = i;
+                    pos = 31 - i;
                     break;
                 }
             }

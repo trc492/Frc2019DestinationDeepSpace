@@ -28,7 +28,7 @@ package trclib;
  * The subclasses must provide the tankDrive and holonomicDrive methods. If the subclass cannot support a certain
  * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException.
  */
-public abstract class TrcDriveBase
+public abstract class TrcDriveBase implements TrcExclusiveAccess
 {
     private static final String moduleName = "TrcDriveBase";
     protected static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
@@ -63,11 +63,13 @@ public abstract class TrcDriveBase
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
      * motors.
      *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
      * @param leftPower specifies left power value.
      * @param rightPower specifies right power value.
      * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
      */
-    public abstract void tankDrive(double leftPower, double rightPower, boolean inverted);
+    public abstract void tankDrive(String owner, double leftPower, double rightPower, boolean inverted);
 
     /**
      * This interface is provided by the caller to translate the motor power to actual motor power according to
@@ -93,6 +95,7 @@ public abstract class TrcDriveBase
 
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
+    protected TrcExclusiveOwner exclusiveOwner = null;
     private final Odometry odometry;
     private double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
@@ -121,6 +124,8 @@ public abstract class TrcDriveBase
         this.motors = motors;
         this.gyro = gyro;
 
+        exclusiveOwner = new TrcExclusiveOwner();
+
         odometry = new Odometry();
         odometry.currPositions = new double[motors.length];
         odometry.currVelocities = new double[motors.length];
@@ -135,6 +140,46 @@ public abstract class TrcDriveBase
                 moduleName + ".odometryTask", this::odometryTask);
         stopTaskObj = taskMgr.createTask(moduleName + ".stopTask", this::stopTask);
     }   //TrcDriveBase
+
+    //
+    // Implementing TrcExclusiveAccess interface methods.
+    //
+
+    /**
+     * This method acquires exclusive ownership of the subsystem.
+     *
+     * @param owner specifies the ID string of the caller requesting ownership.
+     * @return true if successfully acquired ownership, false otherwise.
+     */
+    @Override
+    public boolean acquireExclusiveAccess(String owner)
+    {
+        return exclusiveOwner.acquireOwnership(owner);
+    }   //acquireExclusiveAccess
+
+    /**
+     * This method release exclusive ownership of the subsystem.
+     *
+     * @param owner specifies the ID string of the caller releasing ownership.
+     * @return true if successfully releasing ownership, false otherwise.
+     */
+    @Override
+    public boolean releaseExclusiveAccess(String owner)
+    {
+        return exclusiveOwner.releaseOwnership(owner);
+    }   //releaseExclusiveAccess
+
+    /**
+     * This method checks if the caller has the exclusive ownership of the subsystem.
+     *
+     * @param owner specifies the ID string of the caller checking for ownership.
+     * @return true if the caller has ownership, false otherwise.
+     */
+    @Override
+    public boolean hasOwnership(String owner)
+    {
+        return exclusiveOwner.hasOwnership(owner);
+    }   //hasOwnership
 
     /**
      * This method is called to enable/disable the odometry task that keeps track of the robot position and orientation.
@@ -816,19 +861,25 @@ public abstract class TrcDriveBase
 
     /**
      * This methods stops the drive base.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
      */
-    public void stop()
+    public void stop(String owner)
     {
         final String funcName = "stop";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "owner=%s", owner);
         }
 
-        for (TrcMotorController motor: motors)
+        if (exclusiveOwner.validateOwnership(owner))
         {
-            motor.set(0.0);
+            for (TrcMotorController motor: motors)
+            {
+                motor.set(0.0);
+            }
         }
 
         if (debugEnabled)
@@ -836,6 +887,28 @@ public abstract class TrcDriveBase
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
     }   //stop
+
+    /**
+     * This methods stops the drive base.
+     */
+    public void stop()
+    {
+        stop(null);
+    }   //stop
+
+    /**
+     * This method implements tank drive where leftPower controls the left motors and right power controls the right
+     * motors.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param leftPower specifies left power value.
+     * @param rightPower specifies right power value.
+     */
+    public void tankDrive(String owner, double leftPower, double rightPower)
+    {
+        tankDrive(owner, leftPower, rightPower, false);
+    }   //tankDrive
 
     /**
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
@@ -846,8 +919,87 @@ public abstract class TrcDriveBase
      */
     public void tankDrive(double leftPower, double rightPower)
     {
-        tankDrive(leftPower, rightPower, false);
+        tankDrive(null, leftPower, rightPower, false);
     }   //tankDrive
+
+    /**
+     * This method implements tank drive where leftPower controls the left motors and right power controls the right
+     * motors.
+     *
+     * @param leftPower specifies left power value.
+     * @param rightPower specifies right power value.
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+    */
+    public void tankDrive(double leftPower, double rightPower, boolean inverted)
+    {
+        tankDrive(null, leftPower, rightPower, inverted);
+    }   //tankDrive
+
+    /**
+     * This method drives the motors at "magnitude" and "curve". Both magnitude and curve are -1.0 to +1.0 values,
+     * where 0.0 represents stopped and not turning. curve less than 0 will turn left and curve greater than 0 will
+     * turn right. The algorithm for steering provides a constant turn radius for any normal speed range, both
+     * forward and backward. Increasing sensitivity causes sharper turns for fixed values of curve.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param magnitude specifies the speed setting for the outside wheel in a turn, forward or backwards, +1 to -1.
+     * @param curve specifies the rate of turn, constant for different forward speeds. Set curve less than 0 for left
+     *              turn or curve greater than 0 for right turn. Set curve = e^(-r/w) to get a turn radius r for
+     *              wheel base w of your robot. Conversely, turn radius r = -ln(curve)*w for a given value of curve
+     *              and wheel base w.
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+     */
+    public void curveDrive(String owner, double magnitude, double curve, boolean inverted)
+    {
+        final String funcName = "curveDrive";
+        double leftOutput;
+        double rightOutput;
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                "owner=%s,mag=%f,curve=%f,inverted=%s", owner, magnitude, curve, inverted);
+        }
+
+        if (exclusiveOwner.validateOwnership(owner))
+        {
+            if (curve < 0.0)
+            {
+                double value = Math.log(-curve);
+                double ratio = (value - sensitivity)/(value + sensitivity);
+                if (ratio == 0.0)
+                {
+                    ratio = 0.0000000001;
+                }
+                leftOutput = magnitude/ratio;
+                rightOutput = magnitude;
+            }
+            else if (curve > 0.0)
+            {
+                double value = Math.log(curve);
+                double ratio = (value - sensitivity)/(value + sensitivity);
+                if (ratio == 0.0)
+                {
+                    ratio = 0.0000000001;
+                }
+                leftOutput = magnitude;
+                rightOutput = magnitude/ratio;
+            }
+            else
+            {
+                leftOutput = magnitude;
+                rightOutput = magnitude;
+            }
+
+            tankDrive(owner, leftOutput, rightOutput, inverted);
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //curveDrive
 
     /**
      * This method drives the motors at "magnitude" and "curve". Both magnitude and curve are -1.0 to +1.0 values,
@@ -864,50 +1016,7 @@ public abstract class TrcDriveBase
      */
     public void curveDrive(double magnitude, double curve, boolean inverted)
     {
-        final String funcName = "curveDrive";
-        double leftOutput;
-        double rightOutput;
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "mag=%f,curve=%f,inverted=%s", magnitude, curve, inverted);
-        }
-
-        if (curve < 0.0)
-        {
-            double value = Math.log(-curve);
-            double ratio = (value - sensitivity)/(value + sensitivity);
-            if (ratio == 0.0)
-            {
-                ratio = 0.0000000001;
-            }
-            leftOutput = magnitude/ratio;
-            rightOutput = magnitude;
-        }
-        else if (curve > 0.0)
-        {
-            double value = Math.log(curve);
-            double ratio = (value - sensitivity)/(value + sensitivity);
-            if (ratio == 0.0)
-            {
-                ratio = 0.0000000001;
-            }
-            leftOutput = magnitude;
-            rightOutput = magnitude/ratio;
-        }
-        else
-        {
-            leftOutput = magnitude;
-            rightOutput = magnitude;
-        }
-
-        tankDrive(leftOutput, rightOutput, inverted);
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
+        curveDrive(null, magnitude, curve, inverted);
     }   //curveDrive
 
     /**
@@ -918,8 +1027,53 @@ public abstract class TrcDriveBase
      */
     public void curveDrive(double magnitude, double curve)
     {
-        curveDrive(magnitude, curve, false);
+        curveDrive(null, magnitude, curve, false);
     }   //curveDrive
+
+    /**
+     * This method implements arcade drive where drivePower controls how fast the robot goes in the y-axis and
+     * turnPower controls how fast it will turn.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param drivePower specifies the drive power value.
+     * @param turnPower specifies the turn power value.
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+     */
+    public void arcadeDrive(String owner, double drivePower, double turnPower, boolean inverted)
+    {
+        final String funcName = "arcadeDrive";
+        double leftPower;
+        double rightPower;
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                "owner=%s,drivePower=%f,turnPower=%f,inverted=%s", owner, drivePower, turnPower, inverted);
+        }
+
+        if (exclusiveOwner.validateOwnership(owner))
+        {
+            drivePower = TrcUtil.clipRange(drivePower);
+            turnPower = TrcUtil.clipRange(turnPower);
+
+            leftPower = drivePower + turnPower;
+            rightPower = drivePower - turnPower;
+            double maxMag = Math.max(Math.abs(leftPower), Math.abs(rightPower));
+            if (maxMag > 1.0)
+            {
+                leftPower /= maxMag;
+                rightPower /= maxMag;
+            }
+
+            tankDrive(owner, leftPower, rightPower, inverted);
+        }
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //arcadeDrive
 
     /**
      * This method implements arcade drive where drivePower controls how fast the robot goes in the y-axis and
@@ -931,34 +1085,7 @@ public abstract class TrcDriveBase
      */
     public void arcadeDrive(double drivePower, double turnPower, boolean inverted)
     {
-        final String funcName = "arcadeDrive";
-        double leftPower;
-        double rightPower;
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "drivePower=%f,turnPower=%f,inverted=%s", drivePower, turnPower, inverted);
-        }
-
-        drivePower = TrcUtil.clipRange(drivePower);
-        turnPower = TrcUtil.clipRange(turnPower);
-
-        leftPower = drivePower + turnPower;
-        rightPower = drivePower - turnPower;
-        double maxMag = Math.max(Math.abs(leftPower), Math.abs(rightPower));
-        if (maxMag > 1.0)
-        {
-            leftPower /= maxMag;
-            rightPower /= maxMag;
-        }
-
-        tankDrive(leftPower, rightPower, inverted);
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
+        arcadeDrive(null, drivePower, turnPower, inverted);
     }   //arcadeDrive
 
     /**
@@ -970,8 +1097,27 @@ public abstract class TrcDriveBase
      */
     public void arcadeDrive(double drivePower, double turnPower)
     {
-        arcadeDrive(drivePower, turnPower, false);
+        arcadeDrive(null, drivePower, turnPower, false);
     }   //arcadeDrive
+
+    /**
+     * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
+     * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
+     * gyroAngle specifies the heading the robot should maintain.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param x specifies the x power.
+     * @param y specifies the y power.
+     * @param rotation specifies the rotating power.
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+     * @param gyroAngle specifies the current gyro heading. Use this to drive by the field reference frame.
+     */
+    protected void holonomicDrive(
+        String owner, double x, double y, double rotation, boolean inverted, double gyroAngle)
+    {
+        throw new UnsupportedOperationException("Holonomic drive is not supported by this drive base!");
+    }   //holonomicDrive
 
     /**
      * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
@@ -986,7 +1132,7 @@ public abstract class TrcDriveBase
      */
     protected void holonomicDrive(double x, double y, double rotation, boolean inverted, double gyroAngle)
     {
-        throw new UnsupportedOperationException("Holonomic drive is not supported by this drive base!");
+        holonomicDrive(null, x, y, rotation, inverted, gyroAngle);
     }   //holonomicDrive
 
     /**
@@ -1001,7 +1147,7 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive(double x, double y, double rotation, boolean inverted)
     {
-        holonomicDrive(x, y, rotation, inverted, 0.0);
+        holonomicDrive(null, x, y, rotation, inverted, 0.0);
     }   //holonomicDrive
 
     /**
@@ -1016,7 +1162,7 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive(double x, double y, double rotation, double gyroAngle)
     {
-        holonomicDrive(x, y, rotation, false, gyroAngle);
+        holonomicDrive(null, x, y, rotation, false, gyroAngle);
     }   //holonomicDrive
 
     /**
@@ -1030,8 +1176,26 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive(double x, double y, double rotation)
     {
-        holonomicDrive(x, y, rotation, false, 0.0);
+        holonomicDrive(null, x, y, rotation, false, 0.0);
     }   //holonomicDrive
+
+    /**
+     * This method implements holonomic drive where magnitude controls how fast the robot will go in the given
+     * direction and how fast it will rotate.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param magnitude specifies the magnitude combining x and y axes.
+     * @param direction specifies the direction in degrees.
+     * @param rotation specifies the rotation power.
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+     */
+    public void holonomicDrive_Polar(
+        String owner, double magnitude, double direction, double rotation, boolean inverted)
+    {
+        double dirInRads = Math.toRadians(direction);
+        holonomicDrive(owner, magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, inverted, 0.0);
+    }   //holonomicDrive_Polar
 
     /**
      * This method implements holonomic drive where magnitude controls how fast the robot will go in the given
@@ -1044,8 +1208,25 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation, boolean inverted)
     {
+        holonomicDrive_Polar(null, magnitude, direction, rotation, inverted);
+    }   //holonomicDrive_Polar
+
+    /**
+     * This method implements holonomic drive where magnitude controls how fast the robot will go in the given
+     * direction and how fast it will rotate.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param magnitude specifies the magnitude combining x and y axes.
+     * @param direction specifies the direction in degrees.
+     * @param rotation specifies the rotation power.
+     * @param gyroAngle specifies the current gyro heading. Use this to drive by the field reference frame.
+     */
+    public void holonomicDrive_Polar(
+        String owner, double magnitude, double direction, double rotation, double gyroAngle)
+    {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, inverted, 0.0);
+        holonomicDrive(owner, magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, gyroAngle);
     }   //holonomicDrive_Polar
 
     /**
@@ -1059,8 +1240,23 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation, double gyroAngle)
     {
+        holonomicDrive_Polar(null, magnitude, direction, rotation, gyroAngle);
+    }   //holonomicDrive_Polar
+
+    /**
+     * This method implements holonomic drive where magnitude controls how fast the robot will go in the given
+     * direction and how fast it will rotate.
+     *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
+     * @param magnitude specifies the magnitude combining x and y axes.
+     * @param direction specifies the direction in degrees.
+     * @param rotation specifies the rotation power.
+     */
+    public void holonomicDrive_Polar(String owner, double magnitude, double direction, double rotation)
+    {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, gyroAngle);
+        holonomicDrive(owner, magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, 0.0);
     }   //holonomicDrive_Polar
 
     /**
@@ -1073,8 +1269,7 @@ public abstract class TrcDriveBase
      */
     public void holonomicDrive_Polar(double magnitude, double direction, double rotation)
     {
-        double dirInRads = Math.toRadians(direction);
-        holonomicDrive(magnitude*Math.cos(dirInRads), magnitude*Math.sin(dirInRads), rotation, false, 0.0);
+        holonomicDrive_Polar(null, magnitude, direction, rotation);
     }   //holonomicDrive_Polar
 
     /**

@@ -76,6 +76,8 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
      * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
      * gyroAngle specifies the heading the robot should maintain.
      *
+     * @param owner specifies the ID string of the caller for checking ownership, can be null if caller is not
+     *              ownership aware.
      * @param x specifies the x power.
      * @param y specifies the y power.
      * @param rotation specifies the rotating power.
@@ -83,72 +85,76 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
      * @param gyroAngle specifies the gyro angle to maintain.
      */
     @Override
-    protected void holonomicDrive(double x, double y, double rotation, boolean inverted, double gyroAngle)
+    protected void holonomicDrive(String owner, double x, double y, double rotation, boolean inverted, double gyroAngle)
     {
         final String funcName = "holonomicDrive";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "x=%f,y=%f,rot=%f,inverted=%s,angle=%f",
-                                x, y, rotation, Boolean.toString(inverted), gyroAngle);
+            dbgTrace.traceEnter(
+                funcName, TrcDbgTrace.TraceLevel.API, "owner=%s,x=%f,y=%f,rot=%f,inverted=%s,angle=%f",
+                owner, x, y, rotation, Boolean.toString(inverted), gyroAngle);
         }
 
-        x = TrcUtil.clipRange(x);
-        y = TrcUtil.clipRange(y);
-        rotation = TrcUtil.clipRange(rotation);
-
-        if (inverted)
+        if (exclusiveOwner.validateOwnership(owner))
         {
-            x = -x;
-            y = -y;
+            x = TrcUtil.clipRange(x);
+            y = TrcUtil.clipRange(y);
+            rotation = TrcUtil.clipRange(rotation);
+
+            if (inverted)
+            {
+                x = -x;
+                y = -y;
+            }
+
+            double cosA = Math.cos(Math.toRadians(gyroAngle));
+            double sinA = Math.sin(Math.toRadians(gyroAngle));
+            double x1 = x*cosA - y*sinA;
+            double y1 = x*sinA + y*cosA;
+
+            if (isGyroAssistEnabled())
+            {
+                rotation += getGyroAssistPower(rotation);
+            }
+
+            double wheelPowers[] = new double[4];
+            wheelPowers[MotorType.LEFT_FRONT.value] = x1 + y1 + rotation;
+            wheelPowers[MotorType.RIGHT_FRONT.value] = -x1 + y1 - rotation;
+            wheelPowers[MotorType.LEFT_REAR.value] = -x1 + y1 + rotation;
+            wheelPowers[MotorType.RIGHT_REAR.value] = x1 + y1 - rotation;
+            TrcUtil.normalizeInPlace(wheelPowers);
+
+            double wheelPower;
+
+            wheelPower = wheelPowers[MotorType.LEFT_FRONT.value];
+            if (motorPowerMapper != null)
+            {
+                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftFrontMotor.getVelocity());
+            }
+            leftFrontMotor.set(wheelPower);
+
+            wheelPower = wheelPowers[MotorType.RIGHT_FRONT.value];
+            if (motorPowerMapper != null)
+            {
+                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightFrontMotor.getVelocity());
+            }
+            rightFrontMotor.set(wheelPower);
+
+            wheelPower = wheelPowers[MotorType.LEFT_REAR.value];
+            if (motorPowerMapper != null)
+            {
+                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftRearMotor.getVelocity());
+            }
+            leftRearMotor.set(wheelPower);
+
+            wheelPower = wheelPowers[MotorType.RIGHT_REAR.value];
+            if (motorPowerMapper != null)
+            {
+                wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightRearMotor.getVelocity());
+            }
+            rightRearMotor.set(wheelPower);
         }
-
-        double cosA = Math.cos(Math.toRadians(gyroAngle));
-        double sinA = Math.sin(Math.toRadians(gyroAngle));
-        double x1 = x*cosA - y*sinA;
-        double y1 = x*sinA + y*cosA;
-
-        if (isGyroAssistEnabled())
-        {
-            rotation += getGyroAssistPower(rotation);
-        }
-
-        double wheelPowers[] = new double[4];
-        wheelPowers[MotorType.LEFT_FRONT.value] = x1 + y1 + rotation;
-        wheelPowers[MotorType.RIGHT_FRONT.value] = -x1 + y1 - rotation;
-        wheelPowers[MotorType.LEFT_REAR.value] = -x1 + y1 + rotation;
-        wheelPowers[MotorType.RIGHT_REAR.value] = x1 + y1 - rotation;
-        TrcUtil.normalizeInPlace(wheelPowers);
-
-        double wheelPower;
-
-        wheelPower = wheelPowers[MotorType.LEFT_FRONT.value];
-        if (motorPowerMapper != null)
-        {
-            wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftFrontMotor.getVelocity());
-        }
-        leftFrontMotor.set(wheelPower);
-
-        wheelPower = wheelPowers[MotorType.RIGHT_FRONT.value];
-        if (motorPowerMapper != null)
-        {
-            wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightFrontMotor.getVelocity());
-        }
-        rightFrontMotor.set(wheelPower);
-
-        wheelPower = wheelPowers[MotorType.LEFT_REAR.value];
-        if (motorPowerMapper != null)
-        {
-            wheelPower = motorPowerMapper.translateMotorPower(wheelPower, leftRearMotor.getVelocity());
-        }
-        leftRearMotor.set(wheelPower);
-
-        wheelPower = wheelPowers[MotorType.RIGHT_REAR.value];
-        if (motorPowerMapper != null)
-        {
-            wheelPower = motorPowerMapper.translateMotorPower(wheelPower, rightRearMotor.getVelocity());
-        }
-        rightRearMotor.set(wheelPower);
 
         if (debugEnabled)
         {
