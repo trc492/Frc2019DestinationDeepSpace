@@ -52,7 +52,6 @@ public class FrcDisabled implements TrcRobot.RobotMode
     public void runPeriodic(double elapsedTime)
     {
         robot.updateDashboard(RunMode.DISABLED_MODE);
-        robot.announceIdling();
     } // runPeriodic
 
     @Override

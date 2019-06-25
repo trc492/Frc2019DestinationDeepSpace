@@ -112,7 +112,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
-        robot.announceSafety();
 
         // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.

@@ -74,8 +74,6 @@ public class Robot extends FrcRobotBase
 
     public static final boolean USE_TRACELOG = true;
     public static final boolean USE_NAV_X = true;
-    public static final boolean USE_TEXT_TO_SPEECH = false;
-    public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
@@ -84,8 +82,6 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_SUBSYSTEMS = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
-    private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.
-    private static final double IDLE_PERIOD_SECONDS = 300.0;
 
     public DriverStation ds = DriverStation.getInstance();
     public HalDashboard dashboard = HalDashboard.getInstance();
@@ -123,12 +119,6 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp = null;
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
-    //
-    // Miscellaneous subsystem.
-    //
-    public FrcEmic2TextToSpeech tts = null;
-    private double nextTimeToSpeakInSeconds = 0.0;  //0 means disabled, no need to speak;
-    public FrcI2cLEDPanel messageBoard = null;
     //
     // DriveBase subsystem.
     //
@@ -201,22 +191,6 @@ public class Robot extends FrcRobotBase
         if (USE_NAV_X)
         {
             gyro = new FrcAHRSGyro("NavX", SPI.Port.kMXP);
-        }
-
-        //
-        // Miscellaneous subsystems.
-        //
-        if (USE_TEXT_TO_SPEECH)
-        {
-            tts = new FrcEmic2TextToSpeech("TextToSpeech", SerialPort.Port.kMXP, 9600);
-            tts.setEnabled(true);
-            tts.selectVoice(Voice.FrailFrank);
-            tts.setVolume(0.72);
-        }
-
-        if (USE_MESSAGE_BOARD)
-        {
-            messageBoard = new FrcI2cLEDPanel("messageBoard", I2C.Port.kOnboard);
         }
 
         //
@@ -312,23 +286,6 @@ public class Robot extends FrcRobotBase
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
         final String funcName = "robotStartMode";
-
-        if (tts != null)
-        {
-            if (runMode == RunMode.DISABLED_MODE)
-            {
-                // Robot is safe.
-                // Note: "disaibled" is not a typo. It forces the speech board to pronounce it correctly.
-                tts.speak("Robot disaibled");
-                nextTimeToSpeakInSeconds = TrcUtil.getCurrentTime() + IDLE_PERIOD_SECONDS;
-            }
-            else
-            {
-                // Robot is unsafe
-                tts.speak("Robot enabled, stand clear");
-                nextTimeToSpeakInSeconds = TrcUtil.getCurrentTime() + SPEAK_PERIOD_SECONDS;
-            }
-        }
 
         if (runMode != RunMode.DISABLED_MODE)
         {
@@ -604,28 +561,6 @@ public class Robot extends FrcRobotBase
             autoMode.cancel();
         }
     }
-
-    public void announceSafety()
-    {
-        double currTime = TrcUtil.getCurrentTime();
-
-        if (tts != null && nextTimeToSpeakInSeconds > 0.0 && currTime >= nextTimeToSpeakInSeconds)
-        {
-            tts.speak("Stand clear");
-            nextTimeToSpeakInSeconds = currTime + SPEAK_PERIOD_SECONDS;
-        }
-    }   //announceSafety
-
-    public void announceIdling()
-    {
-        double currTime = TrcUtil.getCurrentTime();
-
-        if (tts != null && nextTimeToSpeakInSeconds > 0.0 && currTime >= nextTimeToSpeakInSeconds)
-        {
-            tts.speak("Robot is idle, please turn off.");
-            nextTimeToSpeakInSeconds = currTime + SPEAK_PERIOD_SECONDS;
-        }
-    }   //announceIdling
 
     public void traceStateInfo(double elapsedTime, String stateName, double xDistance, double yDistance, double heading)
     {
