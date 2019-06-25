@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import frclib.FrcAHRSGyro;
 import frclib.FrcCANSparkMax;
+import frclib.FrcCANTalon;
 import frclib.FrcEmic2TextToSpeech;
 import frclib.FrcI2cLEDPanel;
 import frclib.FrcJoystick;
@@ -43,15 +44,19 @@ import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import hallib.HalDashboard;
-import team492.PixyVision.TargetInfo;
 import trclib.TrcEmic2TextToSpeech.Voice;
 import trclib.TrcMecanumDriveBase;
+import trclib.TrcMotor;
+import trclib.TrcMotorController;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
+import trclib.TrcPidMotor;
 import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
+import trclib.TrcSwerveDriveBase;
+import trclib.TrcSwerveModule;
 import trclib.TrcUtil;
 
 import java.util.Date;
@@ -72,18 +77,11 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TEXT_TO_SPEECH = false;
     public static final boolean USE_MESSAGE_BOARD = false;
     public static final boolean USE_GYRO_ASSIST = false;
-    public static final boolean USE_VISION_TARGETING = true;
-    public static final boolean USE_PIXY_I2C = false;
-    public static final boolean USE_PIXY_V2 = false;
-    public static final boolean USE_PIXY_LINE_TARGET = false;
-    public static final boolean USE_STREAM_CAMERA = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
     private static final boolean DEBUG_PID_DRIVE = false;
     private static final boolean DEBUG_SUBSYSTEMS = false;
-    private static final boolean DEBUG_PIXY = false;
-    private static final boolean DEBUG_VISION_TARGET = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
     private static final double SPEAK_PERIOD_SECONDS = 20.0; // Speaks once every this # of second.
@@ -93,8 +91,6 @@ public class Robot extends FrcRobotBase
     public HalDashboard dashboard = HalDashboard.getInstance();
 
     public double targetHeading = 0.0;
-
-    public boolean driveInverted = false;
 
     private double nextUpdateTime = TrcUtil.getCurrentTime();
 
@@ -127,50 +123,26 @@ public class Robot extends FrcRobotBase
     public FrcPdp pdp = null;
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
-    public AnalogInput pressureSensor = null;
-    //
-    // VisionTargetPipeline subsystem.
-    //
-    public PixyVision pixy = null;
-    public VisionTargeting vision = null;
     //
     // Miscellaneous subsystem.
     //
     public FrcEmic2TextToSpeech tts = null;
     private double nextTimeToSpeakInSeconds = 0.0;  //0 means disabled, no need to speak;
     public FrcI2cLEDPanel messageBoard = null;
-    public LEDIndicator indicator;
     //
     // DriveBase subsystem.
     //
-    public FrcCANSparkMax leftFrontWheel;
-    public FrcCANSparkMax leftRearWheel;
-    public FrcCANSparkMax rightFrontWheel;
-    public FrcCANSparkMax rightRearWheel;
-    public TrcMecanumDriveBase driveBase;
+    public TrcSwerveModule leftFrontWheel;
+    public TrcSwerveModule leftRearWheel;
+    public TrcSwerveModule rightFrontWheel;
+    public TrcSwerveModule rightRearWheel;
+    public TrcSwerveDriveBase driveBase;
 
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
     public TrcPidController gyroTurnPidCtrl;
     public TrcPidDrive pidDrive;
 
-    public TrcPidController visionXPidCtrl = null;
-    public TrcPidController visionYPidCtrl = null;
-    public TrcPidController visionTurnPidCtrl = null;
-    public TrcPidDrive visionPidDrive = null;
-
-    //
-    // Primary robot subystems
-    //
-    public Pickup pickup;
-    public Elevator elevator;
-    public Climber climber;
-    public boolean driveClimberWheels = false;
-    public boolean actuatorEnabled = false;
-    public boolean climbingButDriving = false;
-
-    public TaskAutoAlign autoAlign;
-    public TaskHeadingAlign autoHeadingAlign;
     //
     // Define our subsystems for Auto and TeleOp modes.
     //
@@ -190,6 +162,15 @@ public class Robot extends FrcRobotBase
     {
         super(programName);
     }   //Robot
+
+    private TrcSwerveModule createModule(String instanceName, TrcMotorController driveMotor, TrcMotor steerMotor)
+    {
+        PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
+        TrcPidController ctrl = new TrcPidController("lfCtrl", coeff, RobotInfo.STEER_TOLERANCE, steerMotor::getPosition);
+        TrcPidMotor pidMotor = new TrcPidMotor(instanceName + "pid", steerMotor, ctrl, 0.0);
+        pidMotor.setPositionScale(RobotInfo.STEER_DEGREES_PER_TICK);
+        return new TrcSwerveModule(instanceName, driveMotor, pidMotor);
+    }
 
     /**
      * This function is run when the robot is first started up and should be used for any initialization code.
@@ -221,21 +202,6 @@ public class Robot extends FrcRobotBase
         {
             gyro = new FrcAHRSGyro("NavX", SPI.Port.kMXP);
         }
-        pressureSensor = new AnalogInput(RobotInfo.AIN_PRESSURE_SENSOR);
-
-        //
-        // Vision subsystem.
-        //
-        if (USE_PIXY_I2C)
-        {
-            pixy = new PixyVision("PixyCam", this, USE_PIXY_V2, RobotInfo.PIXY_TARGET_SIGNATURE,
-                RobotInfo.PIXY_BRIGHTNESS, RobotInfo.PIXY_ORIENTATION, I2C.Port.kMXP, RobotInfo.PIXYCAM_I2C_ADDRESS);
-        }
-
-        if (USE_VISION_TARGETING)
-        {
-            vision = new VisionTargeting();
-        }
 
         //
         // Miscellaneous subsystems.
@@ -256,12 +222,21 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
-        driveInverted = false;
-        leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
-        leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
-        rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
-        rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
-        setHalfBrakeModeEnabled(true); // Karkeys prefers front coast, back brake
+        FrcCANTalon lfDriveMotor = new FrcCANTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL);
+        FrcCANTalon lfSteerMotor = new FrcCANTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER);
+        leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor);
+
+        FrcCANTalon rfDriveMotor = new FrcCANTalon("RightFrontWheelDrive", RobotInfo.CANID_RIGHTFRONTWHEEL);
+        FrcCANTalon rfSteerMotor = new FrcCANTalon("RightFrontWheelSteer", RobotInfo.CANID_RIGHTFRONTWHEEL_STEER);
+        rightFrontWheel = createModule("rf", rfDriveMotor, rfSteerMotor);
+
+        FrcCANTalon lrDriveMotor = new FrcCANTalon("LeftRearWheelDrive", RobotInfo.CANID_LEFTREARWHEEL);
+        FrcCANTalon lrSteerMotor = new FrcCANTalon("LeftRearWheelSteer", RobotInfo.CANID_LEFTREARWHEEL_STEER);
+        leftRearWheel = createModule("lr", lrDriveMotor, lrSteerMotor);
+
+        FrcCANTalon rrDriveMotor = new FrcCANTalon("RightRearWheelDrive", RobotInfo.CANID_RIGHTREARWHEEL);
+        FrcCANTalon rrSteerMotor = new FrcCANTalon("RightRearWheelSteer", RobotInfo.CANID_RIGHTREARWHEEL_STEER);
+        rightRearWheel = createModule("rr", rrDriveMotor, rrSteerMotor);
 
         pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
@@ -281,15 +256,20 @@ public class Robot extends FrcRobotBase
         rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
 
-        leftFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rightFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        leftRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rightRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        lfDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rfDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        lrDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rrDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+
+        lfSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rfSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        lrSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        rrSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
 
         //
         // Initialize DriveBase subsystem.
         //
-        driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
+        driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro, RobotInfo.ROBOT_WIDTH, RobotInfo.ROBOT_LENGTH);
         driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
 
         //
@@ -317,48 +297,6 @@ public class Robot extends FrcRobotBase
         encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
         encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
         gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
-
-        if (USE_VISION_TARGETING)
-        {
-            visionXPidCtrl = new TrcPidController("visionXPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_X_KP, RobotInfo.VISION_X_KI, RobotInfo.VISION_X_KD),
-                RobotInfo.VISION_X_TOLERANCE, this::getVisionX);
-            visionYPidCtrl = new TrcPidController("visionYPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_Y_KP, RobotInfo.VISION_Y_KI, RobotInfo.VISION_Y_KD),
-                RobotInfo.VISION_Y_TOLERANCE, this::getVisionY);
-            visionTurnPidCtrl = new TrcPidController("visionTurnPidCtrl",
-                new PidCoefficients(RobotInfo.VISION_TURN_KP, RobotInfo.VISION_TURN_KI, RobotInfo.VISION_TURN_KD),
-                RobotInfo.VISION_TURN_TOLERANCE, this::getVisionYaw);
-            visionXPidCtrl.setInverted(true);
-            visionXPidCtrl.setAbsoluteSetPoint(true);
-            visionYPidCtrl.setInverted(true);
-            visionYPidCtrl.setAbsoluteSetPoint(true);
-            visionTurnPidCtrl.setInverted(true);
-            visionTurnPidCtrl.setAbsoluteSetPoint(true);
-            visionPidDrive = new TrcPidDrive("visionPidDrive", driveBase, visionXPidCtrl, visionYPidCtrl,
-                visionTurnPidCtrl);
-            visionPidDrive.setMsgTracer(globalTracer);
-        }
-
-        //
-        // Create other hardware subsystems.
-        //
-        elevator = new Elevator(this);
-        pickup = new Pickup(this);
-        climber = new Climber(this);
-        indicator = new LEDIndicator(this);
-
-        if (USE_STREAM_CAMERA)
-        {
-            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", 0);
-            camera.setResolution(160, 120);
-        }
-
-        //
-        // AutoAssist commands.
-        //
-        autoAlign = new TaskAutoAlign(this);
-        autoHeadingAlign = new TaskHeadingAlign(this);
 
         //
         // Create Robot Modes.
@@ -400,19 +338,13 @@ public class Robot extends FrcRobotBase
             globalTracer
                 .traceInfo(funcName, "[%.3f] %s: ***** %s *****", Robot.getModeElapsedTime(), now.toString(), runMode);
 
-            driveInverted = false;
-            climbingButDriving = false;
-
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
-            setVisionEnabled(true);
             driveBase.resetOdometry(true, false);
             driveBase.setOdometryEnabled(true);
             targetHeading = 0.0;
 
             dashboard.clearDisplay();
-
-            indicator.reset();
 
             if (runMode == RunMode.AUTO_MODE || runMode == RunMode.TEST_MODE)
             {
@@ -441,7 +373,6 @@ public class Robot extends FrcRobotBase
         {
             globalTracer.traceInfo(funcName, "mode=%s,heading=%.1f", runMode.name(), driveBase.getHeading());
             driveBase.setOdometryEnabled(false);
-            setVisionEnabled(false);
             cancelAllAuto();
             battery.setEnabled(false);
             pdp.setTaskEnabled(false);
@@ -461,8 +392,6 @@ public class Robot extends FrcRobotBase
                 totalEnergy * 100.0 / RobotInfo.BATTERY_CAPACITY_WATT_HOUR);
             setTraceLogEnabled(false);
             closeTraceLog();
-
-            indicator.reset();
         }
     }   //robotStopMode
 
@@ -551,21 +480,7 @@ public class Robot extends FrcRobotBase
     {
         pidDrive.cancel();
         driveBase.stop();
-        elevator.setPower(0.0);
-        pickup.setPitchPower(0.0);
-        pickup.setPickupPower(0.0);
     }
-
-    public void setVisionEnabled(boolean enabled)
-    {
-        final String funcName = "setVisionEnabled";
-
-        if (pixy != null)
-        {
-            pixy.setEnabled(enabled);
-            globalTracer.traceInfo(funcName, "Pixy is %s!", enabled ? "enabled" : "disabled");
-        }
-    }   //setVisionEnabled
 
     public void updateDashboard(RunMode runMode)
     {
@@ -624,53 +539,6 @@ public class Robot extends FrcRobotBase
 
             if (DEBUG_SUBSYSTEMS)
             {
-                if (DEBUG_PIXY)
-                {
-                    if (pixy != null && pixy.isEnabled())
-                    {
-                        if (USE_PIXY_LINE_TARGET)
-                        {
-                            Vector vector = pixy.getLineVector();
-                            if (vector == null)
-                            {
-                                dashboard.displayPrintf(11, "Pixy: line not found");
-                            }
-                            else
-                            {
-                                dashboard.displayPrintf(11, "Pixy: %s", vector);
-                            }
-                        }
-                        else
-                        {
-                            PixyVision.TargetInfo targetInfo = pixy.getTargetInfo();
-                            if (targetInfo == null)
-                            {
-                                dashboard.displayPrintf(11, "Pixy: Target not found!");
-                            }
-                            else
-                            {
-                                dashboard.displayPrintf(11, "Pixy: xDistance=%.1f, yDistance=%.1f, angle=%.1f",
-                                    targetInfo.xDistance, targetInfo.yDistance, targetInfo.angle);
-                                dashboard.displayPrintf(12, "x=%d, y=%d, width=%d, height=%d", targetInfo.rect.x,
-                                    targetInfo.rect.y, targetInfo.rect.width, targetInfo.rect.height);
-                            }
-                        }
-                    }
-                }
-
-                if (DEBUG_VISION_TARGET && vision != null)
-                {
-                    FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-                    if (pose != null)
-                    {
-                        dashboard.displayPrintf(13, "VisionTarget: x=%.1f,y=%.1f,objectYaw=%.1f", pose.x, pose.y,
-                            pose.objectYaw);
-                    }
-                    else
-                    {
-                        dashboard.displayPrintf(13, "VisionTarget: No target found!");
-                    }
-                }
             }
         }
     }   //updateDashboard
@@ -724,7 +592,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoAlign.isActive() || climber.isActive() || autoHeadingAlign.isActive();
+        return autoMode.isAutoActive();
     }
 
     public void cancelAllAuto()
@@ -732,21 +600,6 @@ public class Robot extends FrcRobotBase
         if (autoMode.isAutoActive())
         {
             autoMode.cancel();
-        }
-
-        if (autoAlign.isActive())
-        {
-            autoAlign.cancel();
-        }
-
-        if (climber.isActive())
-        {
-            climber.cancel();
-        }
-
-        if (autoHeadingAlign.isActive())
-        {
-            autoHeadingAlign.cancel();
         }
     }
 
@@ -790,123 +643,4 @@ public class Robot extends FrcRobotBase
                 driveBase.getHeading(), heading);
         }
     }   //traceStateInfo
-
-    public void setHalfBrakeModeEnabled(boolean enabled)
-    {
-        if (enabled)
-        {
-            leftFrontWheel.setBrakeModeEnabled(driveInverted);
-            rightFrontWheel.setBrakeModeEnabled(driveInverted);
-            leftRearWheel.setBrakeModeEnabled(!driveInverted);
-            rightRearWheel.setBrakeModeEnabled(!driveInverted);
-        }
-        else
-        {
-            leftFrontWheel.setBrakeModeEnabled(true);
-            rightFrontWheel.setBrakeModeEnabled(true);
-            leftRearWheel.setBrakeModeEnabled(true);
-            rightRearWheel.setBrakeModeEnabled(true);
-        }
-    }
-
-    //
-    // Getters for sensor data.
-    //
-
-    public double getPressure()
-    {
-        return (pressureSensor.getVoltage() - 0.5) * 50.0;
-        //        return pressureSensor.getScaledValue();
-    }   //getPressure
-
-    public Double getPixyTargetAngle()
-    {
-        final String funcName = "getPixyTargetAngle";
-        TargetInfo targetInfo = pixy.getTargetInfo();
-
-        if (targetInfo != null)
-        {
-            globalTracer.traceInfo(funcName, "Found cube: x=%.1f, y=%1.f, angle=%.1f", targetInfo.xDistance,
-                targetInfo.yDistance, targetInfo.angle);
-        }
-        else
-        {
-            globalTracer.traceInfo(funcName, "Cube not found!");
-        }
-
-        return targetInfo != null ? targetInfo.angle : null;
-    }
-
-    public Double getPixyTargetX()
-    {
-        final String funcName = "getPixyTargetX";
-        TargetInfo targetInfo = pixy.getTargetInfo();
-
-        if (targetInfo != null)
-        {
-            globalTracer.traceInfo(funcName, "Found cube: x=%.1f, y=%.1f, angle=%.1f", targetInfo.xDistance,
-                targetInfo.yDistance, targetInfo.angle);
-        }
-        else
-        {
-            globalTracer.traceInfo(funcName, "Cube not found!");
-        }
-
-        return targetInfo != null ? targetInfo.xDistance : null;
-    }
-
-    public Double getPixyTargetY()
-    {
-        final String funcName = "getPixyTargetY";
-        TargetInfo targetInfo = pixy.getTargetInfo();
-
-        if (targetInfo != null)
-        {
-            globalTracer.traceInfo(funcName, "Found cube: x=%.1f, y=%1.f, angle=%.1f", targetInfo.xDistance,
-                targetInfo.yDistance, targetInfo.angle);
-        }
-        else
-        {
-            globalTracer.traceInfo(funcName, "Cube not found!");
-        }
-
-        return targetInfo != null ? targetInfo.yDistance : null;
-    }
-
-    public double getVisionX()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            return pose.x;
-        }
-        return 0.0;
-    }
-
-    public double getVisionY()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            double outputLimit = Math.abs(rightDriveStick.getYWithDeadband(true));
-            visionYPidCtrl.setOutputRange(-outputLimit, outputLimit);
-            return pose.y;
-        }
-        return 0.0;
-        // Alternate implementation:
-        // This implementation will allow the joystick Y to fully control the Y direction of the PID drive.
-        // So vision target has nothing to do with the Y direction.
-        // return -rightDriveStick.getYWithDeadband(true)/RobotInfo.VISION_Y_KP;
-    }
-
-    public double getVisionYaw()
-    {
-        FrcRemoteVisionProcessor.RelativePose pose = vision.getLastPose();
-        if (pose != null)
-        {
-            return pose.objectYaw;
-        }
-        return 0.0;
-    }
-
 }   //class Robot

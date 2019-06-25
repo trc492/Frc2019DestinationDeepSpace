@@ -97,10 +97,6 @@ public class FrcAuto extends FrcTeleOp
     {
         // Init teleop since we're in sandstorm mode
         super.startMode(prevMode, nextMode);
-        robot.driveBase.resetOdometry(true, true);
-        robot.elevator.zeroCalibrate(); // zero calibrate the elevator
-        robot.pickup.zeroCalibrate(); // zero calibrate the pickup
-        robot.climber.zeroCalibrateActuator();
 
         final String funcName = moduleName + ".startMode";
 
