@@ -22,37 +22,24 @@
 
 package team492;
 
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.AnalogInput;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Sendable;
-import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import frclib.FrcAHRSGyro;
-import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
-import frclib.FrcEmic2TextToSpeech;
-import frclib.FrcI2cLEDPanel;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
-import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import hallib.HalDashboard;
-import trclib.TrcEmic2TextToSpeech.Voice;
-import trclib.TrcMecanumDriveBase;
-import trclib.TrcMotor;
-import trclib.TrcMotorController;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
 import trclib.TrcPidMotor;
-import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
 import trclib.TrcSwerveDriveBase;
@@ -122,6 +109,17 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
+
+    public FrcCANTalon lfDriveMotor;
+    public FrcCANTalon rfDriveMotor;
+    public FrcCANTalon lrDriveMotor;
+    public FrcCANTalon rrDriveMotor;
+
+    public FrcCANTalon lfSteerMotor;
+    public FrcCANTalon rfSteerMotor;
+    public FrcCANTalon lrSteerMotor;
+    public FrcCANTalon rrSteerMotor;
+
     public TrcSwerveModule leftFrontWheel;
     public TrcSwerveModule leftRearWheel;
     public TrcSwerveModule rightFrontWheel;
@@ -153,13 +151,34 @@ public class Robot extends FrcRobotBase
         super(programName);
     }   //Robot
 
-    private TrcSwerveModule createModule(String instanceName, TrcMotorController driveMotor, TrcMotor steerMotor)
+    private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor)
     {
+        int absPosTicks = steerMotor.motor.getSensorCollection().getPulseWidthPosition();
+        double absPos = absPosTicks * RobotInfo.STEER_DEGREES_PER_TICK;
+        boolean isRightHemisphere = driveMotor.isUpperLimitSwitchActive();
+        if ((TrcUtil
+            .inRange(absPos, 360 - RobotInfo.STEER_DEGREES_PER_HALF_RANGE, RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
+            && !isRightHemisphere) || absPos > RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
+        {
+            absPosTicks -= TrcUtil.round(360.0 / RobotInfo.STEER_DEGREES_PER_TICK);
+        }
+        steerMotor.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
         PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
-        TrcPidController ctrl = new TrcPidController("lfCtrl", coeff, RobotInfo.STEER_TOLERANCE, steerMotor::getPosition);
+        TrcPidController ctrl = new TrcPidController("lfCtrl", coeff, RobotInfo.STEER_TOLERANCE,
+            steerMotor::getPosition);
         TrcPidMotor pidMotor = new TrcPidMotor(instanceName + "pid", steerMotor, ctrl, 0.0);
         pidMotor.setPositionScale(RobotInfo.STEER_DEGREES_PER_TICK);
         return new TrcSwerveModule(instanceName, driveMotor, pidMotor);
+    }
+
+    private FrcCANTalon createDriveTalon(String instanceName, int canID, boolean steer)
+    {
+        FrcCANTalon talon = new FrcCANTalon(instanceName, canID);
+        talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
+        talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        talon.motor.enableVoltageCompensation(true);
+        talon.motor.overrideLimitSwitchesEnable(steer);
+        return talon;
     }
 
     /**
@@ -196,23 +215,15 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
+        lfDriveMotor = createDriveTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL, false);
+        rfDriveMotor = createDriveTalon("RightFrontWheelDrive", RobotInfo.CANID_RIGHTFRONTWHEEL, false);
+        lrDriveMotor = createDriveTalon("LeftRearWheelDrive", RobotInfo.CANID_LEFTREARWHEEL, false);
+        rrDriveMotor = createDriveTalon("RightRearWheelDrive", RobotInfo.CANID_RIGHTREARWHEEL, false);
 
-        // TODO: Use the hemisphere indicator to initialize the absolute encoder. If you forget the problem, refer to Eric's email
-        FrcCANTalon lfDriveMotor = new FrcCANTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL);
-        FrcCANTalon lfSteerMotor = new FrcCANTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER);
-        leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor);
-
-        FrcCANTalon rfDriveMotor = new FrcCANTalon("RightFrontWheelDrive", RobotInfo.CANID_RIGHTFRONTWHEEL);
-        FrcCANTalon rfSteerMotor = new FrcCANTalon("RightFrontWheelSteer", RobotInfo.CANID_RIGHTFRONTWHEEL_STEER);
-        rightFrontWheel = createModule("rf", rfDriveMotor, rfSteerMotor);
-
-        FrcCANTalon lrDriveMotor = new FrcCANTalon("LeftRearWheelDrive", RobotInfo.CANID_LEFTREARWHEEL);
-        FrcCANTalon lrSteerMotor = new FrcCANTalon("LeftRearWheelSteer", RobotInfo.CANID_LEFTREARWHEEL_STEER);
-        leftRearWheel = createModule("lr", lrDriveMotor, lrSteerMotor);
-
-        FrcCANTalon rrDriveMotor = new FrcCANTalon("RightRearWheelDrive", RobotInfo.CANID_RIGHTREARWHEEL);
-        FrcCANTalon rrSteerMotor = new FrcCANTalon("RightRearWheelSteer", RobotInfo.CANID_RIGHTREARWHEEL_STEER);
-        rightRearWheel = createModule("rr", rrDriveMotor, rrSteerMotor);
+        lfSteerMotor = createDriveTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER, true);
+        rfSteerMotor = createDriveTalon("RightFrontWheelSteer", RobotInfo.CANID_RIGHTFRONTWHEEL_STEER, true);
+        lrSteerMotor = createDriveTalon("LeftRearWheelSteer", RobotInfo.CANID_LEFTREARWHEEL_STEER, true);
+        rrSteerMotor = createDriveTalon("RightRearWheelSteer", RobotInfo.CANID_RIGHTREARWHEEL_STEER, true);
 
         pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
@@ -222,6 +233,11 @@ public class Robot extends FrcRobotBase
         //
         // Initialize each drive motor controller.
         //
+        leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor);
+        rightFrontWheel = createModule("rf", rfDriveMotor, rfSteerMotor);
+        leftRearWheel = createModule("lr", lrDriveMotor, lrSteerMotor);
+        rightRearWheel = createModule("rr", rrDriveMotor, rrSteerMotor);
+
         leftFrontWheel.setInverted(false);
         leftRearWheel.setInverted(false);
         rightFrontWheel.setInverted(true);
@@ -232,20 +248,11 @@ public class Robot extends FrcRobotBase
         rightFrontWheel.setPositionSensorInverted(false);
         rightRearWheel.setPositionSensorInverted(false);
 
-        lfDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rfDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        lrDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rrDriveMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-
-        lfSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rfSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        lrSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rrSteerMotor.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-
         //
         // Initialize DriveBase subsystem.
         //
-        driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro, RobotInfo.ROBOT_WIDTH, RobotInfo.ROBOT_LENGTH);
+        driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro,
+            RobotInfo.ROBOT_WIDTH, RobotInfo.ROBOT_LENGTH);
         driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
 
         //

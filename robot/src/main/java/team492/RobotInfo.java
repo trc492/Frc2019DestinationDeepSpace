@@ -100,6 +100,7 @@ public class RobotInfo
     public static final double STEER_KI                         = 0.0;
     public static final double STEER_KD                         = 0.0;
     public static final double STEER_TOLERANCE                  = 0.0;
+    public static final double STEER_DEGREES_PER_HALF_RANGE     = 327.27;
 
     // practice robot: 0.012/0.0/0.0
     public static final double ENCODER_X_INCHES_PER_COUNT       = 1.1311748;
