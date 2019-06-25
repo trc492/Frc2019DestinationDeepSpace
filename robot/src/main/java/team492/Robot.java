@@ -222,6 +222,8 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
+
+        // TODO: Use the hemisphere indicator to initialize the absolute encoder. If you forget the problem, refer to Eric's email
         FrcCANTalon lfDriveMotor = new FrcCANTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL);
         FrcCANTalon lfSteerMotor = new FrcCANTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER);
         leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor);
