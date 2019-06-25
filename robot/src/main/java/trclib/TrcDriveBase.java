@@ -28,7 +28,7 @@ package trclib;
  * The subclasses must provide the tankDrive and holonomicDrive methods. If the subclass cannot support a certain
  * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException.
  */
-public abstract class TrcDriveBase implements TrcOwnedSubsystem
+public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 {
     private static final String moduleName = "TrcDriveBase";
     protected static final TrcDbgTrace globalTracer = TrcDbgTrace.getGlobalTracer();
