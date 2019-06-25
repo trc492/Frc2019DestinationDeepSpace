@@ -141,7 +141,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             lfModule.setSteerAngle(angle, optimize);
             rfModule.setSteerAngle(angle, optimize);
@@ -187,7 +187,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "owner=%s,steerNeutral=%s", owner, resetSteer);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             super.stop(owner);
 
@@ -266,7 +266,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
                                 owner, x, y, rotation, Boolean.toString(inverted), gyroAngle);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             if (x == 0.0 && y == 0.0 && rotation == 0.0)
             {

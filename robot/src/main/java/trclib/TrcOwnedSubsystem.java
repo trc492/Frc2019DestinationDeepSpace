@@ -27,7 +27,7 @@ package trclib;
  * accessed by multiple callers unaware of each other. Exclusive ownership can be acquired before access will be
  * granted. This will prevent other callers from interfering an unfinished operation by a different caller. 
  */
-public interface TrcExclusiveAccess
+public interface TrcOwnedSubsystem
 {
     /**
      * This method acquires exclusive ownership of the subsystem.
@@ -35,7 +35,18 @@ public interface TrcExclusiveAccess
      * @param owner specifies the ID string of the caller requesting ownership.
      * @return true if successfully acquired ownership, false otherwise.
      */
-    boolean acquireExclusiveAccess(String owner);
+    default boolean acquireExclusiveAccess(String owner)
+    {
+        return TrcOwnershipManager.getInstance().acquireOwnership(owner, this);
+    }
+
+    /**
+     * This method checks if the caller has exclusive ownership of the subsystem. If not, it throws an exception.
+     */
+    default boolean validateOwnership(String owner)
+    {
+        return TrcOwnershipManager.getInstance().validateOwnership(owner, this);
+    }   //validateOnwership
 
     /**
      * This method release exclusive ownership of the subsystem.
@@ -43,7 +54,10 @@ public interface TrcExclusiveAccess
      * @param owner specifies the ID string of the caller releasing ownership.
      * @return true if successfully releasing ownership, false otherwise.
      */
-    boolean releaseExclusiveAccess(String owner);
+    default boolean releaseExclusiveAccess(String owner)
+    {
+        return TrcOwnershipManager.getInstance().releaseOwnership(owner, this);
+    }
 
     /**
      * This method checks if the caller has exclusive ownership of the subsystem.
@@ -51,6 +65,9 @@ public interface TrcExclusiveAccess
      * @param owner specifies the ID string of the caller.
      * @return true if caller has exclusive ownership of the subsystem, false otherwise.
      */
-    boolean hasOwnership(String owner);
+    default boolean hasOwnership(String owner)
+    {
+        return TrcOwnershipManager.getInstance().hasOwnership(owner, this);
+    }
 
-}   //interface TrcExclusiveAccess
+}   //interface TrcOwnedSubsystem

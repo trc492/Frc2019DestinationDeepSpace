@@ -96,7 +96,7 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
                 owner, x, y, rotation, Boolean.toString(inverted), gyroAngle);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             x = TrcUtil.clipRange(x);
             y = TrcUtil.clipRange(y);

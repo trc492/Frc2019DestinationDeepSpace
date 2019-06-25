@@ -229,7 +229,7 @@ public class TrcSimpleDriveBase extends TrcDriveBase
                 "owner=%s,leftPower=%f,rightPower=%f,inverted=%s", owner, leftPower, rightPower, inverted);
         }
 
-        if (exclusiveOwner.validateOwnership(owner))
+        if (validateOwnership(owner))
         {
             leftPower = TrcUtil.clipRange(leftPower);
             rightPower = TrcUtil.clipRange(rightPower);
