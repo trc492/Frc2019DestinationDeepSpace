@@ -104,12 +104,12 @@ public class TrcOwnershipManager
         boolean success = false;
         String currOwner = ownershipMap.get(subsystem);
 
-        if (!ownershipMap.containsKey(subsystem))
+        if (currOwner == null)
         {
             ownershipMap.put(subsystem, owner);
             success = true;
         }
-        else if (currOwner != null && currOwner.equals(owner))
+        else if (currOwner.equals(owner))
         {
             success = true;
         }
@@ -125,15 +125,7 @@ public class TrcOwnershipManager
      */
     public synchronized boolean releaseOwnership(String owner, TrcExclusiveSubsystem subsystem)
     {
-        boolean success = false;
-
-        if (hasOwnership(owner, subsystem))
-        {
-            ownershipMap.remove(subsystem);
-            success = true;
-        }
-
-        return success;
+        return ownershipMap.remove(subsystem) != null;
     }   //releaseOwnership
 
 }   //class TrcOwnershipManager
