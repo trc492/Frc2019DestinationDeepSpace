@@ -33,21 +33,16 @@ import java.util.HashMap;
  */
 public class TrcOwnershipManager
 {
-    private static TrcOwnershipManager instance = null;
+    private static TrcOwnershipManager instance = new TrcOwnershipManager();
     private HashMap<TrcExclusiveSubsystem, String> ownershipMap;
 
     /**
      * This method is called to get the instance of the Ownership manager.
      *
-     * @return instance of the ownership manager if it already exists, otherwise an instance is created.
+     * @return instance of the ownership manager.
      */
-    public static synchronized TrcOwnershipManager getInstance()
+    public static TrcOwnershipManager getInstance()
     {
-        if (instance == null)
-        {
-            instance = new TrcOwnershipManager();
-        }
-
         return instance;
     }   //getInstance
 
@@ -79,7 +74,7 @@ public class TrcOwnershipManager
     {
         String currOwner = getOwner(subsystem);
 
-        return owner == null && currOwner == null || currOwner != null && owner != null && currOwner.equals(owner);
+        return owner == null && currOwner == null || currOwner != null && currOwner.equals(owner);
     }   //hasOwnership
 
     /**
