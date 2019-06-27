@@ -228,7 +228,14 @@ public class TrcSwerveModule implements TrcMotorController
             }
         }
 
-        steerMotor.setTarget(newAngle, hold);
+        if (steerMotor != null)
+        {
+            steerMotor.setTarget(newAngle, hold);
+        }
+        else if (steerServo != null)
+        {
+            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
+        }
         prevSteerAngle = newAngle;
 
         if (debugEnabled)

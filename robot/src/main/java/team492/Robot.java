@@ -35,7 +35,9 @@ import frclib.FrcJoystick;
 import frclib.FrcPdp;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
+import frclib.FrcTalonServo;
 import hallib.HalDashboard;
+import trclib.TrcEnhancedServo;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
@@ -62,6 +64,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TRACELOG = true;
     public static final boolean USE_NAV_X = true;
     public static final boolean USE_GYRO_ASSIST = false;
+    public static final boolean USE_MAGIC_STEER = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -163,12 +166,28 @@ public class Robot extends FrcRobotBase
             absPosTicks -= TrcUtil.round(360.0 / RobotInfo.STEER_DEGREES_PER_TICK);
         }
         steerMotor.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
-        PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
-        TrcPidController ctrl = new TrcPidController("lfCtrl", coeff, RobotInfo.STEER_TOLERANCE,
-            steerMotor::getPosition);
-        TrcPidMotor pidMotor = new TrcPidMotor(instanceName + "pid", steerMotor, ctrl, 0.0);
-        pidMotor.setPositionScale(RobotInfo.STEER_DEGREES_PER_TICK);
-        return new TrcSwerveModule(instanceName, driveMotor, pidMotor);
+
+        TrcSwerveModule module;
+        if (USE_MAGIC_STEER)
+        {
+            PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD,
+                RobotInfo.STEER_KF);
+            FrcTalonServo servo = new FrcTalonServo(instanceName + ".servo", steerMotor, coeff,
+                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_VEL, RobotInfo.STEER_MAX_ACCEL, false);
+            module = new TrcSwerveModule(instanceName, driveMotor,
+                new TrcEnhancedServo(instanceName + ".enhancedServo", servo));
+        }
+        else
+        {
+            PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
+            TrcPidController ctrl = new TrcPidController(instanceName + ".ctrl", coeff, RobotInfo.STEER_TOLERANCE,
+                steerMotor::getPosition);
+            TrcPidMotor pidMotor = new TrcPidMotor(instanceName + ".pid", steerMotor, ctrl, 0.0);
+            pidMotor.setPositionScale(RobotInfo.STEER_DEGREES_PER_TICK);
+            module = new TrcSwerveModule(instanceName, driveMotor, pidMotor);
+        }
+        module.setSteeringLimits(RobotInfo.STEER_LIMIT_LOW, RobotInfo.STEER_LIMIT_HIGH);
+        return module;
     }
 
     private FrcCANTalon createDriveTalon(String instanceName, int canID, boolean steer)
