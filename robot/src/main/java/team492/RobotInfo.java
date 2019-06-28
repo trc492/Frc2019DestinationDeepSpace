@@ -95,13 +95,13 @@ public class RobotInfo
     public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
-    public static final double STEER_DEGREES_PER_TICK           = 1.0;
+    public static final double STEER_DEGREES_PER_TICK           = 0.032514;
     public static final double STEER_KP                         = 0.0;
     public static final double STEER_KI                         = 0.0;
     public static final double STEER_KD                         = 0.0;
-    public static final double STEER_KF                         = 0.0;
+    public static final double STEER_KF                         = 0.00591667; // This is for native units
     public static final double STEER_MAX_VEL                    = 50; // degrees per sec
-    public static final double STEER_MAX_ACCEL                  = 80; // degrees per second per second
+    public static final double STEER_MAX_ACCEL                  = 150; // degrees per second per second
     public static final double STEER_TOLERANCE                  = 0.0;
     public static final double STEER_DEGREES_PER_HALF_RANGE     = 327.27;
     public static final double STEER_LIMIT_LOW                  = -120;
