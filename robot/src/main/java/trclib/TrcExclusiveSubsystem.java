@@ -25,14 +25,21 @@ package trclib;
 /**
  * This interface defines methods for the subsystems to implement exclusive ownership support. A subsystem can be
  * accessed by multiple callers unaware of each other. Exclusive ownership can be acquired before access will be
- * granted. This will prevent other callers from interfering an unfinished operation by a different caller. 
+ * granted. This will prevent other callers from interfering an in-progress operation by a different caller.
  */
 public interface TrcExclusiveSubsystem
 {
     /**
-     * This method checks if the caller has exclusive ownership of the subsystem.
+     * This method checks if the caller has exclusive ownership of the subsystem. For backward compatibility with
+     * older code that's not aware of subsystem exclusive ownership, the owner parameter can be null. If the
+     * subsystem has no owner currently and the caller is not aware of exclusive ownership, the caller is considered
+     * to have acquired ownership. This means the caller is allowed to proceed with controlling the subsystem but if
+     * a new caller comes in and acquires the ownership of the subsystem while an operation is in progress, the
+     * operation will be interrupted and preempted by the new caller's operation. Therefore, callers unaware of
+     * exclusive ownership can start an operation on the subsystem but their operations are not guaranteed exclusive
+     * ownership.
      *
-     * @param owner specifies the ID string of the caller.
+     * @param owner specifies the ID string of the caller, can be null if caller is unaware of exclusive ownership.
      * @return true if caller has exclusive ownership of the subsystem, false otherwise.
      */
     default boolean hasOwnership(String owner)
@@ -42,6 +49,15 @@ public interface TrcExclusiveSubsystem
 
     /**
      * This method checks if the caller has exclusive ownership of the subsystem. If not, it throws an exception.
+     * It throws an exception only if the caller is aware of exclusive ownership and the it doesn't currently own
+     * the subsystem. If the caller is unaware of exclusive ownership and the subsystem is owned by somebody else,
+     * it will just return false and not throw an exception. This is to ensure older code that's unaware of exclusive
+     * ownership will not hit an unexpected exception and will just fail quietly.
+     *
+     * @param owner specifies the ID string of the caller, can be null if caller is unaware of exclusive ownership.
+     * @param subsystem specifies the subsystem to be checked of its ownership.
+     * @return true if the caller currently owns the subsystem, false otherwise.
+     * @throws IllegalStateException
      */
     default boolean validateOwnership(String owner)
     {
@@ -49,7 +65,7 @@ public interface TrcExclusiveSubsystem
     }   //validateOnwership
 
     /**
-     * This method acquires exclusive ownership of the subsystem.
+     * This method acquires exclusive ownership of the subsystem if it's not already owned by somebody else.
      *
      * @param owner specifies the ID string of the caller requesting ownership.
      * @return true if successfully acquired ownership, false otherwise.
@@ -60,7 +76,7 @@ public interface TrcExclusiveSubsystem
     }   //acquireExclusiveAccess
 
     /**
-     * This method release exclusive ownership of the subsystem.
+     * This method release exclusive ownership of the subsystem if the caller is indeed the owner.
      *
      * @param owner specifies the ID string of the caller releasing ownership.
      * @return true if successfully releasing ownership, false otherwise.
