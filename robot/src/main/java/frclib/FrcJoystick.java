@@ -119,15 +119,15 @@ public class FrcJoystick extends Joystick
     // UsagePage=0x01, Usage=0x04 (i have no idea what this means)
     //
     public static final int PANEL_SWITCH_WHITE1 = 1;
-    public static final int PANEL_SWTICH_RED1   = 2;
-    public static final int PANEL_SWTICH_GREEN1 = 3;
-    public static final int PANEL_SWTICH_BLUE1  = 4;
-    public static final int PANEL_SWTICH_YELLOW1= 5;
-    public static final int PANEL_SWTICH_WHITE2 = 6;
-    public static final int PANEL_SWTICH_RED2   = 7;
-    public static final int PANEL_SWTICH_GREEN2 = 8;
-    public static final int PANEL_SWTICH_BLUE2  = 9;
-    public static final int PANEL_SWTICH_YELLOW2= 10;
+    public static final int PANEL_SWITCH_RED1   = 2;
+    public static final int PANEL_SWITCH_GREEN1 = 3;
+    public static final int PANEL_SWITCH_BLUE1  = 4;
+    public static final int PANEL_SWITCH_YELLOW1= 5;
+    public static final int PANEL_SWITCH_WHITE2 = 6;
+    public static final int PANEL_SWITCH_RED2   = 7;
+    public static final int PANEL_SWITCH_GREEN2 = 8;
+    public static final int PANEL_SWITCH_BLUE2  = 9;
+    public static final int PANEL_SWITCH_YELLOW2= 10;
 
     /**
      * This interface, if provided, will allow this class to do a notification callback when there are button

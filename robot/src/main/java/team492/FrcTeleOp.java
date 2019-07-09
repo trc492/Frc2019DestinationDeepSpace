@@ -28,7 +28,6 @@ import hallib.HalDashboard;
 import trclib.TrcLoopTimeCounter;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
-import trclib.TrcUtil;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
@@ -604,7 +603,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.dashboard.displayPrintf(8, "  SwitchPanel: button=0x%04x %s", button, pressed ? "pressed" : "released");
         switch (button)
         {
-            case FrcJoystick.PANEL_BUTTON_RED1:
+            case FrcJoystick.PANEL_SWITCH_WHITE1:
                 if (pressed)
                 {
                     robot.elevator.setPosition(RobotInfo.ELEVATOR_POS_HATCH_PICKUP_GROUND);
@@ -612,29 +611,29 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_GREEN1:
+            case FrcJoystick.PANEL_SWITCH_RED1:
                 setAllManualOverrideEnabled(pressed);
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_BLUE1:
+            case FrcJoystick.PANEL_SWITCH_GREEN1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_YELLOW1:
+            case FrcJoystick.PANEL_SWITCH_BLUE1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_WHITE1:
+            case FrcJoystick.PANEL_SWITCH_YELLOW1:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_RED2:
+            case FrcJoystick.PANEL_SWITCH_WHITE2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_GREEN2:
+            case FrcJoystick.PANEL_SWITCH_RED2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_BLUE2:
+            case FrcJoystick.PANEL_SWITCH_GREEN2:
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_YELLOW2:
+            case FrcJoystick.PANEL_SWITCH_BLUE2:
                 if (pressed)
                 {
                     robot.climber.climb();
@@ -645,7 +644,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 }
                 break;
 
-            case FrcJoystick.PANEL_BUTTON_WHITE2:
+            case FrcJoystick.PANEL_SWITCH_YELLOW2:
                 //CodeReview: obsolete code???
                 robot.climber.cancel();
                 robot.actuatorEnabled = pressed;
