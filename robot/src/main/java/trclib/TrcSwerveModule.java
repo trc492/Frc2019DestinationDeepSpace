@@ -278,7 +278,8 @@ public class TrcSwerveModule implements TrcMotorController
     public double getSteerAngle()
     {
         final String funcName = "getSteerAngle";
-        double angle = steerMotor.getPosition();
+        // TODO: technically, the spec for servos says getPosition returns between 0 and 1, so eventually change FrcTalonServo and also change this
+        double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getPosition();
 
         if (debugEnabled)
         {

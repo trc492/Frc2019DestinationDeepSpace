@@ -190,7 +190,7 @@ public class Robot extends FrcRobotBase
         return module;
     }
 
-    private FrcCANTalon createDriveTalon(String instanceName, int canID, boolean steer)
+    private FrcCANTalon createTalon(String instanceName, int canID, boolean steer)
     {
         FrcCANTalon talon = new FrcCANTalon(instanceName, canID);
         talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
@@ -234,15 +234,15 @@ public class Robot extends FrcRobotBase
         //
         // DriveBase subsystem.
         //
-        lfDriveMotor = createDriveTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL, false);
-        rfDriveMotor = createDriveTalon("RightFrontWheelDrive", RobotInfo.CANID_RIGHTFRONTWHEEL, false);
-        lrDriveMotor = createDriveTalon("LeftRearWheelDrive", RobotInfo.CANID_LEFTREARWHEEL, false);
-        rrDriveMotor = createDriveTalon("RightRearWheelDrive", RobotInfo.CANID_RIGHTREARWHEEL, false);
+        lfDriveMotor = createTalon("LeftFrontWheelDrive", RobotInfo.CANID_LEFTFRONTWHEEL, false);
+        rfDriveMotor = createTalon("RightFrontWheelDrive", RobotInfo.CANID_RIGHTFRONTWHEEL, false);
+        lrDriveMotor = createTalon("LeftRearWheelDrive", RobotInfo.CANID_LEFTREARWHEEL, false);
+        rrDriveMotor = createTalon("RightRearWheelDrive", RobotInfo.CANID_RIGHTREARWHEEL, false);
 
-        lfSteerMotor = createDriveTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER, true);
-        rfSteerMotor = createDriveTalon("RightFrontWheelSteer", RobotInfo.CANID_RIGHTFRONTWHEEL_STEER, true);
-        lrSteerMotor = createDriveTalon("LeftRearWheelSteer", RobotInfo.CANID_LEFTREARWHEEL_STEER, true);
-        rrSteerMotor = createDriveTalon("RightRearWheelSteer", RobotInfo.CANID_RIGHTREARWHEEL_STEER, true);
+        lfSteerMotor = createTalon("LeftFrontWheelSteer", RobotInfo.CANID_LEFTFRONTWHEEL_STEER, true);
+        rfSteerMotor = createTalon("RightFrontWheelSteer", RobotInfo.CANID_RIGHTFRONTWHEEL_STEER, true);
+        lrSteerMotor = createTalon("LeftRearWheelSteer", RobotInfo.CANID_LEFTREARWHEEL_STEER, true);
+        rrSteerMotor = createTalon("RightRearWheelSteer", RobotInfo.CANID_RIGHTREARWHEEL_STEER, true);
 
         pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
