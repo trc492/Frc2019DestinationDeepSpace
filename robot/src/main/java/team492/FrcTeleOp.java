@@ -386,7 +386,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON3:
-                /*
                 if (pressed)
                 {
                     robot.autoAlign.start(false);
@@ -395,7 +394,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 {
                     robot.autoAlign.cancel();
                 }
-                */
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
