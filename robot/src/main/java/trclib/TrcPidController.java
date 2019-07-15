@@ -425,10 +425,17 @@ public class TrcPidController
         this.pidCoefficients = pidCoefficients;
     }   //setPidCoefficients
 
+    /**
+     * This method sets the ramp rate of the PID controller output. It is sometimes useful to limit the acceleration
+     * of the output of the PID controller. For example, the strafing PID controller on a mecanum drive base may
+     * benefit from a lower acceleration to minimize wheel slipperage.
+     *
+     * @param rampRate specifies the ramp rate in percent power per second.
+     */
     public synchronized void setRampRate(Double rampRate)
     {
         this.rampRate = rampRate;
-    }
+    }   //setRampRate
 
     /**
      * This method sets a new target tolerance.
