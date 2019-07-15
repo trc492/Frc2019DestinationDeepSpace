@@ -66,6 +66,8 @@ public class TaskAutoAlign
         yPidController = new TrcPidController("YPid",
             new TrcPidController.PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI,
                 RobotInfo.ENCODER_Y_KD), 1.0, robot.driveBase::getYPosition);
+        yPidController.setOutputLimit(0.3);
+        yPidController.setRampRate(0.2);
         turnPidController = new TrcPidController("TurnPid",
             new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL), 1.0, robot.driveBase::getHeading);
         turnPidController.setAbsoluteSetPoint(true);
