@@ -42,11 +42,13 @@ public class VisionTargeting
         else
         {
             // This equation is the best fit line for a few data points to convert target height -> depth
-            vision = new FrcLimeLightVisionProcessor("LimeLight");
-            ((FrcLimeLightVisionProcessor) vision).setDepthApproximator(height -> -0.341895 * height + 81.4745);
+            FrcLimeLightVisionProcessor limelight = new FrcLimeLightVisionProcessor("LimeLight");
+            limelight.setDepthApproximator(height -> -0.341895 * height + 81.4745);
+            limelight.setUse3DOverride(false);
+            vision = limelight;
         }
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
-        vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
+        //vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }
 
     public FrcRemoteVisionProcessor.RelativePose getLastPose()
