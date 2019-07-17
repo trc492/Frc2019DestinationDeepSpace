@@ -93,12 +93,12 @@ public class TrcOwnershipManager
      *
      * @param owner specifies the ID string of the caller, can be null if caller is unaware of exclusive ownership.
      * @param subsystem specifies the subsystem to be checked of its ownership.
-     * @return true if the caller currently owns the subsystem, false otherwise.
+     * @return true if the caller currently owns the subsystem or the subystem is unowned, false otherwise.
      * @throws IllegalStateException
      */
     public synchronized boolean validateOwnership(String owner, TrcExclusiveSubsystem subsystem)
     {
-        boolean success = hasOwnership(owner, subsystem);
+        boolean success = hasOwnership(owner, subsystem) || !hasOwner(subsystem);
 
         if (!success && owner != null)
         {
@@ -108,6 +108,17 @@ public class TrcOwnershipManager
 
         return success;
     }   //validateOnwership
+
+    /**
+     * This method checks if the exclusive subsystem has any owner.
+     *
+     * @param subsystem The subsystem to check for ownership.
+     * @return True if the subsystem is owned, false othwerwise.
+     */
+    public synchronized boolean hasOwner(TrcExclusiveSubsystem subsystem)
+    {
+        return ownershipMap.containsKey(subsystem);
+    }
 
     /**
      * This method acquires exclusive ownership of the subsystem if it's not already owned by somebody else.
