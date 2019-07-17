@@ -141,7 +141,8 @@ public class TrcOwnershipManager
      */
     public synchronized boolean releaseOwnership(String owner, TrcExclusiveSubsystem subsystem)
     {
-        return ownershipMap.remove(subsystem) != null;
+        // This works because of boolean short-circuiting
+        return hasOwnership(owner, subsystem) && ownershipMap.remove(subsystem) != null;
     }   //releaseOwnership
 
 }   //class TrcOwnershipManager
