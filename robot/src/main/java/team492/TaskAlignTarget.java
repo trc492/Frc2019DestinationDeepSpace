@@ -129,7 +129,7 @@ public class TaskAlignTarget
                             state, lineVector, angle);
 
                         robot.targetHeading = robot.driveBase.getHeading() + angle;
-                        robot.pidDrive.setTarget(targetX, targetY, robot.targetHeading, false, event);
+                        robot.pidDrive.setTarget(instanceName, targetX, targetY, robot.targetHeading, false, event, 0.0);
                         sm.waitForSingleEvent(event, State.DONE);
                     }
                     break;

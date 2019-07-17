@@ -164,7 +164,7 @@ public class TaskHeadingAlign
                     double turnPower = turnPidController.getOutput();
                     double xPower = robot.leftDriveStick.getXWithDeadband(true);
                     double yPower = robot.rightDriveStick.getYWithDeadband(true);
-                    robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
+                    robot.driveBase.holonomicDrive(instanceName, xPower, yPower, turnPower);
                     // Drive the elevator. Operator controls will be run by the button callbacks in teleop
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);
                     if (elevatorPower != lastElevatorPower)

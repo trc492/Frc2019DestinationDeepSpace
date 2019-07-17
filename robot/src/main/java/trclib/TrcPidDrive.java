@@ -554,7 +554,7 @@ public class TrcPidDrive
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        if (active)
+        if (active && driveBase.validateOwnership(owner))
         {
             stopPid();
             canceled = true;
@@ -714,7 +714,7 @@ public class TrcPidDrive
 
         if (maintainHeading && driveBase.supportsHolonomicDrive())
         {
-            driveBase.holonomicDrive(owner, manualX, manualY, turnPower, false, 0.0);
+            driveBase.holonomicDrive(owner, manualX, manualY, turnPower);
         }
         else if (expired || stalled || onTarget)
         {

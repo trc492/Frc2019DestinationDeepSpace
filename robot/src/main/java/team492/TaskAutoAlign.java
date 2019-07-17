@@ -105,8 +105,7 @@ public class TaskAutoAlign
     private void stop()
     {
         sm.stop();
-        robot.driveBase.stop();
-        robot.pidDrive.cancel();
+        robot.driveBase.stop(instanceName);
         setEnabled(false);
         lastElevatorPower = 0.0;
         robot.dashboard.displayPrintf(12, "Curr State: DISABLED");
@@ -210,7 +209,7 @@ public class TaskAutoAlign
                         robot.rightDriveStick.getYWithDeadband(true) :
                         yPidController.getOutput();
                     double turnPower = turnPidController.getOutput();
-                    robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
+                    robot.driveBase.holonomicDrive(instanceName, xPower, yPower, turnPower);
 
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);
                     if (elevatorPower != lastElevatorPower)
