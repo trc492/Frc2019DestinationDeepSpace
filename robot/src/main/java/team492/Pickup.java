@@ -31,12 +31,13 @@ import trclib.TrcAnalogSensor;
 import trclib.TrcAnalogTrigger;
 import trclib.TrcDigitalTrigger;
 import trclib.TrcEvent;
+import trclib.TrcExclusiveSubsystem;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
 import trclib.TrcTimer;
 import trclib.TrcUtil;
 
-public class Pickup
+public class Pickup implements TrcExclusiveSubsystem
 {
     private static final String instanceName = "Pickup";
 
@@ -184,81 +185,113 @@ public class Pickup
         return cargoSensor.isActive();
     }
 
+    public void cancel(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            setPickupPower(0.0);
+            setPitchPower(0.0);
+
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.set(true);
+            }
+
+            currentTrigger.setEnabled(false);
+            cargoTrigger.setEnabled(false);
+            timer.cancel();
+        }
+    }
+
     public void cancel()
     {
-        setPickupPower(0.0);
-        setPitchPower(0.0);
+        cancel(null);
+    }
 
-        if (onFinishedEvent != null)
+    public void deployCargo(String owner, TrcEvent event)
+    {
+        if (validateOwnership(owner))
         {
-            onFinishedEvent.set(true);
+            if (!manualOverrideEnabled)
+            {
+                if (event != null)
+                {
+                    event.clear();
+                }
+                onFinishedEvent = event;
+                cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
+                currentTrigger.setEnabled(true);
+            }
+            setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
         }
-
-        currentTrigger.setEnabled(false);
-        cargoTrigger.setEnabled(false);
-        timer.cancel();
     }
 
     public void deployCargo(TrcEvent event)
     {
-        if (!manualOverrideEnabled)
+        deployCargo(null, event);
+    }
+
+    public void deployHatch(String owner, TrcEvent event)
+    {
+        if (validateOwnership(owner))
         {
             if (event != null)
             {
                 event.clear();
             }
-            onFinishedEvent = event;
-            cargoTrigger.setEnabled(false); // make sure the cargo trigger is disabled
-            currentTrigger.setEnabled(true);
+            hatchDeployer.timedExtend(1.0, 0.0, event);
         }
-        setPickupPower(RobotInfo.PICKUP_CARGO_DEPLOY_POWER);
     }
 
     public void deployHatch(TrcEvent event)
     {
-        if (event != null)
-        {
-            event.clear();
-        }
-        hatchDeployer.timedExtend(1.0, 0.0, event);
+        deployHatch(null, event);
     }
 
-    public void pickupCargo(TrcEvent event)
+    public void pickupCargo(String owner, TrcEvent event)
     {
-        if (manualOverrideEnabled)
+        if (validateOwnership(owner))
         {
-            setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
-        }
-        else
-        {
-            if (event != null)
+            if (manualOverrideEnabled)
             {
-                event.clear();
-            }
-
-            if (cargoDetected())
-            {
-                // Return early if we already have a cargo
-                if (event != null)
-                {
-                    event.set(true);
-                }
+                setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
             }
             else
             {
                 if (event != null)
                 {
-                    // The timer will signal the event when it expires. This is a backup in case the sensor fails.
-                    // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
-                    timer.cancel();
-                    timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                    event.clear();
                 }
-                this.onFinishedEvent = event;
-                currentTrigger.setEnabled(false); // make sure the current trigger is disabled
-                cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
-                setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+
+                if (cargoDetected())
+                {
+                    // Return early if we already have a cargo
+                    if (event != null)
+                    {
+                        event.set(true);
+                    }
+                }
+                else
+                {
+                    if (event != null)
+                    {
+                        // The timer will signal the event when it expires. This is a backup in case the sensor fails.
+                        // Just call the trigger method when the timer expires. Only do this if we have an event to trigger.
+                        timer.cancel();
+                        timer.set(RobotInfo.PICKUP_CARGO_PICKUP_TIMEOUT, e -> cargoDetectedEvent(true));
+                    }
+                    this.onFinishedEvent = event;
+                    currentTrigger.setEnabled(false); // make sure the current trigger is disabled
+                    cargoTrigger.setEnabled(true); // The cargo trigger will signal the event when it detects the cargo
+                    setPickupPower(RobotInfo.PICKUP_CARGO_PICKUP_POWER);
+                }
             }
         }
+    }
+
+    public void pickupCargo(TrcEvent event)
+    {
+        pickupCargo(null, event);
     }
 
     public void pickupHatch(TrcEvent event)
@@ -270,30 +303,70 @@ public class Pickup
         }
     }
 
+    public void extendHatchGrabber(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            hatchGrabber.extend();
+        }
+    }
+
     public void extendHatchGrabber()
     {
-        hatchGrabber.extend();
+        extendHatchGrabber(null);
+    }
+
+    public void retractHatchGrabber(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            hatchGrabber.retract();
+        }
     }
 
     public void retractHatchGrabber()
     {
-        hatchGrabber.retract();
+        retractHatchGrabber(null);
+    }
+
+    public void extendHatchDeployer(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            hatchDeployer.extend();
+        }
     }
 
     public void extendHatchDeployer()
     {
-        hatchDeployer.extend();
+        extendHatchDeployer(null);
+    }
+
+    public void retractHatchDeployer(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            hatchDeployer.retract();
+        }
     }
 
     public void retractHatchDeployer()
     {
-        hatchDeployer.retract();
+        retractHatchDeployer(null);
+    }
+
+    public void setManualOverrideEnabled(String owner, boolean enabled)
+    {
+        if (validateOwnership(owner))
+        {
+            this.manualOverrideEnabled = enabled;
+            pitchController.setManualOverride(enabled);
+        }
     }
 
     public void setManualOverrideEnabled(boolean enabled)
     {
-        this.manualOverrideEnabled = enabled;
-        pitchController.setManualOverride(enabled);
+        setManualOverrideEnabled(null, enabled);
     }
 
     public void zeroCalibrate()
@@ -316,6 +389,14 @@ public class Pickup
         return pitchMotor.getPosition();
     }
 
+    public void setPickupAngle(String owner, double angle)
+    {
+        if (validateOwnership(owner))
+        {
+            pitchController.setTarget(angle, true);
+        }
+    }
+
     /**
      * Set the angle of the pickup pitch. The angle is relative to vertical.
      *
@@ -323,22 +404,29 @@ public class Pickup
      */
     public void setPickupAngle(double angle)
     {
-        pitchController.setTarget(angle, true);
-    }
-
-    public void setPickupAngle(double angle, TrcEvent onFinishedEvent)
-    {
-        setPickupAngle(angle, onFinishedEvent, 0.0);
-    }
-
-    public void setPickupAngle(double angle, TrcEvent onFinishedEvent, double timeout)
-    {
-        pitchController.setTarget(angle, onFinishedEvent, timeout);
+        setPickupAngle(null, angle);
     }
 
     public TrcPidController getPitchPidController()
     {
         return pitchPidController;
+    }
+
+    public void setPitchPower(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            power = TrcUtil.clipRange(power, -1.0, 1.0);
+            if (pitchController.isManualOverride())
+            {
+                pitchController.cancel();
+                pitchMotor.set(power);
+            }
+            else
+            {
+                pitchController.setPower(power, true);
+            }
+        }
     }
 
     /**
@@ -348,32 +436,20 @@ public class Pickup
      */
     public void setPitchPower(double power)
     {
-        setPitchPower(power, true);
+        setPitchPower(null, power);
     }
 
-    /**
-     * Set the power to the pitch motor. Positive power is a greater angle relative to vertical.
-     *
-     * @param power Power to set to the motor, in the range [-1,1].
-     * @param hold  True to hold the position when power is zero.
-     */
-    public void setPitchPower(double power, boolean hold)
+    public void setPickupPower(String owner, double power)
     {
-        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        if (pitchController.isManualOverride())
+        if (validateOwnership(owner))
         {
-            pitchController.cancel();
-            pitchMotor.set(power);
-        }
-        else
-        {
-            pitchController.setPower(power, hold);
+            power = TrcUtil.clipRange(power, -1.0, 1.0);
+            pickupMotor.set(power);
         }
     }
 
     public void setPickupPower(double power)
     {
-        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        pickupMotor.set(power);
+        setPickupPower(null, power);
     }
 }

@@ -73,6 +73,7 @@ public class TaskHeadingAlign
         this.alignToAngle = alignToAngle;
         setEnabled(true);
         robot.driveBase.acquireExclusiveAccess(instanceName);
+        robot.elevator.acquireExclusiveAccess(instanceName);
     }
 
     public void cancel()
@@ -84,6 +85,7 @@ public class TaskHeadingAlign
             lastElevatorPower = 0.0;
             turnPidController.reset();
             robot.driveBase.releaseExclusiveAccess(instanceName);
+            robot.elevator.releaseExclusiveAccess(instanceName);
         }
     }
 
@@ -169,7 +171,7 @@ public class TaskHeadingAlign
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);
                     if (elevatorPower != lastElevatorPower)
                     {
-                        robot.elevator.setPower(elevatorPower);
+                        robot.elevator.setPower(instanceName, elevatorPower);
                         lastElevatorPower = elevatorPower;
                     }
                     // This state does not exit, as it has no exit condition. The driver must release the button.
