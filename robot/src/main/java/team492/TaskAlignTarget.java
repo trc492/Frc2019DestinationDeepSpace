@@ -61,6 +61,7 @@ public class TaskAlignTarget
     public void start(TrcEvent event)
     {
         this.onFinishedEvent = event;
+        robot.driveBase.acquireExclusiveAccess(instanceName);
         setEnabled(true);
         sm.start(State.START);
     }
@@ -83,6 +84,7 @@ public class TaskAlignTarget
         robot.pidDrive.cancel();
         onFinishedEvent = null;
         setEnabled(false);
+        robot.driveBase.releaseExclusiveAccess(instanceName);
     }
 
     private void setEnabled(boolean enabled)

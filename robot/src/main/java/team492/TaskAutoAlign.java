@@ -77,6 +77,7 @@ public class TaskAutoAlign
     public void start(boolean deployAtAngle)
     {
         this.deployAtAngle = deployAtAngle;
+        robot.driveBase.acquireExclusiveAccess(instanceName);
         setEnabled(true);
     }
 
@@ -110,6 +111,7 @@ public class TaskAutoAlign
         lastElevatorPower = 0.0;
         robot.dashboard.displayPrintf(12, "Curr State: DISABLED");
         robot.globalTracer.traceInfo("AutoAlign.stop", "AutoAlign cancelled!");
+        robot.driveBase.releaseExclusiveAccess(instanceName);
     }
 
     private void setEnabled(boolean enabled)

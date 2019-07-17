@@ -40,6 +40,8 @@ public class TaskHeadingAlign
     private static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0 };
     private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
+    private static final String instanceName = "TaskHeadingAlign";
+
     private Robot robot;
     private TrcStateMachine<State> sm;
     private TrcTaskMgr.TaskObject turnTaskObj;
@@ -51,9 +53,9 @@ public class TaskHeadingAlign
     public TaskHeadingAlign(Robot robot)
     {
         this.robot = robot;
-        sm = new TrcStateMachine<>("TaskHeadingAlign.StateMachine");
-        turnTaskObj = TrcTaskMgr.getInstance().createTask("TurnTask", this::turnTask);
-        warpSpace = new TrcWarpSpace("warpSpace", 0.0, 360.0);
+        sm = new TrcStateMachine<>(instanceName + ".StateMachine");
+        turnTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".turnTask", this::turnTask);
+        warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(
             RobotInfo.GYRO_TURN_KP_SMALL, RobotInfo.GYRO_TURN_KI_SMALL, RobotInfo.GYRO_TURN_KD_SMALL);
         turnPidController = new TrcPidController("TurnPid", pidCoefficients, 1.0, robot.driveBase::getHeading);
@@ -70,6 +72,7 @@ public class TaskHeadingAlign
         turnPidController.reset();
         this.alignToAngle = alignToAngle;
         setEnabled(true);
+        robot.driveBase.acquireExclusiveAccess(instanceName);
     }
 
     public void cancel()
@@ -80,6 +83,7 @@ public class TaskHeadingAlign
             sm.stop();
             lastElevatorPower = 0.0;
             turnPidController.reset();
+            robot.driveBase.releaseExclusiveAccess(instanceName);
         }
     }
 
