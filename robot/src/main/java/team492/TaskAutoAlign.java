@@ -180,6 +180,8 @@ public class TaskAutoAlign
                     if (pose != null)
                     {
                         targetHeading = getTargetRotation();
+                        xPidController.setTarget(pose.x);
+                        yPidController.setTarget(pose.y);
                         sm.setState(State.ALIGN);
                         robot.globalTracer
                             .traceInfo("AlignTask", "State=REFRESH_VISION, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
@@ -194,9 +196,9 @@ public class TaskAutoAlign
                         pose = newPose;
                         robot.globalTracer.traceInfo("AlignTask", "State=ALIGN, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
                             robot.targetHeading);
+                        xPidController.setTarget(pose.x);
+                        yPidController.setTarget(pose.y);
                     }
-                    xPidController.setTarget(pose.x);
-                    yPidController.setTarget(pose.y);
                     if (USE_VISION_YAW)
                     {
                         turnPidController.setTarget(robot.driveBase.getHeading() + pose.objectYaw);
