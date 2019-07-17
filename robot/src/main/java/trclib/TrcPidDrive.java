@@ -99,7 +99,7 @@ public class TrcPidDrive
     private boolean turnOnly = false;
     private boolean maintainHeading = false;
     private boolean canceled = false;
-    private String owner;
+    private String owner = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -369,6 +369,19 @@ public class TrcPidDrive
         this.stallTimeout = stallTimeout;
     }   //setStallTimeout
 
+    /**
+     * This method starts a PID operation by setting the PID targets.
+     *
+     * @param owner      specifies the ID string of the caller requesting exclusive access.
+     * @param xTarget    specifies the X target position.
+     * @param yTarget    specifies the Y target position.
+     * @param turnTarget specifies the target heading.
+     * @param holdTarget specifies true for holding the target position at the end, false otherwise.
+     * @param event      specifies an event object to signal when done.
+     * @param timeout    specifies a timeout value in seconds. If the operation is not completed without the specified
+     *                   timeout, the operation will be canceled and the event will be signaled. If no timeout is
+     *                   specified, it should be set to zero.
+     */
     public synchronized void setTarget(String owner, double xTarget, double yTarget, double turnTarget,
         boolean holdTarget, TrcEvent event, double timeout)
     {
@@ -426,7 +439,7 @@ public class TrcPidDrive
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
-    }
+    }   //setTarget
 
     /**
      * This method starts a PID operation by setting the PID targets.
