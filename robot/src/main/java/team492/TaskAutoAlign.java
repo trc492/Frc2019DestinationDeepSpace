@@ -33,7 +33,7 @@ public class TaskAutoAlign
     }
 
     private static final boolean USE_VISION_YAW = false;
-    private static final boolean USE_DRIVER_Y = true;
+    private static final boolean USE_DRIVER_Y = false;
 
     private static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
@@ -62,12 +62,12 @@ public class TaskAutoAlign
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
 
         xPidController = new TrcPidController("XPid",
-            new TrcPidController.PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL), 1.0, robot.driveBase::getXPosition);
+            new TrcPidController.PidCoefficients(RobotInfo.ENCODER_X_KP), 1.0, robot.driveBase::getXPosition);
         yPidController = new TrcPidController("YPid",
             new TrcPidController.PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI,
                 RobotInfo.ENCODER_Y_KD), 1.0, robot.driveBase::getYPosition);
-//        yPidController.setOutputLimit(0.3);
-//        yPidController.setRampRate(0.2);
+        yPidController.setOutputLimit(0.1);
+        yPidController.setRampRate(0.2);
         turnPidController = new TrcPidController("TurnPid",
             new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL), 1.0, robot.driveBase::getHeading);
         turnPidController.setAbsoluteSetPoint(true);
