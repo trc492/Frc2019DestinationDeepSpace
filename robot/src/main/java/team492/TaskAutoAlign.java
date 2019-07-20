@@ -33,7 +33,7 @@ public class TaskAutoAlign
     }
 
     private static final boolean USE_VISION_YAW = false;
-    private static final boolean USE_DRIVER_Y = true;
+    private static final boolean USE_DRIVER_Y = false;
 
     private static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
@@ -69,8 +69,8 @@ public class TaskAutoAlign
         yPidController.setOutputLimit(0.1);
         yPidController.setRampRate(0.2);
         turnPidController = new TrcPidController("TurnPid",
-            new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL), 1.0, () -> robot.vision.getLastPose().theta);
-        turnPidController.setAbsoluteSetPoint(false);
+            new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL), 1.0, robot.driveBase::getHeading);
+        turnPidController.setAbsoluteSetPoint(true);
     }
 
     /**
@@ -186,7 +186,6 @@ public class TaskAutoAlign
                         robot.globalTracer
                             .traceInfo("AlignTask", "State=REFRESH_VISION, x=%.1f,y=%.1f,rot=%.1f", pose.x, pose.y,
                                 robot.targetHeading);
-                        turnPidController.setTarget(0.0);
                     }
                     break;
 
@@ -200,21 +199,20 @@ public class TaskAutoAlign
                         xPidController.setTarget(pose.x);
                         yPidController.setTarget(pose.y);
                     }
-//                    if (USE_VISION_YAW)
-//                    {
-//                        turnPidController.setTarget(robot.driveBase.getHeading() + pose.objectYaw);
-//                    }
-//                    else
-//                    {
-//                        turnPidController.setTarget(targetHeading);
-//                    }
+                    if (USE_VISION_YAW)
+                    {
+                        turnPidController.setTarget(robot.driveBase.getHeading() + pose.objectYaw);
+                    }
+                    else
+                    {
+                        turnPidController.setTarget(targetHeading);
+                    }
                     double xPower = xPidController.getOutput();
                     double yPower = USE_DRIVER_Y ?
                         robot.rightDriveStick.getYWithDeadband(true) :
                         yPidController.getOutput();
                     double turnPower = turnPidController.getOutput();
-                    //robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
-                    robot.driveBase.holonomicDrive(0, 0, turnPidController.getOutput());
+                    robot.driveBase.holonomicDrive(xPower, yPower, turnPower);
                     robot.dashboard.displayPrintf(7, "State=ALIGN, xPower=%.2f,yPower=%.2f,rotPower=%.2f", xPower, yPower, turnPower);
 
                     double elevatorPower = robot.operatorStick.getYWithDeadband(true);
