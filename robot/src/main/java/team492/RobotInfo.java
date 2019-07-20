@@ -254,7 +254,7 @@ public class RobotInfo
     public static final double PICKUP_CALIBRATE_POWER           = 0.6;
     public static final double PICKUP_MIN_POS                   = 6.0; // Perpendicular to ground
     public static final double PICKUP_MAX_POS                   = 88.71; // Parallel to ground
-    public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 5.0;
+    public static final double PICKUP_PID_FLOOR                 = PICKUP_MIN_POS - 15.0;
     public static final double PICKUP_PID_CEILING               = PICKUP_MAX_POS + 4.0;
     public static final double PICKUP_STALL_MIN_POWER           = 0.8;
     public static final double PICKUP_STALL_TIMEOUT             = 1.0;

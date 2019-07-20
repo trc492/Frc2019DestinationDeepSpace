@@ -179,6 +179,7 @@ public class Robot extends FrcRobotBase
     public double driveDistance;
     public double turnDegrees;
     public double drivePowerLimit;
+    public VisionStuff visionStuff;
     public TrcPidController.PidCoefficients tunePidCoeff;
 
     private FrcAuto autoMode;
@@ -359,6 +360,7 @@ public class Robot extends FrcRobotBase
         //
         autoAlign = new TaskAutoAlign(this);
         autoHeadingAlign = new TaskHeadingAlign(this);
+        visionStuff = new VisionStuff(this);
 
         //
         // Create Robot Modes.
@@ -724,7 +726,7 @@ public class Robot extends FrcRobotBase
      */
     public boolean isAutoActive()
     {
-        return autoMode.isAutoActive() || autoAlign.isActive() || climber.isActive() || autoHeadingAlign.isActive();
+        return autoMode.isAutoActive() || autoAlign.isActive() || climber.isActive() || autoHeadingAlign.isActive() || visionStuff.isActive();
     }
 
     public void cancelAllAuto()

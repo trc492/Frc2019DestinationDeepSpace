@@ -397,6 +397,14 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
+                if (pressed)
+                {
+                    robot.visionStuff.start();
+                }
+                else
+                {
+                    robot.visionStuff.stop();
+                }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON5:

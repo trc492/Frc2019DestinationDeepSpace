@@ -355,7 +355,7 @@ public class FrcCANSparkMax extends TrcMotor
     public double getPower()
     {
         final String funcName = "getPower";
-        double power = motor.get();
+        double power = motor.getAppliedOutput();
 
         if (debugEnabled)
         {
