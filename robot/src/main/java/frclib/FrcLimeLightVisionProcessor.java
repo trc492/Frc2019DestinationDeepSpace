@@ -22,6 +22,7 @@
 
 package frclib;
 
+import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import trclib.TrcUtil;
 
@@ -47,9 +48,10 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         }
     }
 
-    private NetworkTableEntry tv, heading, area, height, camtran;
+    private NetworkTableEntry tv, heading, area, height, camtran, ty;
     private NetworkTableEntry ledMode, pipeline;
     private DoubleUnaryOperator depthApproximator;
+    private volatile double cacheX, cacheY;
     private boolean use3D = true;
 
     public FrcLimeLightVisionProcessor(String instanceName, DoubleUnaryOperator depthApproximator)
@@ -69,6 +71,23 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
         area = super.networkTable.getEntry("ta");
         camtran = super.networkTable.getEntry("camtran");
         height = super.networkTable.getEntry("tvert");
+        ty = super.networkTable.getEntry("ty");
+
+        int flag = EntryListenerFlags.kImmediate | EntryListenerFlags.kNew | EntryListenerFlags.kUpdate;
+        heading.addListener(e -> cacheX = e.value.getDouble(), flag);
+        ty.addListener(e -> cacheY = depthApproximator != null ? depthApproximator.applyAsDouble(e.value.getDouble()) : 0.0, flag);
+    }
+
+    public double getX()
+    {
+        // TODO: Move this OUT of the frclib layer
+        return cacheX + 12.04; // technically not heading, but whatever
+    }
+
+    public double getY()
+    {
+        // this is robot y, not image y
+        return cacheY;
     }
 
     /**
@@ -87,6 +106,7 @@ public class FrcLimeLightVisionProcessor extends FrcRemoteVisionProcessor
 
     public void setDepthApproximator(DoubleUnaryOperator depthApproximator)
     {
+        // TODO: differentiate between the input variable? idk
         this.depthApproximator = depthApproximator;
     }
 
