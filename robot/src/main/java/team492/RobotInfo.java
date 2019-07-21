@@ -354,6 +354,12 @@ public class RobotInfo
 
     public static final int PANEL_BUTTON_CLIMB                  = FrcJoystick.PANEL_BUTTON_BLUE2;
 
+    public static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
+        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    public static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0,
+        270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    public static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
+
     public enum DeployLevel
     {
         LOW(0), MEDIUM(1), HIGH(2); // For rocket (cargo and hatch). Low is also cargo ship hatch.

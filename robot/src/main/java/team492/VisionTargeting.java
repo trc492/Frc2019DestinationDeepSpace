@@ -39,7 +39,7 @@ public class VisionTargeting
         vision = new FrcLimeLightVisionProcessor("LimeLight");
 
         vision.setDepthApproximator("ty", y -> -(CAMERA_HEIGHT - TARGET_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
-        vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
+        //vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         //vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }
 

@@ -53,6 +53,7 @@ import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
 import trclib.TrcUtil;
+import trclib.TrcWarpSpace;
 
 import java.util.Date;
 
@@ -750,6 +751,42 @@ public class Robot extends FrcRobotBase
         {
             autoHeadingAlign.cancel();
         }
+
+        if (visionStuff.isActive())
+        {
+            visionStuff.stop();
+        }
+    }
+
+    public double getNearestScoringAngle(boolean deployAtAngle)
+    {
+        double[] yaws;
+        if (pickup.cargoDetected())
+        {
+            yaws = RobotInfo.CARGO_YAWS;
+        }
+        else if (deployAtAngle)
+        {
+            yaws = RobotInfo.HATCH_YAWS_ANGLED;
+        }
+        else
+        {
+            yaws = RobotInfo.HATCH_YAWS_FLAT;
+        }
+
+        double currentRot = driveBase.getHeading();
+        double targetYaw = yaws[0];
+        for (double yaw : yaws)
+        {
+            yaw = TrcWarpSpace.getOptimizedTarget(yaw, currentRot, 360);
+            double error = Math.abs(yaw - currentRot);
+            double currError = Math.abs(targetYaw - currentRot);
+            if (error < currError)
+            {
+                targetYaw = yaw;
+            }
+        }
+        return targetYaw;
     }
 
     public void announceSafety()

@@ -35,12 +35,6 @@ public class TaskAutoAlign
     private static final boolean USE_VISION_YAW = false;
     private static final boolean USE_DRIVER_Y = false;
 
-    private static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
-        90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
-    private static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0,
-        270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
-    private static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
-
     private static final String instanceName = "TaskAutoAlign";
 
     private Robot robot;
@@ -127,37 +121,6 @@ public class TaskAutoAlign
         }
     }
 
-    private double getTargetRotation()
-    {
-        double[] yaws;
-        if (robot.pickup.cargoDetected())
-        {
-            yaws = CARGO_YAWS;
-        }
-        else if (deployAtAngle)
-        {
-            yaws = HATCH_YAWS_ANGLED;
-        }
-        else
-        {
-            yaws = HATCH_YAWS_FLAT;
-        }
-
-        double currentRot = robot.driveBase.getHeading();
-        double targetYaw = yaws[0];
-        for (double yaw : yaws)
-        {
-            yaw = warpSpace.getOptimizedTarget(yaw, currentRot);
-            double error = Math.abs(yaw - currentRot);
-            double currError = Math.abs(targetYaw - currentRot);
-            if (error < currError)
-            {
-                targetYaw = yaw;
-            }
-        }
-        return targetYaw;
-    }
-
     private void alignTask(TrcTaskMgr.TaskType type, TrcRobot.RunMode mode)
     {
         State state = sm.checkReadyAndGetState();
@@ -179,7 +142,7 @@ public class TaskAutoAlign
                     pose = robot.vision.getMedianPose(5, false);
                     if (pose != null)
                     {
-                        targetHeading = getTargetRotation();
+                        targetHeading = robot.getNearestScoringAngle(deployAtAngle);
                         xPidController.setTarget(pose.x);
                         yPidController.setTarget(pose.y);
                         sm.setState(State.ALIGN);
