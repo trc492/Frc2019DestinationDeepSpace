@@ -544,6 +544,9 @@ public class FrcTest extends FrcTeleOp
             {
                 robot.dashboard.displayPrintf(13, "RaspiVision: No target found!");
             }
+            robot.dashboard.displayPrintf(14, "x=%.2f,y=%.2f", robot.vision.getVision().getHeading(),
+                robot.vision.getVision().getTargetDepth());
+            robot.visionStuff.getHeading();
         }
     } // doSensorsTest
 

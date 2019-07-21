@@ -51,6 +51,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private double lastElevatorPower;
     private double lastActuatorPower;
     private TrcLoopTimeCounter loopTimeCounter;
+    private int pov = -1;
 
     public FrcTeleOp(Robot robot)
     {
@@ -160,6 +161,26 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
         if (!robot.isAutoActive() || robot.climbingButDriving)
         {
+            int pov = robot.rightDriveStick.getPOV();
+            if (pov != this.pov)
+            {
+                switch (pov)
+                {
+                    case 0:
+                        robot.vision.getVision().selectPipeline(1);
+                        break;
+
+                    case 90:
+                        robot.vision.getVision().selectPipeline(2);
+                        break;
+
+                    case 270:
+                        robot.vision.getVision().selectPipeline(0);
+                        break;
+                }
+                this.pov = pov;
+            }
+
             if (elevatorPower != lastElevatorPower)
             {
                 robot.elevator.setPower(elevatorPower);
@@ -388,18 +409,18 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.SIDEWINDER_BUTTON3:
                 if (pressed)
                 {
-                    robot.autoAlign.start(false);
+                    robot.visionStuff.start(true);
                 }
                 else
                 {
-                    robot.autoAlign.cancel();
+                    robot.visionStuff.stop();
                 }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
                 if (pressed)
                 {
-                    robot.visionStuff.start();
+                    robot.visionStuff.start(false);
                 }
                 else
                 {
@@ -622,6 +643,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_GREEN1:
+                robot.visionStuff.setAutomaticY(!pressed);
                 break;
 
             case FrcJoystick.PANEL_SWITCH_BLUE1:

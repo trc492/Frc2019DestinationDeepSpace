@@ -9,21 +9,21 @@ import trclib.TrcUtil;
 
 public class VisionStuff
 {
-    private static final double X_TAPER_LOW = 0;
-    private static final double X_TAPER_HIGH = 25;
 
     private Robot robot;
     private TrcTaskMgr.TaskObject taskObj;
     private TrcPidController xPid, yPid, turnPid;
     private TrcLoopTimeCounter loopTimer;
     private boolean active = false;
+    private boolean usePidY = true;
+    private double lastElevatorPower = 0;
 
     public VisionStuff(Robot robot)
     {
         this.robot = robot;
         taskObj = TrcTaskMgr.getInstance().createTask("VisionPid", this::pidTask);
         xPid = new TrcPidController("xpid", new TrcPidController.PidCoefficients(0.025), 1, this::getHeading);
-        yPid = new TrcPidController("ypid", new TrcPidController.PidCoefficients(0.0025), 1, this::getDistance);
+        yPid = new TrcPidController("ypid", new TrcPidController.PidCoefficients(0.0065), 1, this::getDistance);
         turnPid = new TrcPidController("turnpid", new TrcPidController.PidCoefficients(0.004), 1,
             robot.driveBase::getHeading);
         xPid.setAbsoluteSetPoint(true);
@@ -37,17 +37,20 @@ public class VisionStuff
         HalDashboard.putNumber("xout", 0.0);
         HalDashboard.putNumber("visionX", 0.0);
         HalDashboard.putNumber("scale", 0.0);
-        HalDashboard.putNumber("lf", robot.leftFrontWheel.getPower());
-        HalDashboard.putNumber("rf", robot.rightFrontWheel.getPower());
-        HalDashboard.putNumber("lr", robot.leftRearWheel.getPower());
-        HalDashboard.putNumber("rr", robot.rightRearWheel.getPower());
+        HalDashboard.putNumber("offset", 0);
+        HalDashboard.putNumber("XWithOffset", 0);
     }
 
-    public void start()
+    public void setAutomaticY(boolean enabled)
+    {
+        usePidY = enabled;
+    }
+
+    public void start(boolean deployAtAngle)
     {
         xPid.setTarget(0.0);
-        yPid.setTarget(0.0);
-        turnPid.setTarget(0.0); // TODO: nearest scoring angle
+        yPid.setTarget(13);
+        turnPid.setTarget(robot.getNearestScoringAngle(deployAtAngle));
         taskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
         active = true;
     }
@@ -64,26 +67,34 @@ public class VisionStuff
         return active;
     }
 
-    private double getHeading()
+    public double getHeading()
     {
-        return robot.vision.getLastPose().theta + 12.04;
+        if (!robot.vision.getVision().targetDetected())
+        {
+            return 0.0;
+        }
+        double offset = Math.toDegrees(Math.atan2(1, getDistance()));
+        double corrected = robot.vision.getVision().getHeading() + offset;
+        HalDashboard.putNumber("offset", offset);
+        HalDashboard.putNumber("XWithOffset", corrected);
+        return corrected;
     }
 
     private double getDistance()
     {
-        return robot.vision.getLastPose().r;
+        return robot.vision.getVision().getTargetDepth();
     }
 
-    private double getTurnOutputScale()
+    private double getOutputScale(double taperLow, double taperHigh)
     {
         double x = Math.abs(getHeading());
-        if (x > X_TAPER_HIGH)
+        if (x > taperHigh)
         {
             return 0;
         }
-        else if (x > X_TAPER_LOW)
+        else if (x > taperLow)
         {
-            return 1 - TrcUtil.scaleRange(x, X_TAPER_LOW, X_TAPER_HIGH, 0, 1);
+            return 1 - TrcUtil.scaleRange(x, taperLow, taperHigh, 0, 1);
         }
         return 1;
     }
@@ -91,19 +102,29 @@ public class VisionStuff
     private void pidTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
         double xOut = xPid.getOutput();
-        double scale = getTurnOutputScale();
-        double yOut = yPid.getOutput() * scale;
-        double rotOut = turnPid.getOutput() * scale;
-        HalDashboard.putNumber("visionX", getHeading());
+        double yOut;
+        if (usePidY)
+        {
+            yOut = yPid.getOutput() * getOutputScale(0, 25);
+        }
+        else
+        {
+            yOut = robot.rightDriveStick.getYWithDeadband(true);
+        }
+        double rotOut = turnPid.getOutput() * getOutputScale(0, 20);
+        HalDashboard.putNumber("visionX", robot.vision.getVision().getHeading());
         HalDashboard.putNumber("xout", xOut);
-        HalDashboard.putNumber("scale", scale);
-        HalDashboard.putNumber("lf", robot.leftFrontWheel.getPower());
-        HalDashboard.putNumber("rf", robot.rightFrontWheel.getPower());
-        HalDashboard.putNumber("lr", robot.leftRearWheel.getPower());
-        HalDashboard.putNumber("rr", robot.rightRearWheel.getPower());
         loopTimer.update();
         robot.driveBase.holonomicDrive(xOut, yOut, rotOut);
-        robot.dashboard.displayPrintf(14, "x=%.2f,y=%.2f,period=%.3f", getHeading(),
-            robot.vision.getVision().getTargetDepth(), loopTimer.getPeriod());
+
+        if (!usePidY)
+        {
+            double elevPower = robot.operatorStick.getYWithDeadband(true);
+            if (elevPower != lastElevatorPower)
+            {
+                robot.elevator.setPower(elevPower);
+                lastElevatorPower = elevPower;
+            }
+        }
     }
 }
