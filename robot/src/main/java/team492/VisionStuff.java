@@ -22,8 +22,8 @@ public class VisionStuff
     {
         this.robot = robot;
         taskObj = TrcTaskMgr.getInstance().createTask("VisionPid", this::pidTask);
-        xPid = new TrcPidController("xpid", new TrcPidController.PidCoefficients(0.025), 1, robot.vision.getVision()::getX);
-        yPid = new TrcPidController("ypid", new TrcPidController.PidCoefficients(0.0025), 1, robot.vision.getVision()::getY);
+        xPid = new TrcPidController("xpid", new TrcPidController.PidCoefficients(0.025), 1, this::getHeading);
+        yPid = new TrcPidController("ypid", new TrcPidController.PidCoefficients(0.0025), 1, this::getDistance);
         turnPid = new TrcPidController("turnpid", new TrcPidController.PidCoefficients(0.004), 1,
             robot.driveBase::getHeading);
         xPid.setAbsoluteSetPoint(true);
@@ -64,9 +64,19 @@ public class VisionStuff
         return active;
     }
 
+    private double getHeading()
+    {
+        return robot.vision.getLastPose().theta + 12.04;
+    }
+
+    private double getDistance()
+    {
+        return robot.vision.getLastPose().r;
+    }
+
     private double getTurnOutputScale()
     {
-        double x = Math.abs(robot.vision.getVision().getX());
+        double x = Math.abs(getHeading());
         if (x > X_TAPER_HIGH)
         {
             return 0;
@@ -84,7 +94,7 @@ public class VisionStuff
         double scale = getTurnOutputScale();
         double yOut = yPid.getOutput() * scale;
         double rotOut = turnPid.getOutput() * scale;
-        HalDashboard.putNumber("visionX", robot.vision.getVision().getX());
+        HalDashboard.putNumber("visionX", getHeading());
         HalDashboard.putNumber("xout", xOut);
         HalDashboard.putNumber("scale", scale);
         HalDashboard.putNumber("lf", robot.leftFrontWheel.getPower());
@@ -93,7 +103,7 @@ public class VisionStuff
         HalDashboard.putNumber("rr", robot.rightRearWheel.getPower());
         loopTimer.update();
         robot.driveBase.holonomicDrive(xOut, yOut, rotOut);
-        robot.dashboard.displayPrintf(14, "x=%.2f,y=%.2f,period=%.3f", robot.vision.getVision().getX(),
-            robot.vision.getVision().getY(), loopTimer.getPeriod());
+        robot.dashboard.displayPrintf(14, "x=%.2f,y=%.2f,period=%.3f", getHeading(),
+            robot.vision.getVision().getTargetDepth(), loopTimer.getPeriod());
     }
 }
