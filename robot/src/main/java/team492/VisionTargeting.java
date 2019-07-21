@@ -27,7 +27,6 @@ import frclib.FrcRemoteVisionProcessor;
 
 public class VisionTargeting
 {
-    private static final boolean USE_RASPI = false;
     private static final double CAMERA_HEIGHT = 41.25;
     private static final double TARGET_HEIGHT = 29;
     private static final double CAMERA_ANGLE = -24.7;
@@ -39,8 +38,7 @@ public class VisionTargeting
         // This equation is the best fit line for a few data points to convert target height -> depth
         vision = new FrcLimeLightVisionProcessor("LimeLight");
 
-        vision.setDepthApproximator(y -> -(CAMERA_HEIGHT - TARGET_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
-        vision.setUse3DOverride(false);
+        vision.setDepthApproximator("ty", y -> -(CAMERA_HEIGHT - TARGET_HEIGHT) / Math.tan(Math.toRadians(y + CAMERA_ANGLE)));
         vision.setOffsets(RobotInfo.CAMERA_OFFSET, RobotInfo.CAMERA_DEPTH);
         //vision.setFreshnessTimeout(RobotInfo.CAMERA_DATA_TIMEOUT);
     }

@@ -25,6 +25,7 @@ package frclib;
 import edu.wpi.first.networktables.ConnectionNotification;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.Relay;
 import trclib.TrcDbgTrace;
 import trclib.TrcRobot;
@@ -99,12 +100,6 @@ public abstract class FrcRemoteVisionProcessor
         }
     }
 
-    private void recalculatePolarCoords(RelativePose pose)
-    {
-        pose.r = TrcUtil.magnitude(pose.x, pose.y);
-        pose.theta = Math.toDegrees(Math.atan2(pose.x, pose.y));
-    }
-
     private void connectionListener(ConnectionNotification notification)
     {
         if (!notification.connected)
@@ -143,7 +138,7 @@ public abstract class FrcRemoteVisionProcessor
             // Adjust for the camera offset and recalculate polar coordinates
             relativePose.x += offsetX;
             relativePose.y += offsetY;
-            recalculatePolarCoords(relativePose);
+            relativePose.recalculatePolarCoords();
             this.relativePose = relativePose;
             synchronized (framesLock)
             {
@@ -161,6 +156,16 @@ public abstract class FrcRemoteVisionProcessor
     private boolean isFresh(RelativePose pose)
     {
         return pose != null && (timeout == 0.0 || TrcUtil.getCurrentTime() - pose.time <= timeout);
+    }
+
+    public double get(String key)
+    {
+        return networkTable.getEntry(key).getDouble(0.0);
+    }
+
+    public NetworkTableValue getValue(String key)
+    {
+        return networkTable.getEntry(key).getValue();
     }
 
     /**
@@ -294,5 +299,11 @@ public abstract class FrcRemoteVisionProcessor
     {
         public double r, theta, objectYaw, x, y;
         public double time;
+
+        public void recalculatePolarCoords()
+        {
+            r = TrcUtil.magnitude(x, y);
+            theta = Math.toDegrees(Math.atan2(x, y));
+        }
     }
 }
