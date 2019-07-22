@@ -120,33 +120,6 @@ public class RobotInfo
     //
     // Vision subsystem.
     //
-    public static final int PIXYCAM_WIDTH                       = 320;
-    public static final int PIXYCAM_HEIGHT                      = 200;
-    public static final int PIXY_BRIGHTNESS                     = 80;
-    public static final double PIXY_CAM_OFFSET                  = 8.0;
-    public static final PixyVision.Orientation PIXY_ORIENTATION = PixyVision.Orientation.NORMAL_LANDSCAPE;
-    public static final int PIXYCAM_I2C_ADDRESS                 = FrcPixyCam1.DEF_I2C_ADDRESS;
-    public static final int PIXY_TARGET_SIGNATURE               = 1;
-    //
-    // Pixy line following subsystem
-    // PIXY2_LINE_TRACKING_HEIGHT and PIXY2_LINE_TRACKING_WIDTH are the dimensions of the Pixy2's line-tracking resolution.
-    // Source: https://docs.pixycam.com/wiki/doku.php?id=wiki:v2:line_api
-    //
-    public static final double PIXY2_LINE_TRACKING_HEIGHT        = 51.0; // in pixels.
-    public static final double PIXY2_LINE_TRACKING_WIDTH         = 78.0; // in pixels.
-    public static final double PIXY2_LINE_TRACK_MID_WIDTH_OFFST  = 0.0;  // in pixels.
-    public static final double PIXY2_LINE_TRACK_MID_HEIGHT_OFFST = 0.0;  // in pixels.
-    // These should be in real-world robot coordinates. Needs calibration after camera is actually mounted in position.
-    // TODO: Tune all of this
-    public static final double PIXYCAM_WORLD_TOPLEFT_X          = -61.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPLEFT_Y          = 83.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_X         = 33.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_TOPRIGHT_Y         = 83.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMLEFT_X       = -39.5;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMLEFT_Y       = 19.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_X      = 12.0;   // in real-world units.
-    public static final double PIXYCAM_WORLD_BOTTOMRIGHT_Y      = 19.0;   // in real-world units.
-
     public static final double CAMERA_DEPTH                     = -17; // Inches from center of EE to center of camera, + = forward
     public static final double CAMERA_OFFSET                    = 3; // Inches from center of EE to center of camera, + = right
     public static final double CAMERA_PITCH                     = 0.0; // Down is positive

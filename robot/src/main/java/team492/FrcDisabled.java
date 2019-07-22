@@ -42,7 +42,7 @@ public class FrcDisabled implements TrcRobot.RobotMode
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         robot.cancelAllAuto();
-        if (Robot.USE_VISION_TARGETING)
+        if (robot.vision != null)
         {
             robot.vision.setRingLightEnabled(false);
         }

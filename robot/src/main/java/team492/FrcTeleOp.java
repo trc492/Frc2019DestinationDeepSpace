@@ -87,7 +87,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         driveSpeed = DriveSpeed.MEDIUM;
 
-        if (Robot.USE_VISION_TARGETING)
+        if (robot.vision != null)
         {
             robot.vision.setRingLightEnabled(true);
         }
@@ -108,7 +108,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
     private void showStatus()
     {
-        if (Robot.USE_VISION_TARGETING)
+        if (robot.vision != null)
         {
             FrcRemoteVisionProcessor.RelativePose pose = robot.vision.getLastPose();
             HalDashboard.putBoolean("Status/TapeDetected", pose != null);
@@ -150,12 +150,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
         robot.announceSafety();
-
-        if (robot.pixy != null && robot.pixy.isEnabled())
-        {
-            // Force update of LEDs
-            robot.pixy.getTargetInfo();
-        }
 
         // Give drivers control only if auto deploy not active, or auto cancelled. AutoDeploy
         // is cancelled only by operator or completion. Other autos can be cancelled by driver moving the joystick.
@@ -230,10 +224,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
-                        }
+                        robot.driveBase.tankDrive(leftPower, rightPower, robot.driveInverted);
                         break;
 
                     case ARCADE_MODE:
@@ -257,10 +248,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
-                        }
+                        robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
                         break;
 
                     case MECANUM_MODE:
@@ -288,10 +276,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                                 break;
                         }
 
-                        if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                        {
-                            robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
-                        }
+                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
                         break;
                 }
             }
@@ -409,22 +394,22 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.SIDEWINDER_BUTTON3:
                 if (pressed)
                 {
-                    robot.visionStuff.start(true);
+                    robot.visionAlign.start(true);
                 }
                 else
                 {
-                    robot.visionStuff.stop();
+                    robot.visionAlign.stop();
                 }
                 break;
 
             case FrcJoystick.SIDEWINDER_BUTTON4:
                 if (pressed)
                 {
-                    robot.visionStuff.start(false);
+                    robot.visionAlign.start(false);
                 }
                 else
                 {
-                    robot.visionStuff.stop();
+                    robot.visionAlign.stop();
                 }
                 break;
 
@@ -643,7 +628,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.PANEL_SWITCH_GREEN1:
-                robot.visionStuff.setAutomaticY(!pressed);
+                robot.visionAlign.setAutomaticY(!pressed);
                 break;
 
             case FrcJoystick.PANEL_SWITCH_BLUE1:

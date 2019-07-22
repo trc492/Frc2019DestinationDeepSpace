@@ -29,7 +29,6 @@ import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
-import team492.PixyVision.TargetInfo;
 import trclib.TrcEvent;
 import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
@@ -42,7 +41,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, SPARK_FOLLOW_TEST, PIXY_LINE_FOLLOW_TEST, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
     } // enum Test
 
     private enum State
@@ -62,7 +61,6 @@ public class FrcTest extends FrcTeleOp
 
     private CmdTimedDrive timedDriveCommand = null;
     private CmdPidDrive pidDriveCommand = null;
-    private SparkMaxFollowTest sparkTest = null;
 
     private int motorIndex = 0;
 
@@ -92,8 +90,6 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune X PID", FrcTest.Test.TUNE_X_PID);
         testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
         testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
-        testMenu.addChoice("Spark Follow Test", Test.SPARK_FOLLOW_TEST);
-        testMenu.addChoice("Pixy Line Magic", FrcTest.Test.PIXY_LINE_FOLLOW_TEST);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
     } // FrcTest
 
@@ -184,13 +180,6 @@ public class FrcTest extends FrcTeleOp
                     robot.drivePowerLimit, true);
                 break;
 
-            case SPARK_FOLLOW_TEST:
-                sparkTest.start();
-                break;
-
-            case PIXY_LINE_FOLLOW_TEST:
-                break;
-
             case LIVE_WINDOW:
                 liveWindowEnabled = true;
                 break;
@@ -272,26 +261,6 @@ public class FrcTest extends FrcTeleOp
                 pidDriveCommand.cmdPeriodic(elapsedTime);
                 break;
 
-            case PIXY_LINE_FOLLOW_TEST:
-                if (robot.pixy == null)
-                {
-                    robot.dashboard.displayPrintf(2, "Error: PixyVision not initialized.");
-                }
-                else
-                {
-                    Vector lineVector = robot.pixy.getLineVector();
-                    if (lineVector == null)
-                    {
-                        robot.dashboard.displayPrintf(2, "No lines detected!");
-                    }
-                    else
-                    {
-                        double angle = robot.pixy.getVectorAngle(lineVector);
-                        robot.dashboard.displayPrintf(2, "Line found! line=%s, angle=%.2f", lineVector, angle);
-                    }
-                }
-                break;
-
             default:
                 break;
         }
@@ -309,10 +278,6 @@ public class FrcTest extends FrcTeleOp
     {
         switch (test)
         {
-            case SPARK_FOLLOW_TEST:
-                sparkTest.stop();
-                break;
-
             default:
                 break;
         }
@@ -494,35 +459,6 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b,PIDOut=%.2f,Power=%.2f", robot.pickup.isLowerLimitSwitchActive(),
                 robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
                 robot.pickup.getPickupAngle(), robot.pickup.cargoDetected(), robot.pickup.getPitchPidController().getOutput(), robot.pickup.getPitchPower());
-        if (robot.pixy != null)
-        {
-            if (Robot.USE_PIXY_LINE_TARGET)
-            {
-                Vector vector = robot.pixy.getLineVector();
-                if (vector == null)
-                {
-                    robot.dashboard.displayPrintf(7, "Pixy: line not found");
-                }
-                else
-                {
-                    robot.dashboard.displayPrintf(7, "Pixy: %s", vector);
-                }
-            }
-            else
-            {
-                TargetInfo targetInfo = robot.pixy.getTargetInfo();
-                if (targetInfo == null)
-                {
-                    robot.dashboard.displayPrintf(7, "Pixy: target not found");
-                }
-                else
-                {
-                    robot.dashboard
-                        .displayPrintf(7, "Pixy: x=%.1f,y=%.1f,angle=%.1f", targetInfo.xDistance, targetInfo.yDistance,
-                            targetInfo.angle);
-                }
-            }
-        }
 
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);
@@ -546,7 +482,7 @@ public class FrcTest extends FrcTeleOp
             }
             robot.dashboard.displayPrintf(14, "x=%.2f,y=%.2f", robot.vision.getVision().getHeading(),
                 robot.vision.getVision().getTargetDepth());
-            robot.visionStuff.getHeading();
+            robot.visionAlign.getHeading();
         }
     } // doSensorsTest
 

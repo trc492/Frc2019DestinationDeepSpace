@@ -7,7 +7,7 @@ import trclib.TrcRobot;
 import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
-public class VisionStuff
+public class VisionAlign
 {
 
     private Robot robot;
@@ -18,7 +18,7 @@ public class VisionStuff
     private boolean usePidY = true;
     private double lastElevatorPower = 0;
 
-    public VisionStuff(Robot robot)
+    public VisionAlign(Robot robot)
     {
         this.robot = robot;
         taskObj = TrcTaskMgr.getInstance().createTask("VisionPid", this::pidTask);
