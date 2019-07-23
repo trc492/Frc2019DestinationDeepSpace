@@ -22,6 +22,10 @@
 
 package trclib;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.linear.RealVector;
+
 /**
  * This class implements a platform independent mecanum drive base. A mecanum drive base consists of 4 motor driven
  * wheels. It extends the TrcSimpleDriveBase class so it inherits all the SimpleDriveBase methods and features.
@@ -31,16 +35,14 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel mecanum drive base.
      *
-     * @param leftFrontMotor specifies the left front motor of the drive base.
-     * @param leftRearMotor specifies the left rear motor of the drive base.
+     * @param leftFrontMotor  specifies the left front motor of the drive base.
+     * @param leftRearMotor   specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor specifies the right rear motor of the drive base.
-     * @param gyro specifies the gyro. If none, it can be set to null.
+     * @param rightRearMotor  specifies the right rear motor of the drive base.
+     * @param gyro            specifies the gyro. If none, it can be set to null.
      */
-    public TrcMecanumDriveBase(
-        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
-        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor,
-        TrcGyro gyro)
+    public TrcMecanumDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor, TrcGyro gyro)
     {
         super(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, gyro);
     }   //TrcMecanumDriveBase
@@ -48,13 +50,12 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel mecanum drive base.
      *
-     * @param leftFrontMotor specifies the left front motor of the drive base.
-     * @param leftRearMotor specifies the left rear motor of the drive base.
+     * @param leftFrontMotor  specifies the left front motor of the drive base.
+     * @param leftRearMotor   specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param rightRearMotor  specifies the right rear motor of the drive base.
      */
-    public TrcMecanumDriveBase(
-        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+    public TrcMecanumDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
         TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor)
     {
         super(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, null);
@@ -76,10 +77,10 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
      * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
      * gyroAngle specifies the heading the robot should maintain.
      *
-     * @param x specifies the x power.
-     * @param y specifies the y power.
-     * @param rotation specifies the rotating power.
-     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
+     * @param x         specifies the x power.
+     * @param y         specifies the y power.
+     * @param rotation  specifies the rotating power.
+     * @param inverted  specifies true to invert control (i.e. robot front becomes robot back).
      * @param gyroAngle specifies the gyro angle to maintain.
      */
     @Override
@@ -89,8 +90,8 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "x=%f,y=%f,rot=%f,inverted=%s,angle=%f",
-                                x, y, rotation, Boolean.toString(inverted), gyroAngle);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "x=%f,y=%f,rot=%f,inverted=%s,angle=%f", x, y,
+                rotation, Boolean.toString(inverted), gyroAngle);
         }
 
         x = TrcUtil.clipRange(x);
@@ -105,8 +106,8 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
 
         double cosA = Math.cos(Math.toRadians(gyroAngle));
         double sinA = Math.sin(Math.toRadians(gyroAngle));
-        double x1 = x*cosA - y*sinA;
-        double y1 = x*sinA + y*cosA;
+        double x1 = x * cosA - y * sinA;
+        double y1 = x * sinA + y * cosA;
 
         if (isGyroAssistEnabled())
         {
@@ -169,33 +170,31 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
         // Call super class to update Y and rotation odometry.
         //
         super.updateOdometry(odometry);
-        //
-        // According to RobotDrive.mecanumDrive_Cartesian in WPILib:
-        //
-        // LF =  x + y + rot    RF = -x + y - rot
-        // LR = -x + y + rot    RR =  x + y - rot
-        //
-        // (LF + RR) - (RF + LR) = (2x + 2y) - (-2x + 2y)
-        // => (LF + RR) - (RF + LR) = 4x
-        // => x = ((LF + RR) - (RF + LR))/4
-        //
-        // LF + RF + LR + RR = 4y
-        // => y = (LF + RF + LR + RR)/4
-        //
-        // (LF + LR) - (RF + RR) = (2y + 2rot) - (2y - 2rot)
-        // => (LF + LR) - (RF + RR) = 4rot
-        // => rot = ((LF + LR) - (RF + RR))/4
-        //
-        odometry.xRawPos = TrcUtil.average(
-                odometry.currPositions[MotorType.LEFT_FRONT.value],
-                odometry.currPositions[MotorType.RIGHT_REAR.value],
-                -odometry.currPositions[MotorType.RIGHT_FRONT.value],
-                -odometry.currPositions[MotorType.LEFT_REAR.value]);
-        odometry.xRawVel = TrcUtil.average(
-                odometry.currVelocities[MotorType.LEFT_FRONT.value],
-                odometry.currVelocities[MotorType.RIGHT_REAR.value],
-                -odometry.currVelocities[MotorType.RIGHT_FRONT.value],
-                -odometry.currVelocities[MotorType.LEFT_REAR.value]);
+
+        double[] motorPosDiff = new double[odometry.currPositions.length];
+        for (int i = 0; i < motorPosDiff.length; i++)
+        {
+            motorPosDiff[i] = odometry.currPositions[i] - odometry.prevPositions[i];
+        }
+
+        RealMatrix rotationMatrix = TrcUtil.createCCWRotationMatrix(getHeading());
+
+        double xPosRobot = TrcUtil
+            .average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value],
+                -motorPosDiff[MotorType.RIGHT_FRONT.value], -motorPosDiff[MotorType.LEFT_REAR.value]);
+
+        RealVector robotDisplacement = MatrixUtils.createRealVector(new double[] { xPosRobot, 0 });
+        RealVector globalDisplacement = rotationMatrix.operate(robotDisplacement);
+        odometry.xRawPos += globalDisplacement.getEntry(0);
+        odometry.yRawPos += globalDisplacement.getEntry(1);
+
+        double xVelRobot = TrcUtil.average(odometry.currVelocities[MotorType.LEFT_FRONT.value],
+            odometry.currVelocities[MotorType.RIGHT_REAR.value], -odometry.currVelocities[MotorType.RIGHT_FRONT.value],
+            -odometry.currVelocities[MotorType.LEFT_REAR.value]);
+        RealVector robotVel = MatrixUtils.createRealVector(new double[] { xVelRobot, 0 });
+        RealVector globalVel = rotationMatrix.operate(robotVel);
+        odometry.xRawVel = globalVel.getEntry(0);
+        odometry.yRawVel = globalVel.getEntry(1);
     }   //updateOdometry
 
 }   //class TrcMecanumDriveBase
