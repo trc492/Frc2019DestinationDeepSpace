@@ -142,7 +142,6 @@ public class Climber implements TrcExclusiveSubsystem
     {
         sm.start(State.PREP_ELEVATOR);
         robot.elevator.acquireExclusiveAccess(instanceName);
-        robot.driveBase.acquireExclusiveAccess(instanceName);
         acquireExclusiveAccess(instanceName);
         robot.pickup.acquireExclusiveAccess(instanceName);
         setEnabled(true);
@@ -259,6 +258,8 @@ public class Climber implements TrcExclusiveSubsystem
 
                     robot.elevator.setManualOverrideEnabled(instanceName, true);
                     robot.pickup.setManualOverrideEnabled(instanceName, true);
+
+                    robot.driveBase.acquireExclusiveAccess(instanceName);
 
                     sm.setState(State.MANUAL_CLIMB);
                     break;
