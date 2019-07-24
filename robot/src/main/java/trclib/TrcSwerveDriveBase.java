@@ -325,12 +325,6 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         }
     }   //holonomicDrive
 
-    private RealVector toVector(double r, double theta)
-    {
-        double thetaRad = Math.toRadians(theta);
-        return MatrixUtils.createRealVector(new double[] { r * Math.sin(thetaRad), r * Math.cos(thetaRad) });
-    }
-
     /**
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
@@ -356,8 +350,8 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             double pos = modules[i].getPosition();
             double posDiff = pos - lastWheelPos[i];
             lastWheelPos[i] = pos;
-            wheelVectors[i] = toVector(posDiff, angle).mapMultiply(xScale); // x and y scales are same
-            wheelVelocities[i] = toVector(modules[i].getVelocity(), angle).mapMultiply(xScale);
+            wheelVectors[i] = TrcUtil.polarToCartesian(posDiff, angle).mapMultiply(xScale); // x and y scales are same
+            wheelVelocities[i] = TrcUtil.polarToCartesian(modules[i].getVelocity(), angle).mapMultiply(xScale);
         }
 
         RealVector posSum = new ArrayRealVector(2);

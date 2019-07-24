@@ -573,6 +573,19 @@ public class TrcUtil
     }   //bytesToShort
 
     /**
+     * Convert a point from a polar coordinate system to a cartesian coordinate system.
+     *
+     * @param r Magnitude of vector
+     * @param theta Direction of vector, in degrees clockwise from 0 (+y)
+     * @return Vector in a cartesian coordinate system representing the same point.
+     */
+    public static RealVector polarToCartesian(double r, double theta)
+    {
+        double thetaRad = Math.toRadians(theta);
+        return MatrixUtils.createRealVector(new double[] { r * Math.sin(thetaRad), r * Math.cos(thetaRad) });
+    }
+
+    /**
      * Rotate a point counter-clockwise about the origin.
      *
      * @param vector The vector to rotate.

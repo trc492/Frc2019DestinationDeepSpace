@@ -162,35 +162,18 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     @Override
     protected Odometry updateOdometry(MotorValues motorValues)
     {
+        // Get y and turn data from the super class
+        Odometry odometry = super.updateOdometry(motorValues);
 
-        double[] motorPosDiff = new double[motorValues.currPositions.length];
-        for (int i = 0; i < motorPosDiff.length; i++)
-        {
-            motorPosDiff[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
-        }
-
-        Odometry odometry = new Odometry();
-
-        odometry.xPos = xScale * TrcUtil
-            .average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value],
-                -motorPosDiff[MotorType.RIGHT_FRONT.value], -motorPosDiff[MotorType.LEFT_REAR.value]);
-        odometry.yPos = yScale * TrcUtil.average(motorPosDiff);
+        odometry.xPos = xScale * TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value],
+            motorValues.motorPosDiffs[MotorType.RIGHT_REAR.value],
+            -motorValues.motorPosDiffs[MotorType.RIGHT_FRONT.value],
+            -motorValues.motorPosDiffs[MotorType.LEFT_REAR.value]);
 
         odometry.xVel = xScale * TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
             motorValues.currVelocities[MotorType.RIGHT_REAR.value],
             -motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
             -motorValues.currVelocities[MotorType.LEFT_REAR.value]);
-        odometry.yVel = yScale * TrcUtil.average(motorValues.currVelocities);
-
-        double l = TrcUtil.average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.LEFT_REAR.value]);
-        double r = TrcUtil.average(motorPosDiff[MotorType.RIGHT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value]);
-        odometry.heading = (l - r) * rotScale;
-
-        double lVel = TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
-            motorValues.currVelocities[MotorType.LEFT_REAR.value]);
-        double rVel = TrcUtil.average(motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
-            motorValues.currVelocities[MotorType.RIGHT_REAR.value]);
-        odometry.turnRate = (lVel - rVel) * rotScale;
 
         return odometry;
     }   //updateOdometry

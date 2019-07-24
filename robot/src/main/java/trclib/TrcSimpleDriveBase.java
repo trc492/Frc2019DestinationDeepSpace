@@ -331,22 +331,16 @@ public class TrcSimpleDriveBase extends TrcDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
 
-        double[] motorPosDiff = new double[motorValues.currPositions.length];
-        for (int i = 0; i < motorPosDiff.length; i++)
-        {
-            motorPosDiff[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
-        }
-
         Odometry odometry = new Odometry();
 
         odometry.xPos = 0;
-        odometry.yPos = TrcUtil.average(motorPosDiff) * yScale;
+        odometry.yPos = TrcUtil.average(motorValues.motorPosDiffs) * yScale;
 
         odometry.xVel = 0;
         odometry.yVel = TrcUtil.average(motorValues.currVelocities) * xScale;
 
-        double l = TrcUtil.average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.LEFT_REAR.value]);
-        double r = TrcUtil.average(motorPosDiff[MotorType.RIGHT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value]);
+        double l = TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value], motorValues.motorPosDiffs[MotorType.LEFT_REAR.value]);
+        double r = TrcUtil.average(motorValues.motorPosDiffs[MotorType.RIGHT_FRONT.value], motorValues.motorPosDiffs[MotorType.RIGHT_REAR.value]);
         odometry.heading = (l - r) * rotScale;
 
         double lVel = TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],

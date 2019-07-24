@@ -57,6 +57,7 @@ public abstract class TrcDriveBase
         public double[] currVelocities;
         public double[] prevPositions;
         public double[] stallStartTimes;
+        public double[] motorPosDiffs;
     }
 
     /**
@@ -1043,6 +1044,8 @@ public abstract class TrcDriveBase
                 {
                     motorValues.currPositions[i] = 0;
                 }
+
+                motorValues.motorPosDiffs[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
 
                 try
                 {
