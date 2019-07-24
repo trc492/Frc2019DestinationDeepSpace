@@ -22,6 +22,9 @@
 
 package trclib;
 
+import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealVector;
+
 /**
  * This class implements a platform independent drive base. It is intended to be extended by subclasses that
  * implements different drive base configurations (e.g. SimpleDriveBase, MecanumDriveBase and SwerveDriveBase).
@@ -41,23 +44,27 @@ public abstract class TrcDriveBase
 
     protected class Odometry
     {
+        public double xPos, yPos;
+        public double xVel, yVel;
+        public double heading, turnRate;
+    }   //class Odometry
+
+    protected class MotorValues
+    {
         public double prevTimestamp;
         public double currTimestamp;
         public double[] currPositions;
         public double[] currVelocities;
         public double[] prevPositions;
         public double[] stallStartTimes;
-        public double xRawPos, yRawPos, rotRawPos;
-        public double xRawVel, yRawVel;
-        public double gyroHeading, gyroTurnRate;
-    }   //class Odometry
+    }
 
     /**
      * This method is called periodically to monitor the position sensors to update the odometry data.
      *
-     * @param odometry specifies the odometry object to be updated.
+     * @param values specifies the MotorValues object containing the relevant data.
      */
-    protected abstract void updateOdometry(Odometry odometry);
+    protected abstract Odometry updateOdometry(MotorValues values);
 
     /**
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
@@ -94,7 +101,8 @@ public abstract class TrcDriveBase
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
     private final Odometry odometry;
-    private double xScale, yScale, rotScale;
+    private final MotorValues motorValues;
+    protected double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
     private TrcTaskMgr.TaskObject stopTaskObj;
     protected MotorPowerMapper motorPowerMapper = null;
@@ -103,6 +111,7 @@ public abstract class TrcDriveBase
     private double gyroMaxRotationRate = 0.0;
     private double gyroAssistKp = 1.0;
     private boolean gyroAssistEnabled = false;
+    private TrcPose2D referenceFrame = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -123,10 +132,11 @@ public abstract class TrcDriveBase
         this.gyro = gyro;
 
         odometry = new Odometry();
-        odometry.currPositions = new double[motors.length];
-        odometry.currVelocities = new double[motors.length];
-        odometry.prevPositions = new double[motors.length];
-        odometry.stallStartTimes = new double[motors.length];
+        motorValues = new MotorValues();
+        motorValues.currPositions = new double[motors.length];
+        motorValues.currVelocities = new double[motors.length];
+        motorValues.prevPositions = new double[motors.length];
+        motorValues.stallStartTimes = new double[motors.length];
         resetOdometry(true, true);
         xScale = yScale = rotScale = 1.0;
         resetStallTimer();
@@ -178,6 +188,34 @@ public abstract class TrcDriveBase
         this(motors, null);
     }   //TrcDriveBase
 
+    public TrcPose2D getGlobalPose()
+    {
+        synchronized (odometry)
+        {
+            return new TrcPose2D(odometry.xPos, odometry.yPos, odometry.heading, odometry.xVel, odometry.yVel);
+        }
+    }
+
+    public TrcPose2D getRelativePose()
+    {
+        return referenceFrame == null ? getGlobalPose() : getPoseRelativeTo(referenceFrame);
+    }
+
+    public TrcPose2D getPoseRelativeTo(TrcPose2D pose)
+    {
+        return getGlobalPose().inReferenceFrameOf(pose);
+    }
+
+    public void saveReferenceFrame()
+    {
+        referenceFrame = getGlobalPose();
+    }
+
+    public void clearReferenceFrame()
+    {
+        referenceFrame = null;
+    }
+
     /**
      * This method sets the position scales. The raw position from the encoder is in encoder counts. By setting the
      * scale factor, one could make getPosition to return unit in inches, for example.
@@ -226,78 +264,6 @@ public abstract class TrcDriveBase
     }   //setPositionScales
 
     /**
-     * This method returns the raw X position in raw sensor unit.
-     *
-     * @return raw X position.
-     */
-    public double getRawXPosition()
-    {
-        final String funcName = "getRawXPosition";
-        final double pos;
-
-        synchronized (odometry)
-        {
-            pos = odometry.xRawPos;
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", pos);
-        }
-
-        return pos;
-    }   //getRawXPosition
-
-    /**
-     * This method returns the raw Y position in raw sensor unit.
-     *
-     * @return raw Y position.
-     */
-    public double getRawYPosition()
-    {
-        final String funcName = "getRawYPosition";
-        final double pos;
-
-        synchronized (odometry)
-        {
-            pos = odometry.yRawPos;
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", pos);
-        }
-
-        return pos;
-    }   //getRawYPosition
-
-    /**
-     * This method returns the raw rotation position in raw sensor unit.
-     *
-     * @return raw rotation position.
-     */
-    public double getRawRotationPosition()
-    {
-        final String funcName = "getRawRotationPosition";
-        final double pos;
-
-        synchronized (odometry)
-        {
-            pos = odometry.rotRawPos;
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", pos);
-        }
-
-        return pos;
-    }   //getRawRotationPosition
-
-    /**
      * This method returns the X position in scaled unit.
      *
      * @return X position.
@@ -307,10 +273,7 @@ public abstract class TrcDriveBase
         final String funcName = "getXPosition";
         final double pos;
 
-        synchronized (odometry)
-        {
-            pos = odometry.xRawPos * xScale;
-        }
+        pos = getRelativePose().x;
 
         if (debugEnabled)
         {
@@ -331,10 +294,7 @@ public abstract class TrcDriveBase
         final String funcName = "getYPosition";
         double pos;
 
-        synchronized (odometry)
-        {
-            pos = odometry.yRawPos * yScale;
-        }
+        pos = getRelativePose().y;
 
         if (debugEnabled)
         {
@@ -344,30 +304,6 @@ public abstract class TrcDriveBase
 
         return pos;
     }   //getYPosition
-
-    /**
-     * This method returns the rotation position in scaled unit.
-     *
-     * @return rotation position.
-     */
-    public double getRotationPosition()
-    {
-        final String funcName = "getRotationPosition";
-        final double pos;
-
-        synchronized (odometry)
-        {
-            pos = odometry.rotRawPos * rotScale;
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%f", pos);
-        }
-
-        return pos;
-    }   //getRotationPosition
 
     /**
      * This method returns the heading of the drive base in degrees. If there is a gyro, the gyro heading is returned,
@@ -382,7 +318,7 @@ public abstract class TrcDriveBase
 
         synchronized (odometry)
         {
-            heading = gyro != null ? odometry.gyroHeading : odometry.rotRawPos * rotScale;
+            heading = odometry.heading;
         }
 
         if (debugEnabled)
@@ -404,10 +340,7 @@ public abstract class TrcDriveBase
         final String funcName = "getXVelocity";
         final double vel;
 
-        synchronized (odometry)
-        {
-            vel = odometry.xRawVel * xScale;
-        }
+        vel = getRelativePose().xVel;
 
         if (debugEnabled)
         {
@@ -428,10 +361,7 @@ public abstract class TrcDriveBase
         final String funcName = "getYVelocity";
         final double vel;
 
-        synchronized (odometry)
-        {
-            vel = odometry.yRawVel * yScale;
-        }
+        vel = getRelativePose().yVel;
 
         if (debugEnabled)
         {
@@ -454,7 +384,7 @@ public abstract class TrcDriveBase
 
         synchronized (odometry)
         {
-            turnRate = odometry.gyroTurnRate;
+            turnRate = odometry.turnRate;
         }
 
         if (debugEnabled)
@@ -482,26 +412,28 @@ public abstract class TrcDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
+        clearReferenceFrame();
+
         synchronized (odometry)
         {
-            odometry.prevTimestamp = odometry.currTimestamp = TrcUtil.getCurrentTime();
+            motorValues.prevTimestamp = motorValues.currTimestamp = TrcUtil.getCurrentTime();
 
             for (int i = 0; i < motors.length; i++)
             {
                 motors[i].resetPosition(hardware);
-                odometry.currPositions[i] = 0.0;
-                odometry.currVelocities[i] = 0.0;
-                odometry.prevPositions[i] = 0.0;
-                odometry.stallStartTimes[i] = odometry.currTimestamp;
+                motorValues.currPositions[i] = 0.0;
+                motorValues.currVelocities[i] = 0.0;
+                motorValues.prevPositions[i] = 0.0;
+                motorValues.stallStartTimes[i] = motorValues.currTimestamp;
             }
 
-            odometry.xRawPos = odometry.yRawPos = odometry.rotRawPos = 0.0;
-            odometry.xRawVel = odometry.yRawVel = 0.0;
+            odometry.xPos = odometry.yPos = 0.0;
+            odometry.xVel = odometry.yVel = 0.0;
 
             if (gyro != null && resetGyro)
             {
                 gyro.resetZIntegrator();
-                odometry.gyroHeading = odometry.gyroTurnRate = 0.0;
+                odometry.heading = odometry.turnRate = 0.0;
             }
         }
 
@@ -722,7 +654,7 @@ public abstract class TrcDriveBase
 
         synchronized (odometry)
         {
-            stalled = currTime - odometry.stallStartTimes[index] > stallTime;
+            stalled = currTime - motorValues.stallStartTimes[index] > stallTime;
         }
 
         if (debugEnabled)
@@ -751,9 +683,9 @@ public abstract class TrcDriveBase
         {
             double currTime = TrcUtil.getCurrentTime();
 
-            for (int i = 0; i < odometry.stallStartTimes.length; i++)
+            for (int i = 0; i < motorValues.stallStartTimes.length; i++)
             {
-                odometry.stallStartTimes[i] = currTime;
+                motorValues.stallStartTimes[i] = currTime;
             }
         }
     }   //resetStallTimer
@@ -776,7 +708,7 @@ public abstract class TrcDriveBase
 
         synchronized (odometry)
         {
-            for (int i = 0; i < odometry.stallStartTimes.length; i++)
+            for (int i = 0; i < motorValues.stallStartTimes.length; i++)
             {
                 if (!isMotorStalled(i, stallTime))
                 {
@@ -1080,7 +1012,7 @@ public abstract class TrcDriveBase
     }   //holonomicDrive_Polar
 
     /**
-     * This method is called periodically to update the drive base odometry (xPos, yPos, rotPos, gyroHeading).
+     * This method is called periodically to update the drive base odometry (xPos, yPos, rotPos, heading).
      *
      * @param taskType specifies the type of task being run.
      * @param runMode  specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
@@ -1096,44 +1028,56 @@ public abstract class TrcDriveBase
 
         synchronized (odometry)
         {
-            odometry.prevTimestamp = odometry.currTimestamp;
-            odometry.currTimestamp = TrcUtil.getCurrentTime();
+            motorValues.prevTimestamp = motorValues.currTimestamp;
+            motorValues.currTimestamp = TrcUtil.getCurrentTime();
 
             for (int i = 0; i < motors.length; i++)
             {
-                odometry.prevPositions[i] = odometry.currPositions[i];
+                motorValues.prevPositions[i] = motorValues.currPositions[i];
 
                 try
                 {
-                    odometry.currPositions[i] = motors[i].getPosition();
+                    motorValues.currPositions[i] = motors[i].getPosition();
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    odometry.currPositions[i] = 0;
+                    motorValues.currPositions[i] = 0;
                 }
 
                 try
                 {
-                    odometry.currVelocities[i] = motors[i].getVelocity();
+                    motorValues.currVelocities[i] = motors[i].getVelocity();
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    odometry.currVelocities[i] = 0;
+                    motorValues.currVelocities[i] = 0;
                 }
 
-                if (odometry.currPositions[i] != odometry.prevPositions[i] || motors[i].getPower() == 0.0)
+                if (motorValues.currPositions[i] != motorValues.prevPositions[i] || motors[i].getPower() == 0.0)
                 {
-                    odometry.stallStartTimes[i] = odometry.currTimestamp;
+                    motorValues.stallStartTimes[i] = motorValues.currTimestamp;
                 }
             }
 
-            updateOdometry(odometry);
-
+            Odometry o = updateOdometry(motorValues);
             if (gyro != null)
             {
-                odometry.gyroHeading = gyro.getZHeading().value;
-                odometry.gyroTurnRate = gyro.getZRotationRate().value;
+                o.heading = gyro.getZHeading().value - odometry.heading;
+                o.turnRate = gyro.getZRotationRate().value;
             }
+
+            RealVector pos = MatrixUtils.createRealVector(new double[] { o.xPos, o.yPos });
+            RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
+
+            pos = TrcUtil.rotateCW(pos, odometry.heading);
+            vel = TrcUtil.rotateCW(vel, odometry.heading);
+
+            odometry.xPos += pos.getEntry(0);
+            odometry.yPos += pos.getEntry(1);
+            odometry.xVel = vel.getEntry(0);
+            odometry.yVel = vel.getEntry(1);
+            odometry.heading += o.heading;
+            odometry.turnRate = o.turnRate;
         }
 
         if (debugEnabled)
@@ -1141,6 +1085,11 @@ public abstract class TrcDriveBase
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
     }   //odometryTask
+
+    private void exp(Odometry o)
+    {
+
+    }
 
     /**
      * This method is called when the competition mode is about to end to stop the drive base.

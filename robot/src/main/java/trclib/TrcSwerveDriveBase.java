@@ -104,24 +104,29 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         return true;
     }   //supportsHolonomicDrive
 
+    @Override
+    public void setPositionScales(double xScale, double yScale, double rotScale)
+    {
+        if (xScale != yScale)
+        {
+            throw new IllegalArgumentException("Swerve does not have different x and y scales!");
+        }
+
+        this.xScale = xScale;
+        this.yScale = yScale;
+        this.rotScale = rotScale;
+    }
+
     /**
      * This method sets the position scales. The raw position from the encoder is in encoder counts. By setting the
      * scale factor, one could make getPosition to return unit in inches, for example. This also automatically
      * calculates the rotateScale, which is used for approximating the heading without the gyro.
      *
-     * @param xScale specifies the X position scale.
-     * @param yScale specifies the Y position scale.
+     * @param scale specifies the position scale for each motor.
      */
-    @Override
-    public void setPositionScales(double xScale, double yScale)
+    public void setPositionScale(double scale)
     {
-        // encDist / perimeter = rotPos / 360.0
-        // encDist * 360.0 / perimeter = rotPos
-        // Therefore, rotScale = 360.0 / perimeter
-        double perimeter = wheelBaseDiagonal * Math.PI;
-        double rotScale = 360.0 / perimeter;
-
-        super.setPositionScales(xScale, yScale, rotScale);
+        setPositionScales(scale, scale, 1.0);
     }   //setPositionScales
 
     /**
@@ -330,10 +335,10 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param odometry specifies the odometry object to be updated.
+     * @param motorValues specifies the odometry object to be updated.
      */
     @Override
-    protected void updateOdometry(Odometry odometry)
+    protected Odometry updateOdometry(MotorValues motorValues)
     {
         final String funcName = "updateOdometry";
 
@@ -341,8 +346,6 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
-
-        double heading = getHeading();
 
         TrcSwerveModule[] modules = new TrcSwerveModule[] { lfModule, rfModule, lrModule, rrModule };
         RealVector[] wheelVectors = new RealVector[4];
@@ -353,8 +356,8 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             double pos = modules[i].getPosition();
             double posDiff = pos - lastWheelPos[i];
             lastWheelPos[i] = pos;
-            wheelVectors[i] = toVector(posDiff, angle);
-            wheelVelocities[i] = toVector(modules[i].getVelocity(), angle);
+            wheelVectors[i] = toVector(posDiff, angle).mapMultiply(xScale); // x and y scales are same
+            wheelVelocities[i] = toVector(modules[i].getVelocity(), angle).mapMultiply(xScale);
         }
 
         RealVector posSum = new ArrayRealVector(2);
@@ -366,16 +369,15 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         }
 
         posSum.mapMultiplyToSelf(0.25);
-        posSum = TrcUtil.rotateCCW(posSum, heading);
-
         velSum.mapMultiplyToSelf(0.25);
-        velSum = TrcUtil.rotateCCW(velSum, heading);
 
-        odometry.xRawPos += posSum.getEntry(0);
-        odometry.yRawPos += posSum.getEntry(1);
+        Odometry odometry = new Odometry();
 
-        odometry.xRawVel = velSum.getEntry(0);
-        odometry.yRawVel = velSum.getEntry(1);
+        odometry.xPos = posSum.getEntry(0);
+        odometry.yPos = posSum.getEntry(1);
+
+        odometry.xVel = velSum.getEntry(0);
+        odometry.yVel = velSum.getEntry(1);
 
         double x = wheelBaseWidth / 2;
         double y = wheelBaseLength / 2;
@@ -384,12 +386,21 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             - wheelVectors[3].getEntry(1)) + y * (wheelVectors[0].getEntry(0) + wheelVectors[1].getEntry(0)
             - wheelVectors[2].getEntry(0) - wheelVectors[3].getEntry(0));
         dRot /= 4 * Math.pow(wheelBaseDiagonal, 2);
-        odometry.rotRawPos += dRot;
+        odometry.heading = dRot;
+
+        double rotVel =
+            x * (wheelVelocities[0].getEntry(1) + wheelVelocities[2].getEntry(1) - wheelVelocities[1].getEntry(1)
+                - wheelVelocities[3].getEntry(1)) + y * (wheelVelocities[0].getEntry(0) + wheelVelocities[1].getEntry(0)
+                - wheelVelocities[2].getEntry(0) - wheelVelocities[3].getEntry(0));
+        rotVel /= 4 * Math.pow(wheelBaseDiagonal, 2);
+        odometry.turnRate = rotVel;
 
         if (debugEnabled)
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
+
+        return odometry;
     }   //updateOdometry
 
 }   //class TrcSwerveDriveBase

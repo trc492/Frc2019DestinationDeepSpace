@@ -22,10 +22,6 @@
 
 package trclib;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-
 /**
  * This class implements a platform independent mecanum drive base. A mecanum drive base consists of 4 motor driven
  * wheels. It extends the TrcSimpleDriveBase class so it inherits all the SimpleDriveBase methods and features.
@@ -161,40 +157,42 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param odometry specifies the odometry object to be updated.
+     * @param motorValues specifies the odometry object to be updated.
      */
     @Override
-    protected void updateOdometry(Odometry odometry)
+    protected Odometry updateOdometry(MotorValues motorValues)
     {
-        //
-        // Call super class to update Y and rotation odometry.
-        //
-        super.updateOdometry(odometry);
 
-        double[] motorPosDiff = new double[odometry.currPositions.length];
+        double[] motorPosDiff = new double[motorValues.currPositions.length];
         for (int i = 0; i < motorPosDiff.length; i++)
         {
-            motorPosDiff[i] = odometry.currPositions[i] - odometry.prevPositions[i];
+            motorPosDiff[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
         }
 
-        RealMatrix rotationMatrix = TrcUtil.createCCWRotationMatrix(getHeading());
+        Odometry odometry = new Odometry();
 
-        double xPosRobot = TrcUtil
+        odometry.xPos = xScale * TrcUtil
             .average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value],
                 -motorPosDiff[MotorType.RIGHT_FRONT.value], -motorPosDiff[MotorType.LEFT_REAR.value]);
+        odometry.yPos = yScale * TrcUtil.average(motorPosDiff);
 
-        RealVector robotDisplacement = MatrixUtils.createRealVector(new double[] { xPosRobot, 0 });
-        RealVector globalDisplacement = rotationMatrix.operate(robotDisplacement);
-        odometry.xRawPos += globalDisplacement.getEntry(0);
-        odometry.yRawPos += globalDisplacement.getEntry(1);
+        odometry.xVel = xScale * TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
+            motorValues.currVelocities[MotorType.RIGHT_REAR.value],
+            -motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
+            -motorValues.currVelocities[MotorType.LEFT_REAR.value]);
+        odometry.yVel = yScale * TrcUtil.average(motorValues.currVelocities);
 
-        double xVelRobot = TrcUtil.average(odometry.currVelocities[MotorType.LEFT_FRONT.value],
-            odometry.currVelocities[MotorType.RIGHT_REAR.value], -odometry.currVelocities[MotorType.RIGHT_FRONT.value],
-            -odometry.currVelocities[MotorType.LEFT_REAR.value]);
-        RealVector robotVel = MatrixUtils.createRealVector(new double[] { xVelRobot, 0 });
-        RealVector globalVel = rotationMatrix.operate(robotVel);
-        odometry.xRawVel = globalVel.getEntry(0);
-        odometry.yRawVel = globalVel.getEntry(1);
+        double l = TrcUtil.average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.LEFT_REAR.value]);
+        double r = TrcUtil.average(motorPosDiff[MotorType.RIGHT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value]);
+        odometry.heading = (l - r) * rotScale;
+
+        double lVel = TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
+            motorValues.currVelocities[MotorType.LEFT_REAR.value]);
+        double rVel = TrcUtil.average(motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
+            motorValues.currVelocities[MotorType.RIGHT_REAR.value]);
+        odometry.turnRate = (lVel - rVel) * rotScale;
+
+        return odometry;
     }   //updateOdometry
 
 }   //class TrcMecanumDriveBase

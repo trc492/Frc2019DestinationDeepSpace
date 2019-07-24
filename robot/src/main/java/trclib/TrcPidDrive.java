@@ -426,6 +426,8 @@ public class TrcPidDrive
         this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
         driveBase.resetStallTimer();
 
+        driveBase.saveReferenceFrame();
+
         setTaskEnabled(true);
 
         if (debugEnabled)

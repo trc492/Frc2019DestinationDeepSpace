@@ -22,10 +22,6 @@
 
 package trclib;
 
-import org.apache.commons.math3.linear.MatrixUtils;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.linear.RealVector;
-
 /**
  * This class implements a platform independent simple drive base. The SimpleDriveBase class implements a drive train
  * that may consist of 2 to 6 motors. It supports tank drive, curve drive and arcade drive with motor stalled detection
@@ -177,6 +173,11 @@ public class TrcSimpleDriveBase extends TrcDriveBase
         this(leftMotor, rightMotor, null);
     }   //TrcSimpleDriveBase
 
+    public void setWheelBaseWidth(double width)
+    {
+        setPositionScales(xScale, yScale, yScale / width);
+    }
+
     /**
      * This method inverts direction of a given motor in the drive train.
      *
@@ -318,10 +319,10 @@ public class TrcSimpleDriveBase extends TrcDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param odometry specifies the odometry object to be updated.
+     * @param motorValues specifies the odometry object to be updated.
      */
     @Override
-    protected void updateOdometry(Odometry odometry)
+    protected Odometry updateOdometry(MotorValues motorValues)
     {
         final String funcName = "updateOdometry";
 
@@ -330,33 +331,36 @@ public class TrcSimpleDriveBase extends TrcDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
 
-        double[] motorPosDiff = new double[odometry.currPositions.length];
+        double[] motorPosDiff = new double[motorValues.currPositions.length];
         for (int i = 0; i < motorPosDiff.length; i++)
         {
-            motorPosDiff[i] = odometry.currPositions[i] - odometry.prevPositions[i];
+            motorPosDiff[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
         }
 
-        RealMatrix rotationMatrix = TrcUtil.createCCWRotationMatrix(getHeading());
+        Odometry odometry = new Odometry();
 
-        RealVector robotDisplacement = MatrixUtils.createRealVector(new double[] { 0, TrcUtil.average(motorPosDiff) });
-        RealVector globalDisplacement = rotationMatrix.operate(robotDisplacement);
-        odometry.xRawPos += globalDisplacement.getEntry(0);
-        odometry.yRawPos += globalDisplacement.getEntry(1);
+        odometry.xPos = 0;
+        odometry.yPos = TrcUtil.average(motorPosDiff) * yScale;
 
-        RealVector robotVel = MatrixUtils
-            .createRealVector(new double[] { 0, TrcUtil.average(odometry.currVelocities) });
-        RealVector globalVel = rotationMatrix.operate(robotVel);
-        odometry.xRawVel = globalVel.getEntry(0);
-        odometry.yRawVel = globalVel.getEntry(1);
+        odometry.xVel = 0;
+        odometry.yVel = TrcUtil.average(motorValues.currVelocities) * xScale;
 
         double l = TrcUtil.average(motorPosDiff[MotorType.LEFT_FRONT.value], motorPosDiff[MotorType.LEFT_REAR.value]);
         double r = TrcUtil.average(motorPosDiff[MotorType.RIGHT_FRONT.value], motorPosDiff[MotorType.RIGHT_REAR.value]);
-        odometry.rotRawPos += l - r;
+        odometry.heading = (l - r) * rotScale;
+
+        double lVel = TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
+            motorValues.currVelocities[MotorType.LEFT_REAR.value]);
+        double rVel = TrcUtil.average(motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
+            motorValues.currVelocities[MotorType.RIGHT_REAR.value]);
+        odometry.turnRate = (lVel - rVel) * rotScale;
 
         if (debugEnabled)
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
+
+        return odometry;
     }   //updateOdometry
 
 }   //class TrcSimpleDriveBase
