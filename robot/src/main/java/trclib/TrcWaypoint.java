@@ -80,6 +80,11 @@ public class TrcWaypoint
 
     public double timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading;
 
+    public TrcWaypoint(TrcPose2D pose)
+    {
+        this(0, pose.x, pose.y, 0, TrcUtil.magnitude(pose.xVel, pose.yVel), 0, 0, pose.heading);
+    }
+
     public TrcWaypoint(double timeStep, double x, double y, double position, double velocity,
         double acceleration, double jerk, double heading)
     {
