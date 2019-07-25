@@ -23,7 +23,6 @@
 package trclib;
 
 import org.apache.commons.math3.linear.ArrayRealVector;
-import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
@@ -329,10 +328,10 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param motorValues specifies the odometry object to be updated.
+     * @param motorValues specifies the motor values to use to calculate the odometry
      */
     @Override
-    protected Odometry updateOdometry(MotorValues motorValues)
+    protected TrcPose2D updateOdometry(MotorValues motorValues)
     {
         final String funcName = "updateOdometry";
 
@@ -365,10 +364,10 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         posSum.mapMultiplyToSelf(0.25);
         velSum.mapMultiplyToSelf(0.25);
 
-        Odometry odometry = new Odometry();
+        TrcPose2D odometry = new TrcPose2D();
 
-        odometry.xPos = posSum.getEntry(0);
-        odometry.yPos = posSum.getEntry(1);
+        odometry.x = posSum.getEntry(0);
+        odometry.y = posSum.getEntry(1);
 
         odometry.xVel = velSum.getEntry(0);
         odometry.yVel = velSum.getEntry(1);

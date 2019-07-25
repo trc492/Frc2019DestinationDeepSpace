@@ -44,13 +44,6 @@ public abstract class TrcDriveBase
     private static final boolean USE_POSE_EXP = true;
     protected TrcDbgTrace dbgTrace = null;
 
-    protected class Odometry
-    {
-        public double xPos, yPos;
-        public double xVel, yVel;
-        public double heading, turnRate;
-    }   //class Odometry
-
     protected class MotorValues
     {
         public double prevTimestamp;
@@ -67,7 +60,7 @@ public abstract class TrcDriveBase
      *
      * @param values specifies the MotorValues object containing the relevant data.
      */
-    protected abstract Odometry updateOdometry(MotorValues values);
+    protected abstract TrcPose2D updateOdometry(MotorValues values);
 
     /**
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
@@ -103,7 +96,7 @@ public abstract class TrcDriveBase
 
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
-    private final Odometry odometry;
+    private final TrcPose2D odometry;
     private final MotorValues motorValues;
     protected double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
@@ -134,7 +127,7 @@ public abstract class TrcDriveBase
         this.motors = motors;
         this.gyro = gyro;
 
-        odometry = new Odometry();
+        odometry = new TrcPose2D();
         motorValues = new MotorValues();
         motorValues.motorPosDiffs = new double[motors.length];
         motorValues.currPositions = new double[motors.length];
@@ -196,7 +189,7 @@ public abstract class TrcDriveBase
     {
         synchronized (odometry)
         {
-            return new TrcPose2D(odometry.xPos, odometry.yPos, odometry.heading, odometry.xVel, odometry.yVel);
+            return new TrcPose2D(odometry.x, odometry.y, odometry.heading, odometry.xVel, odometry.yVel, odometry.turnRate);
         }
     }
 
@@ -431,7 +424,7 @@ public abstract class TrcDriveBase
                 motorValues.stallStartTimes[i] = motorValues.currTimestamp;
             }
 
-            odometry.xPos = odometry.yPos = 0.0;
+            odometry.x = odometry.y = 0.0;
             odometry.xVel = odometry.yVel = 0.0;
 
             if (gyro != null && resetGyro)
@@ -1065,7 +1058,7 @@ public abstract class TrcDriveBase
                 }
             }
 
-            Odometry o = updateOdometry(motorValues);
+            TrcPose2D o = updateOdometry(motorValues);
             if (gyro != null)
             {
                 // Overwrite the heading/turnrate values if gyro present, since that's more accurate
@@ -1079,14 +1072,14 @@ public abstract class TrcDriveBase
             }
             else
             {
-                RealVector pos = MatrixUtils.createRealVector(new double[] { o.xPos, o.yPos });
+                RealVector pos = MatrixUtils.createRealVector(new double[] { o.x, o.y });
                 RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
 
                 pos = TrcUtil.rotateCW(pos, odometry.heading);
                 vel = TrcUtil.rotateCW(vel, odometry.heading);
 
-                odometry.xPos += pos.getEntry(0);
-                odometry.yPos += pos.getEntry(1);
+                odometry.x += pos.getEntry(0);
+                odometry.y += pos.getEntry(1);
                 odometry.xVel = vel.getEntry(0);
                 odometry.yVel = vel.getEntry(1);
                 odometry.heading += o.heading;
@@ -1100,18 +1093,18 @@ public abstract class TrcDriveBase
         }
     }   //odometryTask
 
-    private void exp(Odometry o, double heading)
+    private void exp(TrcPose2D pose, double heading)
     {
-        // The following black magic has been ripped straight out of some book
-        // Convert to NWU reference frame
+        // The math below uses a different coordinate system (NWU) so we have to convert
         RealMatrix changeOfBasis = MatrixUtils.createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
-        double[] posArr = changeOfBasis.operate(new double[] { o.xPos, o.yPos });
+        double[] posArr = changeOfBasis.operate(new double[] { pose.x, pose.y });
         double x = posArr[0];
         double y = posArr[1];
         // Convert clockwise degrees to counter-clockwise radians
-        double theta = Math.toRadians(-o.heading);
+        double theta = Math.toRadians(-pose.heading);
         double headingRad = Math.toRadians(-heading);
 
+        // The following black magic has been ripped straight out of some book
         RealMatrix A = MatrixUtils.createRealMatrix(new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
             { Math.sin(headingRad), Math.cos(headingRad), 0 }, { 0, 0, 1 } });
         RealMatrix B;
@@ -1135,16 +1128,16 @@ public abstract class TrcDriveBase
         theta = Math.toDegrees(-globalPose.getEntry(2));
 
         // Rotate the velocity vector into the global reference frame
-        RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
+        RealVector vel = MatrixUtils.createRealVector(new double[] { pose.xVel, pose.yVel });
         vel = TrcUtil.rotateCW(vel, heading);
 
         // Update the odometry values
-        odometry.xPos += pos.getEntry(0);
-        odometry.yPos += pos.getEntry(1);
+        odometry.x += pos.getEntry(0);
+        odometry.y += pos.getEntry(1);
         odometry.xVel = vel.getEntry(0);
         odometry.yVel = vel.getEntry(1);
         odometry.heading += theta;
-        odometry.turnRate = o.turnRate;
+        odometry.turnRate = pose.turnRate;
     }
 
     /**

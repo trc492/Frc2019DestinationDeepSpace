@@ -319,10 +319,10 @@ public class TrcSimpleDriveBase extends TrcDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param motorValues specifies the odometry object to be updated.
+     * @param motorValues specifies the motor values to use to calculate the odometry
      */
     @Override
-    protected Odometry updateOdometry(MotorValues motorValues)
+    protected TrcPose2D updateOdometry(MotorValues motorValues)
     {
         final String funcName = "updateOdometry";
 
@@ -331,10 +331,10 @@ public class TrcSimpleDriveBase extends TrcDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
 
-        Odometry odometry = new Odometry();
+        TrcPose2D odometry = new TrcPose2D();
 
-        odometry.xPos = 0;
-        odometry.yPos = TrcUtil.average(motorValues.motorPosDiffs) * yScale;
+        odometry.x = 0;
+        odometry.y = TrcUtil.average(motorValues.motorPosDiffs) * yScale;
 
         odometry.xVel = 0;
         odometry.yVel = TrcUtil.average(motorValues.currVelocities) * xScale;

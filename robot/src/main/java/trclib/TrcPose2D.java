@@ -27,25 +27,31 @@ import org.apache.commons.math3.linear.RealVector;
 
 public class TrcPose2D
 {
-    public double x, y, heading, xVel, yVel;
+    public double x, y, heading, xVel, yVel, turnRate;
+
+    public TrcPose2D()
+    {
+
+    }
 
     public TrcPose2D(double x, double y)
     {
-        this(x, y, 0, 0, 0);
+        this(x, y, 0, 0, 0, 0);
     }
 
     public TrcPose2D(double x, double y, double heading)
     {
-        this(x, y, heading, 0, 0);
+        this(x, y, heading, 0, 0, 0);
     }
 
-    public TrcPose2D(double x, double y, double heading, double xVel, double yVel)
+    public TrcPose2D(double x, double y, double heading, double xVel, double yVel, double turnRate)
     {
         this.x = x;
         this.y = y;
         this.heading = heading;
         this.xVel = xVel;
         this.yVel = yVel;
+        this.turnRate = turnRate;
     }
 
     public RealVector getPositionVector()
@@ -60,7 +66,7 @@ public class TrcPose2D
 
     public TrcPose2D minus(TrcPose2D pose)
     {
-        return new TrcPose2D(x - pose.x, y - pose.y, heading, xVel, yVel);
+        return new TrcPose2D(x - pose.x, y - pose.y, heading, xVel, yVel, turnRate);
     }
 
     public TrcPose2D inReferenceFrameOf(TrcPose2D pose)

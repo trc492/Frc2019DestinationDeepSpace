@@ -157,15 +157,15 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
      * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
      * caller has the odometry lock.
      *
-     * @param motorValues specifies the odometry object to be updated.
+     * @param motorValues specifies the motor values to use to calculate the odometry.
      */
     @Override
-    protected Odometry updateOdometry(MotorValues motorValues)
+    protected TrcPose2D updateOdometry(MotorValues motorValues)
     {
         // Get y and turn data from the super class
-        Odometry odometry = super.updateOdometry(motorValues);
+        TrcPose2D odometry = super.updateOdometry(motorValues);
 
-        odometry.xPos = xScale * TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value],
+        odometry.x = xScale * TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value],
             motorValues.motorPosDiffs[MotorType.RIGHT_REAR.value],
             -motorValues.motorPosDiffs[MotorType.RIGHT_FRONT.value],
             -motorValues.motorPosDiffs[MotorType.LEFT_REAR.value]);
