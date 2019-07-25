@@ -339,15 +339,33 @@ public class TrcSimpleDriveBase extends TrcDriveBase
         odometry.xVel = 0;
         odometry.yVel = TrcUtil.average(motorValues.currVelocities) * xScale;
 
-        double l = TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value], motorValues.motorPosDiffs[MotorType.LEFT_REAR.value]);
-        double r = TrcUtil.average(motorValues.motorPosDiffs[MotorType.RIGHT_FRONT.value], motorValues.motorPosDiffs[MotorType.RIGHT_REAR.value]);
-        odometry.heading = (l - r) * rotScale;
+        // Get the average of all left and right motors separately, since this drivebase may have between 2-6 motors
+        double l = 0, r = 0;
+        double lVel = 0, rVel = 0;
+        for (int i = 0; i < motorValues.motorPosDiffs.length; i++)
+        {
+            double posDiff = motorValues.motorPosDiffs[i];
+            double vel = motorValues.currVelocities[i];
+            if (i % 2 == 0)
+            {
+                l += posDiff;
+                lVel += vel;
+            }
+            else
+            {
+                r += posDiff;
+                rVel += vel;
+            }
+        }
 
-        double lVel = TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
-            motorValues.currVelocities[MotorType.LEFT_REAR.value]);
-        double rVel = TrcUtil.average(motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
-            motorValues.currVelocities[MotorType.RIGHT_REAR.value]);
-        odometry.turnRate = (lVel - rVel) * rotScale;
+        double motorsPerSide = getNumMotors() / 2.0;
+        l /= motorsPerSide;
+        r /= motorsPerSide;
+        lVel /= motorsPerSide;
+        rVel /= motorsPerSide;
+
+        odometry.heading = Math.toDegrees((l - r) * rotScale);
+        odometry.turnRate = Math.toDegrees((lVel - rVel) * rotScale);
 
         if (debugEnabled)
         {

@@ -380,6 +380,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             - wheelVectors[3].getEntry(1)) + y * (wheelVectors[0].getEntry(0) + wheelVectors[1].getEntry(0)
             - wheelVectors[2].getEntry(0) - wheelVectors[3].getEntry(0));
         dRot /= 4 * Math.pow(wheelBaseDiagonal, 2);
+        dRot = Math.toDegrees(dRot);
         odometry.heading = dRot;
 
         double rotVel =
@@ -387,6 +388,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
                 - wheelVelocities[3].getEntry(1)) + y * (wheelVelocities[0].getEntry(0) + wheelVelocities[1].getEntry(0)
                 - wheelVelocities[2].getEntry(0) - wheelVelocities[3].getEntry(0));
         rotVel /= 4 * Math.pow(wheelBaseDiagonal, 2);
+        rotVel = Math.toDegrees(rotVel);
         odometry.turnRate = rotVel;
 
         if (debugEnabled)

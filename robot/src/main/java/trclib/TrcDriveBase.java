@@ -23,6 +23,7 @@
 package trclib;
 
 import org.apache.commons.math3.linear.MatrixUtils;
+import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.RealVector;
 
 /**
@@ -40,6 +41,7 @@ public abstract class TrcDriveBase
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
+    private static final boolean USE_POSE_EXP = true;
     protected TrcDbgTrace dbgTrace = null;
 
     protected class Odometry
@@ -134,6 +136,7 @@ public abstract class TrcDriveBase
 
         odometry = new Odometry();
         motorValues = new MotorValues();
+        motorValues.motorPosDiffs = new double[motors.length];
         motorValues.currPositions = new double[motors.length];
         motorValues.currVelocities = new double[motors.length];
         motorValues.prevPositions = new double[motors.length];
@@ -1069,18 +1072,25 @@ public abstract class TrcDriveBase
                 o.turnRate = gyro.getZRotationRate().value;
             }
 
-            RealVector pos = MatrixUtils.createRealVector(new double[] { o.xPos, o.yPos });
-            RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
+            if (USE_POSE_EXP)
+            {
+                exp(odometry, odometry.heading);
+            }
+            else
+            {
+                RealVector pos = MatrixUtils.createRealVector(new double[] { o.xPos, o.yPos });
+                RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
 
-            pos = TrcUtil.rotateCW(pos, odometry.heading);
-            vel = TrcUtil.rotateCW(vel, odometry.heading);
+                pos = TrcUtil.rotateCW(pos, odometry.heading);
+                vel = TrcUtil.rotateCW(vel, odometry.heading);
 
-            odometry.xPos += pos.getEntry(0);
-            odometry.yPos += pos.getEntry(1);
-            odometry.xVel = vel.getEntry(0);
-            odometry.yVel = vel.getEntry(1);
-            odometry.heading += o.heading;
-            odometry.turnRate = o.turnRate;
+                odometry.xPos += pos.getEntry(0);
+                odometry.yPos += pos.getEntry(1);
+                odometry.xVel = vel.getEntry(0);
+                odometry.yVel = vel.getEntry(1);
+                odometry.heading += o.heading;
+                odometry.turnRate = o.turnRate;
+            }
         }
 
         if (debugEnabled)
@@ -1089,9 +1099,45 @@ public abstract class TrcDriveBase
         }
     }   //odometryTask
 
-    private void exp(Odometry o)
+    private void exp(Odometry o, double heading)
     {
+        // The following black magic has been ripped straight out of some book
+        RealMatrix changeOfBasis = MatrixUtils.createRealMatrix(new double[][]{{0, 1},{-1,0}});
+        // Convert to NWU reference frame
+        double[] posArr = changeOfBasis.operate(new double[] { o.xPos, o.yPos });
+        double x = posArr[0];
+        double y = posArr[1];
+        double theta = Math.toRadians(-o.heading);
+        double headingRad = Math.toRadians(-heading);
 
+        RealMatrix A = MatrixUtils.createRealMatrix(new double[][]
+            {
+                { Math.cos(headingRad), -Math.sin(headingRad), 0 },
+                { Math.sin(headingRad), Math.cos(headingRad), 0 },
+                { 0, 0, 1 }
+            });
+        RealMatrix B = MatrixUtils.createRealMatrix(new double[][]
+            {
+                { Math.sin(theta), Math.cos(theta) - 1, 0 },
+                { 1 - Math.cos(theta), Math.sin(theta), 0 },
+                { 0, 0, theta }
+            });
+        B = B.scalarMultiply(1.0 / theta);
+        RealVector C = MatrixUtils.createRealVector(new double[]{x, y, theta});
+        RealVector globalPose = A.multiply(B).operate(C);
+        theta = Math.toDegrees(-globalPose.getEntry(2));
+        // Convert back to our (ENU) reference frame
+        RealVector pos = changeOfBasis.transpose().operate(globalPose.getSubVector(0, 2));
+
+        RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
+        vel = TrcUtil.rotateCW(vel, heading);
+
+        odometry.xPos += pos.getEntry(0);
+        odometry.yPos += pos.getEntry(1);
+        odometry.xVel = vel.getEntry(0);
+        odometry.yVel = vel.getEntry(1);
+        odometry.heading += theta;
+        odometry.turnRate = o.turnRate;
     }
 
     /**
