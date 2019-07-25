@@ -1068,6 +1068,7 @@ public abstract class TrcDriveBase
             Odometry o = updateOdometry(motorValues);
             if (gyro != null)
             {
+                // Overwrite the heading/turnrate values if gyro present, since that's more accurate
                 o.heading = gyro.getZHeading().value - odometry.heading;
                 o.turnRate = gyro.getZRotationRate().value;
             }
@@ -1102,36 +1103,42 @@ public abstract class TrcDriveBase
     private void exp(Odometry o, double heading)
     {
         // The following black magic has been ripped straight out of some book
-        RealMatrix changeOfBasis = MatrixUtils.createRealMatrix(new double[][]{{0, 1},{-1,0}});
         // Convert to NWU reference frame
+        RealMatrix changeOfBasis = MatrixUtils.createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
         double[] posArr = changeOfBasis.operate(new double[] { o.xPos, o.yPos });
         double x = posArr[0];
         double y = posArr[1];
+        // Convert clockwise degrees to counter-clockwise radians
         double theta = Math.toRadians(-o.heading);
         double headingRad = Math.toRadians(-heading);
 
-        RealMatrix A = MatrixUtils.createRealMatrix(new double[][]
-            {
-                { Math.cos(headingRad), -Math.sin(headingRad), 0 },
-                { Math.sin(headingRad), Math.cos(headingRad), 0 },
-                { 0, 0, 1 }
-            });
-        RealMatrix B = MatrixUtils.createRealMatrix(new double[][]
-            {
-                { Math.sin(theta), Math.cos(theta) - 1, 0 },
-                { 1 - Math.cos(theta), Math.sin(theta), 0 },
-                { 0, 0, theta }
-            });
-        B = B.scalarMultiply(1.0 / theta);
-        RealVector C = MatrixUtils.createRealVector(new double[]{x, y, theta});
+        RealMatrix A = MatrixUtils.createRealMatrix(new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
+            { Math.sin(headingRad), Math.cos(headingRad), 0 }, { 0, 0, 1 } });
+        RealMatrix B;
+        if (Math.abs(theta) <= 1E-9)
+        {
+            // Use the taylor series approximations, since some values are indeterminate
+            B = MatrixUtils.createRealMatrix(new double[][] { { 1 - theta * theta / 6.0, -theta / 2.0, 0 },
+                { theta / 2.0, 1 - theta * theta / 6.0, 0 }, { 0, 0, 1 } });
+        }
+        else
+        {
+            B = MatrixUtils.createRealMatrix(new double[][] { { Math.sin(theta), Math.cos(theta) - 1, 0 },
+                { 1 - Math.cos(theta), Math.sin(theta), 0 }, { 0, 0, theta } });
+            B = B.scalarMultiply(1.0 / theta);
+        }
+        RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
         RealVector globalPose = A.multiply(B).operate(C);
-        theta = Math.toDegrees(-globalPose.getEntry(2));
         // Convert back to our (ENU) reference frame
         RealVector pos = changeOfBasis.transpose().operate(globalPose.getSubVector(0, 2));
+        // Convert back to clockwise degrees for heading
+        theta = Math.toDegrees(-globalPose.getEntry(2));
 
+        // Rotate the velocity vector into the global reference frame
         RealVector vel = MatrixUtils.createRealVector(new double[] { o.xVel, o.yVel });
         vel = TrcUtil.rotateCW(vel, heading);
 
+        // Update the odometry values
         odometry.xPos += pos.getEntry(0);
         odometry.yPos += pos.getEntry(1);
         odometry.xVel = vel.getEntry(0);
