@@ -154,10 +154,10 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     }   //holonomicDrive
 
     /**
-     * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
-     * caller has the odometry lock.
+     * This method is called periodically to monitor the position sensors to update the odometry data.
      *
-     * @param motorValues specifies the motor values to use to calculate the odometry.
+     * @param motorValues specifies the MotorValues object containing the relevant data to calculate pose.
+     * @return A TrcPose2D object describing the change in position since the last update.
      */
     @Override
     protected TrcPose2D updateOdometry(MotorValues motorValues)
