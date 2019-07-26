@@ -1070,7 +1070,7 @@ public abstract class TrcDriveBase
 
             if (USE_POSE_EXP)
             {
-                updatePose(odometry, odometry.heading);
+                updatePose(poseDelta, odometry.heading);
             }
             else
             {
