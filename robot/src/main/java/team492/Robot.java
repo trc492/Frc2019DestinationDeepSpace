@@ -158,7 +158,7 @@ public class Robot extends FrcRobotBase
     {
         int absPosTicks = steerMotor.motor.getSensorCollection().getPulseWidthPosition();
         double absPos = absPosTicks * RobotInfo.STEER_DEGREES_PER_TICK;
-        boolean isRightHemisphere = driveMotor.isUpperLimitSwitchActive();
+        boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023/2;
         if ((TrcUtil
             .inRange(absPos, 360 - RobotInfo.STEER_DEGREES_PER_HALF_RANGE, RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
             && !isRightHemisphere) || absPos > RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
