@@ -362,6 +362,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
+                robot.driveBase.resetOdometry(true, true);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:

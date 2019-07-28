@@ -305,7 +305,7 @@ public class RobotInfo
     public static final double CLIMBER_KI                       = 0.0;
     public static final double CLIMBER_KD                       = 0.0;
     public static final double CLIMBER_TOLERANCE                = 1.0; // 1 in
-    public static final double CLIMBER_CALIBRATE_POWER          = 0.3;
+    public static final double CLIMBER_CALIBRATE_POWER          = 0.45;
     public static final double CLIMBER_MIN_POS                  = 5.25;
     public static final double CLIMBER_MAX_POS                  = 71;
     public static final double CLIMBER_PID_FLOOR                = CLIMBER_MIN_POS - 2.0;
@@ -329,8 +329,7 @@ public class RobotInfo
 
     public static final double[] HATCH_YAWS_ANGLED = new double[] { 90.0 - RobotInfo.ROCKET_SIDE_ANGLE,
         90.0 + RobotInfo.ROCKET_SIDE_ANGLE, 270.0 - RobotInfo.ROCKET_SIDE_ANGLE, 270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
-    public static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0,
-        270.0 + RobotInfo.ROCKET_SIDE_ANGLE };
+    public static final double[] HATCH_YAWS_FLAT = new double[] { 0.0, 90.0, 180.0, 270.0 };
     public static final double[] CARGO_YAWS = new double[] { 0.0, 90.0, 270.0 };
 
     public enum DeployLevel
