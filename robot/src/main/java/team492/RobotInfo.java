@@ -48,15 +48,15 @@ public class RobotInfo
     //
     // CAN IDs.
     //
-    public static final int CANID_LEFTFRONTWHEEL                = 3;    // 40A: Orange
-    public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
-    public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
-    public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
+    public static final int CANID_LEFTFRONTWHEEL                = 33;    // 40A: Orange
+    public static final int CANID_RIGHTFRONTWHEEL               = 34;    // 40A: Yellow
+    public static final int CANID_LEFTREARWHEEL                 = 35;    // 40A: Green
+    public static final int CANID_RIGHTREARWHEEL                = 36;    // 40A: Blue
 
-    public static final int CANID_LEFTFRONTWHEEL_STEER          = 7;    // 40A: Violet
-    public static final int CANID_RIGHTFRONTWHEEL_STEER         = 8;    // 40A: Gray
-    public static final int CANID_LEFTREARWHEEL_STEER           = 9;    // 40A: White
-    public static final int CANID_RIGHTREARWHEEL_STEER          = 10;   // 40A: Gold
+    public static final int CANID_LEFTFRONTWHEEL_STEER          = 23;    // 40A: Violet
+    public static final int CANID_RIGHTFRONTWHEEL_STEER         = 24;    // 40A: Gray
+    public static final int CANID_LEFTREARWHEEL_STEER           = 25;    // 40A: White
+    public static final int CANID_RIGHTREARWHEEL_STEER          = 26;   // 40A: Gold
 
     public static final int CANID_PDP                           = 16;
 
