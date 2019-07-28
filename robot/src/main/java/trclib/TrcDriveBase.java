@@ -97,7 +97,7 @@ public abstract class TrcDriveBase
 
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
-    private final TrcPose2D odometry;
+    protected final TrcPose2D odometry;
     private final MotorValues motorValues;
     protected double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
