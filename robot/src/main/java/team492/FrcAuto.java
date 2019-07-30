@@ -84,7 +84,7 @@ public class FrcAuto extends FrcTeleOp
     // CodeReview: Where is the auto tie-in???
     public boolean isAutoActive()
     {
-        return autoCommand != null && autoCommand.isActive();
+        return autoCommand != null && autoCommand.isActive() || purePursuit != null && purePursuit.isActive();
     }
 
     public void cancel()
@@ -129,11 +129,11 @@ public class FrcAuto extends FrcTeleOp
             case PP_TEST:
                 TrcPidController.PidCoefficients distPid = new TrcPidController.PidCoefficients(0.011, 0, 0.001);
                 TrcPidController.PidCoefficients turnPid = new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP);
-                TrcPidController.PidCoefficients velPid = new TrcPidController.PidCoefficients(0, 0, 0, 1.0 / 120);
+                TrcPidController.PidCoefficients velPid = new TrcPidController.PidCoefficients(0, 0, 0, 1.0 / 223);
                 purePursuit = new TrcHolonomicPurePursuitController("pp", robot.driveBase, 10, 3.0, distPid, turnPid,
                     velPid);
                 TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(0, 0), new TrcPose2D(0, 24, 0, 0, 60, 0),
-                    new TrcPose2D(0, 84, 0, 0, 60, 0), new TrcPose2D(0, 108) };
+                    new TrcPose2D(-24, 84, 0, 0, 60, 0), new TrcPose2D(-24, 108) };
                 purePursuit
                     .start(new TrcPath(true, Arrays.stream(poses).map(TrcWaypoint::new).toArray(TrcWaypoint[]::new)));
                 break;
