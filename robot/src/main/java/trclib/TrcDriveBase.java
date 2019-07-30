@@ -109,6 +109,10 @@ public abstract class TrcDriveBase
     private double gyroAssistKp = 1.0;
     private boolean gyroAssistEnabled = false;
     private TrcPose2D referenceFrame = null;
+    // Change of basis matrices to convert between coordinate systems
+    private final RealMatrix enuToNwuChangeOfBasis = MatrixUtils
+        .createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
+    private final RealMatrix nwuToEnuChangeOfBasis = enuToNwuChangeOfBasis.transpose();
 
     /**
      * Constructor: Create an instance of the object.
@@ -1104,8 +1108,7 @@ public abstract class TrcDriveBase
     private void updatePose(TrcPose2D poseDelta, double heading)
     {
         // The math below uses a different coordinate system (NWU) so we have to convert
-        RealMatrix changeOfBasis = MatrixUtils.createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
-        double[] posArr = changeOfBasis.operate(new double[] { poseDelta.x, poseDelta.y });
+        double[] posArr = enuToNwuChangeOfBasis.operate(new double[] { poseDelta.x, poseDelta.y });
         double x = posArr[0];
         double y = posArr[1];
         // Convert clockwise degrees to counter-clockwise radians
@@ -1131,7 +1134,7 @@ public abstract class TrcDriveBase
         RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
         RealVector globalPose = A.multiply(B).operate(C);
         // Convert back to our (ENU) reference frame
-        RealVector pos = changeOfBasis.transpose().operate(globalPose.getSubVector(0, 2));
+        RealVector pos = nwuToEnuChangeOfBasis.operate(globalPose.getSubVector(0, 2));
         // Convert back to clockwise degrees for heading
         theta = Math.toDegrees(-globalPose.getEntry(2));
 
