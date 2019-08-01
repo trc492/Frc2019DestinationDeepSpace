@@ -103,7 +103,6 @@ public class RobotInfo
     public static final double STEER_MAX_VEL                    = 50; // degrees per sec
     public static final double STEER_MAX_ACCEL                  = 150; // degrees per second per second
     public static final double STEER_TOLERANCE                  = 0.0;
-    public static final double STEER_DEGREES_PER_HALF_RANGE     = 327.27;
     public static final double STEER_LIMIT_LOW                  = -120;
     public static final double STEER_LIMIT_HIGH                 = 120;
 

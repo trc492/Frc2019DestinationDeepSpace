@@ -156,14 +156,12 @@ public class Robot extends FrcRobotBase
 
     private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor)
     {
-        int absPosTicks = steerMotor.motor.getSensorCollection().getPulseWidthPosition();
-        double absPos = absPosTicks * RobotInfo.STEER_DEGREES_PER_TICK;
+        int absPosTicks = steerMotor.motor.getSensorCollection().getPulseWidthPosition() % 4096;
+        double absPos = absPosTicks * 360.0 / 4096.0;
         boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023/2;
-        if ((TrcUtil
-            .inRange(absPos, 360 - RobotInfo.STEER_DEGREES_PER_HALF_RANGE, RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
-            && !isRightHemisphere) || absPos > RobotInfo.STEER_DEGREES_PER_HALF_RANGE)
+        if (TrcUtil.inRange(absPos, 33, 327) && !isRightHemisphere || absPos > 327)
         {
-            absPosTicks -= TrcUtil.round(360.0 / RobotInfo.STEER_DEGREES_PER_TICK);
+            absPosTicks -= 4096;
         }
         steerMotor.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
 
