@@ -25,11 +25,12 @@ package team492;
 import frclib.FrcCANTalon;
 import frclib.FrcCANTalonLimitSwitch;
 import trclib.TrcEvent;
+import trclib.TrcExclusiveSubsystem;
 import trclib.TrcPidActuator;
 import trclib.TrcPidController;
 import trclib.TrcUtil;
 
-public class Elevator
+public class Elevator implements TrcExclusiveSubsystem
 {
     private TrcPidActuator elevator;
     private FrcCANTalon motor;
@@ -84,31 +85,58 @@ public class Elevator
         return motor.getPower();
     }
 
+    public void setManualOverrideEnabled(String owner, boolean enabled)
+    {
+        if (validateOwnership(owner))
+        {
+            elevator.setManualOverride(enabled);
+        }
+    }
+
     public void setManualOverrideEnabled(boolean enabled)
     {
-        elevator.setManualOverride(enabled);
+        setManualOverrideEnabled(null, enabled);
+    }
+
+    public void zeroCalibrate(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            elevator.zeroCalibrate();
+        }
     }
 
     public void zeroCalibrate()
     {
-        elevator.zeroCalibrate();
+        zeroCalibrate(null);
     }
 
-    public void setPosition(double position, TrcEvent event, double timeout)
+    public void setPosition(String owner, double position, TrcEvent event)
     {
-        position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, event, timeout);
+        if (validateOwnership(owner))
+        {
+            position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
+            elevator.setTarget(position, event, 0.0);
+        }
     }
 
     public void setPosition(double position, TrcEvent event)
     {
-        setPosition(position, event, 0.0);
+        setPosition(null, position, event);
+    }
+
+    public void setPosition(String owner, double position)
+    {
+        if (validateOwnership(owner))
+        {
+            position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
+            elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
+        }
     }
 
     public void setPosition(double position)
     {
-        position = TrcUtil.clipRange(position, RobotInfo.ELEVATOR_MIN_POS, RobotInfo.ELEVATOR_MAX_POS);
-        elevator.setTarget(position, position != RobotInfo.ELEVATOR_MIN_POS);
+        setPosition(null, position);
     }
 
     public boolean isUpperLimitSwitchActive()
@@ -131,17 +159,20 @@ public class Elevator
         return motor.getPosition();
     }
 
-    public void setPower(double power)
+    public void setPower(String owner, double power)
     {
-        setPower(power, true);
+        if (validateOwnership(owner))
+        {
+            // elevator.cancel();
+            power = TrcUtil.clipRange(power, -1.0, 1.0);
+            elevator.setPower(power, true);
+            // TODO: figure this out
+            // motor.set(power);
+        }
     }
 
-    public void setPower(double power, boolean hold)
+    public void setPower(double power)
     {
-        //        elevator.cancel();
-        power = TrcUtil.clipRange(power, -1.0, 1.0);
-        elevator.setPower(power, hold);
-        // TODO: figure this out
-        //        motor.set(power);
+        setPower(null, power);
     }
 }

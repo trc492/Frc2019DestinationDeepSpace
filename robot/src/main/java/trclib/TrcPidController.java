@@ -154,6 +154,7 @@ public class TrcPidController
     private double setPointSign = 1.0;
     private double input = 0.0;
     private double output = 0.0;
+    private double prevOutputTime = 0.0; // time that getOutput() was called last. Used for ramp rates.
 
     private TrcDbgTrace debugTracer = null;
     private double pTerm;
@@ -425,10 +426,17 @@ public class TrcPidController
         this.pidCoefficients = pidCoefficients;
     }   //setPidCoefficients
 
+    /**
+     * This method sets the ramp rate of the PID controller output. It is sometimes useful to limit the acceleration
+     * of the output of the PID controller. For example, the strafing PID controller on a mecanum drive base may
+     * benefit from a lower acceleration to minimize wheel slipperage.
+     *
+     * @param rampRate specifies the ramp rate in percent power per second.
+     */
     public synchronized void setRampRate(Double rampRate)
     {
         this.rampRate = rampRate;
-    }
+    }   //setRampRate
 
     /**
      * This method sets a new target tolerance.
@@ -678,6 +686,12 @@ public class TrcPidController
 
             totalError = 0.0;
             prevTime = settlingStartTime = TrcUtil.getCurrentTime();
+            // Only init the prevOutputTime if this setTarget is called after a reset()
+            // If it's called mid-operation, we don't want to reset the prevOutputTime clock
+            if (prevOutputTime == 0.0)
+            {
+                prevOutputTime = prevTime;
+            }
         }
 
         if (debugEnabled)
@@ -729,6 +743,7 @@ public class TrcPidController
 
         currError = 0.0;
         prevTime = 0.0;
+        prevOutputTime = 0.0;
         totalError = 0.0;
         setPoint = 0.0;
         setPointSign = 1.0;
@@ -849,10 +864,15 @@ public class TrcPidController
 
             if (rampRate != null)
             {
-                double maxChange = rampRate * deltaTime;
-                double change = output - lastOutput;
-                change = TrcUtil.clipRange(change, -maxChange, maxChange);
-                output = lastOutput + change;
+                if (prevOutputTime != 0.0)
+                {
+                    double dt = currTime - prevOutputTime;
+                    double maxChange = rampRate * dt;
+                    double change = output - lastOutput;
+                    change = TrcUtil.clipRange(change, -maxChange, maxChange);
+                    output = lastOutput + change;
+                }
+                prevOutputTime = currTime;
             }
 
             if (debugTracer != null)

@@ -99,6 +99,7 @@ public class TrcPidDrive
     private boolean turnOnly = false;
     private boolean maintainHeading = false;
     private boolean canceled = false;
+    private String owner = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -371,6 +372,80 @@ public class TrcPidDrive
     /**
      * This method starts a PID operation by setting the PID targets.
      *
+     * @param owner      specifies the ID string of the caller requesting exclusive access.
+     * @param xTarget    specifies the X target position.
+     * @param yTarget    specifies the Y target position.
+     * @param turnTarget specifies the target heading.
+     * @param holdTarget specifies true for holding the target position at the end, false otherwise.
+     * @param event      specifies an event object to signal when done.
+     * @param timeout    specifies a timeout value in seconds. If the operation is not completed without the specified
+     *                   timeout, the operation will be canceled and the event will be signaled. If no timeout is
+     *                   specified, it should be set to zero.
+     */
+    public synchronized void setTarget(String owner, double xTarget, double yTarget, double turnTarget,
+        boolean holdTarget, TrcEvent event, double timeout)
+    {
+        final String funcName = "setTarget";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                "owner=%s,x=%f,y=%f,turn=%f,hold=%s,event=%s,timeout=%.3f", owner, xTarget, yTarget, turnTarget,
+                Boolean.toString(holdTarget), event.toString(), timeout);
+        }
+
+        if (driveBase.validateOwnership(owner))
+        {
+            this.owner = owner;
+            double xError = 0.0, yError = 0.0, turnError = 0.0;
+            if (xPidCtrl != null)
+            {
+                xPidCtrl.setTarget(xTarget);
+                xError = xPidCtrl.getError();
+            }
+
+            if (yPidCtrl != null)
+            {
+                yPidCtrl.setTarget(yTarget);
+                yError = yPidCtrl.getError();
+            }
+
+
+            if (turnPidCtrl != null)
+            {
+                turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled ? warpSpace : null);
+                turnError = turnPidCtrl.getError();
+            }
+
+            if (event != null)
+            {
+                event.clear();
+            }
+            this.notifyEvent = event;
+
+            this.expiredTime = timeout;
+            if (timeout != 0)
+            {
+                this.expiredTime += TrcUtil.getCurrentTime();
+            }
+
+            this.holdTarget = holdTarget;
+            this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
+            driveBase.resetStallTimer();
+
+            driveBase.saveReferenceFrame();
+
+            setTaskEnabled(true);
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
+        }
+    }   //setTarget
+
+    /**
+     * This method starts a PID operation by setting the PID targets.
+     *
      * @param xTarget    specifies the X target position.
      * @param yTarget    specifies the Y target position.
      * @param turnTarget specifies the target heading.
@@ -383,57 +458,7 @@ public class TrcPidDrive
     public synchronized void setTarget(double xTarget, double yTarget, double turnTarget, boolean holdTarget,
         TrcEvent event, double timeout)
     {
-        final String funcName = "setTarget";
-        double xError = 0.0, yError = 0.0, turnError = 0.0;
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "x=%f,y=%f,turn=%f,hold=%s,event=%s,timeout=%.3f",
-                xTarget, yTarget, turnTarget, Boolean.toString(holdTarget), event.toString(), timeout);
-        }
-
-        if (xPidCtrl != null)
-        {
-            xPidCtrl.setTarget(xTarget);
-            xError = xPidCtrl.getError();
-        }
-
-        if (yPidCtrl != null)
-        {
-            yPidCtrl.setTarget(yTarget);
-            yError = yPidCtrl.getError();
-        }
-
-        if (turnPidCtrl != null)
-        {
-            turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled ? warpSpace : null);
-            turnError = turnPidCtrl.getError();
-        }
-
-        if (event != null)
-        {
-            event.clear();
-        }
-        this.notifyEvent = event;
-
-        this.expiredTime = timeout;
-        if (timeout != 0)
-        {
-            this.expiredTime += TrcUtil.getCurrentTime();
-        }
-
-        this.holdTarget = holdTarget;
-        this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
-        driveBase.resetStallTimer();
-
-        driveBase.saveReferenceFrame();
-
-        setTaskEnabled(true);
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
-        }
+        setTarget(null, xTarget, yTarget, turnTarget, holdTarget, event, timeout);
     }   //setTarget
 
     /**
@@ -544,7 +569,7 @@ public class TrcPidDrive
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        if (active)
+        if (active && driveBase.validateOwnership(owner))
         {
             stopPid();
             canceled = true;
@@ -592,7 +617,7 @@ public class TrcPidDrive
         }
 
         setTaskEnabled(false);
-        driveBase.stop();
+        driveBase.stop(owner);
 
         if (xPidCtrl != null)
         {
@@ -710,7 +735,7 @@ public class TrcPidDrive
 
         if (maintainHeading && driveBase.supportsHolonomicDrive())
         {
-            driveBase.holonomicDrive(manualX, manualY, turnPower, false, 0.0);
+            driveBase.holonomicDrive(owner, manualX, manualY, turnPower);
         }
         else if (expired || stalled || onTarget)
         {
@@ -727,43 +752,43 @@ public class TrcPidDrive
             // We will stop the drive base but not stopping PID.
             else
             {
-                driveBase.stop();
+                driveBase.stop(owner);
             }
         }
         // If we come here, we are not on target yet, keep driving.
         else if (xPidCtrl != null && driveBase.supportsHolonomicDrive())
         {
             double heading = driveBase.getHeading();
-            driveBase.holonomicDrive(xPower, yPower, turnPower, heading - driveBase.getSavedReferenceFrame().heading);
+            driveBase.holonomicDrive(owner, xPower, yPower, turnPower, heading - driveBase.getSavedReferenceFrame().heading);
         }
         else if (turnOnly)
         {
             switch (turnMode)
             {
                 case IN_PLACE:
-                    driveBase.arcadeDrive(0.0, turnPower);
+                    driveBase.arcadeDrive(owner, 0.0, turnPower, false);
                     break;
 
                 case PIVOT_FORWARD:
                 case CURVE:
                     if (turnPower < 0.0)
                     {
-                        driveBase.tankDrive(0.0, -turnPower);
+                        driveBase.tankDrive(owner, 0.0, -turnPower);
                     }
                     else
                     {
-                        driveBase.tankDrive(turnPower, 0.0);
+                        driveBase.tankDrive(owner, turnPower, 0.0);
                     }
                     break;
 
                 case PIVOT_BACKWARD:
                     if (turnPower < 0.0)
                     {
-                        driveBase.tankDrive(turnPower, 0.0);
+                        driveBase.tankDrive(owner, turnPower, 0.0);
                     }
                     else
                     {
-                        driveBase.tankDrive(0.0, -turnPower);
+                        driveBase.tankDrive(owner, 0.0, -turnPower);
                     }
                     break;
             }
@@ -771,11 +796,11 @@ public class TrcPidDrive
         else if (turnMode == TurnMode.IN_PLACE)
         {
             // We are still in an in-place turn.
-            driveBase.arcadeDrive(yPower, turnPower);
+            driveBase.arcadeDrive(owner, yPower, turnPower, false);
         }
         else
         {
-            driveBase.curveDrive(yPower, turnPower);
+            driveBase.curveDrive(owner, yPower, turnPower, false);
         }
 
         if (msgTracer != null && tracePidInfo)

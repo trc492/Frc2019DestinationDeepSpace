@@ -27,17 +27,20 @@ import frclib.FrcCANTalonLimitSwitch;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
 import trclib.TrcEvent;
+import trclib.TrcExclusiveSubsystem;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
 import trclib.TrcUtil;
 
-public class Climber
+public class Climber implements TrcExclusiveSubsystem
 {
     private enum State
     {
         PREP_ELEVATOR, CALIB_ELEVATOR, INIT_SUBSYSTEMS, MANUAL_CLIMB
     }
+
+    private static final String instanceName = "Climber";
 
     private FrcCANTalon actuator;
     private FrcCANTalon climberWheels;
@@ -76,14 +79,30 @@ public class Climber
         event = new TrcEvent("TrcEvent");
     }
 
+    public void zeroCalibrateActuator(String owner)
+    {
+        if (validateOwnership(owner))
+        {
+            actuator.zeroCalibrate(RobotInfo.CLIMBER_CALIBRATE_POWER);
+        }
+    }
+
     public void zeroCalibrateActuator()
     {
-        actuator.zeroCalibrate(RobotInfo.CLIMBER_CALIBRATE_POWER);
+        zeroCalibrateActuator(null);
+    }
+
+    public void setWheelPower(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            climberWheels.set(power);
+        }
     }
 
     public void setWheelPower(double power)
     {
-        climberWheels.set(power);
+        setWheelPower(null, power);
     }
 
     public double getWheelPower()
@@ -106,14 +125,25 @@ public class Climber
         return actuator.isUpperLimitSwitchActive();
     }
 
+    public void setActuatorPower(String owner, double power)
+    {
+        if (validateOwnership(owner))
+        {
+            actuator.set(power);
+        }
+    }
+
     public void setActuatorPower(double power)
     {
-        actuator.set(power);
+        setActuatorPower(null, power);
     }
 
     public void climb()
     {
         sm.start(State.PREP_ELEVATOR);
+        robot.elevator.acquireExclusiveAccess(instanceName);
+        acquireExclusiveAccess(instanceName);
+        robot.pickup.acquireExclusiveAccess(instanceName);
         setEnabled(true);
     }
 
@@ -143,17 +173,21 @@ public class Climber
     {
         if (isActive())
         {
-            actuator.set(0.0);
-            robot.elevator.setPower(0.0);
-            robot.elevator.setManualOverrideEnabled(false);
-            robot.pickup.setManualOverrideEnabled(false);
-            climberWheels.set(0.0);
-            robot.pickup.setPitchPower(0.0);
+            setActuatorPower(instanceName, 0.0);
+            robot.elevator.setPower(instanceName, 0.0);
+            robot.elevator.setManualOverrideEnabled(instanceName, false);
+            robot.pickup.setManualOverrideEnabled(instanceName, false);
+            setWheelPower(instanceName, 0.0);
+            robot.pickup.setPitchPower(instanceName, 0.0);
             sm.stop();
             setEnabled(false);
             wheelContacted = false;
             robot.climbingButDriving = false;
             robot.dashboard.displayPrintf(9, "");
+            robot.driveBase.releaseExclusiveAccess(instanceName);
+            robot.elevator.releaseExclusiveAccess(instanceName);
+            robot.pickup.releaseExclusiveAccess(instanceName);
+            releaseExclusiveAccess(instanceName);
         }
     }
 
@@ -176,16 +210,16 @@ public class Climber
                     if (robot.switchPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
                         levelThree = false;
-                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE, event);
+                        robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE, event);
                     }
                     else
                     {
                         levelThree = true;
-                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE, event);
+                        robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE, event);
                     }
                     robot.globalTracer.traceInfo("climbTask", "Climb state=PREP_ELEVATOR,level3=%b", levelThree);
-                    robot.pickup.setManualOverrideEnabled(true);
-                    robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                    robot.pickup.setManualOverrideEnabled(instanceName, true);
+                    robot.pickup.setPitchPower(instanceName, RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
                     sm.waitForSingleEvent(event, State.CALIB_ELEVATOR, 2.0);
                     break;
 
@@ -193,11 +227,11 @@ public class Climber
                     boolean levelTwo = robot.switchPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB);
                     if (levelTwo)
                     {
-                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE);
+                        robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2_CLEARANCE);
                     }
                     else
                     {
-                        robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE);
+                        robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3_CLEARANCE);
                     }
                     if (robot.buttonPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
@@ -205,11 +239,11 @@ public class Climber
                         robot.climbingButDriving = false;
                         if (levelTwo)
                         {
-                            robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2, event);
+                            robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_2, event);
                         }
                         else
                         {
-                            robot.elevator.setPosition(RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3, event);
+                            robot.elevator.setPosition(instanceName, RobotInfo.CLIMBER_ELEVATOR_POS_LVL_3, event);
                         }
                         sm.waitForSingleEvent(event, State.INIT_SUBSYSTEMS, 2.0);
                     }
@@ -222,8 +256,10 @@ public class Climber
                     climberWheels.setBrakeModeEnabled(true);
                     wheelContacted = false;
 
-                    robot.elevator.setManualOverrideEnabled(true);
-                    robot.pickup.setManualOverrideEnabled(true);
+                    robot.elevator.setManualOverrideEnabled(instanceName, true);
+                    robot.pickup.setManualOverrideEnabled(instanceName, true);
+
+                    robot.driveBase.acquireExclusiveAccess(instanceName);
 
                     sm.setState(State.MANUAL_CLIMB);
                     break;
@@ -232,7 +268,7 @@ public class Climber
                     // pickup pitch is at maximum power.
                     if (!wheelContacted)
                     {
-                        robot.pickup.setPitchPower(RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
+                        robot.pickup.setPitchPower(instanceName, RobotInfo.CLIMBER_PICKUP_HOLD_POWER);
                     }
 
                     // If panel button 8 is pressed and held, we are climbing. Set climber power to maximum. As long as
@@ -243,10 +279,10 @@ public class Climber
                     // drop onto the HAB.
                     if (robot.buttonPanel.getRawButton(RobotInfo.PANEL_BUTTON_CLIMB))
                     {
-                        setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
+                        setActuatorPower(instanceName, RobotInfo.CLIMBER_ACTUATOR_CLIMB_POWER);
                         if (robot.elevator.getPosition() > RobotInfo.CLIMBER_ELEVATOR_DONE_POS)
                         {
-                            robot.elevator.setPower(
+                            robot.elevator.setPower(instanceName,
                                 RobotInfo.CLIMBER_ELEVATOR_CLIMB_POWER + robot.operatorStick.getYWithDeadband(true));
                         }
                         else
@@ -258,7 +294,7 @@ public class Climber
                             // the DONE position while the BLUE button is held. Is this correct? If so, why don't
                             // we just apply GRAVITY_COMP instead of 0.0 here so the robot front will be held at
                             // DONE position steadily.
-                            robot.elevator.setPower(0.0);
+                            robot.elevator.setPower(instanceName, 0.0);
                         }
                     }
                     else
@@ -271,13 +307,13 @@ public class Climber
                         // pass above the HAB platform.
                         if (robot.buttonPanel.getRawButton(FrcJoystick.PANEL_BUTTON_YELLOW2))
                         {
-                            setActuatorPower(-0.1);
+                            setActuatorPower(instanceName, -0.1);
                         }
                         else
                         {
-                            setActuatorPower(RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
+                            setActuatorPower(instanceName, RobotInfo.CLIMBER_ACTUATOR_GRAVITY_COMP);
                         }
-                        robot.elevator.setPower(0.0);
+                        robot.elevator.setPower(instanceName, 0.0);
                     }
 
                     // Driver presses left stick button 2 when the front wheel is completely above the HAB platform.
@@ -286,8 +322,8 @@ public class Climber
                     if (robot.leftDriveStick.getRawButton(FrcJoystick.LOGITECH_BUTTON2))
                     {
                         wheelContacted = true;
-                        robot.pickup.setManualOverrideEnabled(true);
-                        robot.pickup.setPitchPower(-0.6);
+                        robot.pickup.setManualOverrideEnabled(instanceName, true);
+                        robot.pickup.setPitchPower(instanceName, -0.6);
                     }
 
                     robot.globalTracer
@@ -298,8 +334,9 @@ public class Climber
 
                     // Use the left drive stick to control the climber wheel power while the right drive stick is
                     // controlling the drive base wheel power.
-                    setWheelPower(robot.leftDriveStick.getYWithDeadband(true));
-                    robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
+                    setWheelPower(instanceName, robot.leftDriveStick.getYWithDeadband(true));
+                    double power = robot.rightDriveStick.getYWithDeadband(true);
+                    robot.driveBase.tankDrive(instanceName, power, power);
                     break;
             }
         }
