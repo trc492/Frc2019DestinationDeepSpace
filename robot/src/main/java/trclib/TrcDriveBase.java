@@ -190,6 +190,11 @@ public abstract class TrcDriveBase
         this(motors, null);
     }   //TrcDriveBase
 
+    /**
+     * Get the robot pose in the global reference frame. This is the reference frame relative to the robot starting position.
+     *
+     * @return A copy of the pose object in the global reference frame.
+     */
     public TrcPose2D getGlobalPose()
     {
         synchronized (odometry)
@@ -199,21 +204,53 @@ public abstract class TrcDriveBase
         }
     }
 
+    /**
+     * Get the robot pose relative to the saved reference frame, or the global reference frame if there is none saved.
+     *
+     * @return The robot pose relative to the last saved reference frame, or the global reference frame.
+     */
     public TrcPose2D getRelativePose()
     {
         return referenceFrame == null ? getGlobalPose() : getPoseRelativeTo(referenceFrame);
     }
 
+    /**
+     * Get the robot pose relative to <code>pose</code>.
+     *
+     * @param pose The new reference frame to transform to.
+     * @return The pose object transformed into the new reference frame.
+     */
     public TrcPose2D getPoseRelativeTo(TrcPose2D pose)
     {
         return getGlobalPose().inReferenceFrameOf(pose);
     }
 
+    /**
+     * Get the last saved reference frame, or the global origin if none available.
+     *
+     * @return The last saved reference frame, or if none have been saved, return the global origin. (all zeros)
+     */
+    public TrcPose2D getSavedReferenceFrame()
+    {
+        if (referenceFrame == null)
+        {
+            return new TrcPose2D();
+        }
+        return new TrcPose2D(referenceFrame.x, referenceFrame.y, referenceFrame.heading, referenceFrame.xVel,
+            referenceFrame.yVel, referenceFrame.turnRate);
+    }
+
+    /**
+     * Save this reference frame. All relative poses will be relative to this reference frame.
+     */
     public void saveReferenceFrame()
     {
         referenceFrame = getGlobalPose();
     }
 
+    /**
+     * Clear the saved reference frame. All relative poses will instead be global poses.
+     */
     public void clearReferenceFrame()
     {
         referenceFrame = null;

@@ -678,6 +678,12 @@ public class TrcPidDrive
         boolean turnOnTarget = turnPidCtrl == null || turnPidCtrl.isOnTarget();
         boolean onTarget = turnOnTarget && (turnOnly || xOnTarget && yOnTarget);
 
+        // Since nonholonomic drive bases can't drive in multiple axes, use the robot local reference frame.
+        if (!driveBase.supportsHolonomicDrive())
+        {
+            driveBase.saveReferenceFrame();
+        }
+
         if (stuckWheelHandler != null)
         {
             for (int i = 0; i < driveBase.getNumMotors(); i++)
@@ -725,9 +731,10 @@ public class TrcPidDrive
             }
         }
         // If we come here, we are not on target yet, keep driving.
-        else if (xPidCtrl != null)
+        else if (xPidCtrl != null && driveBase.supportsHolonomicDrive())
         {
-            driveBase.holonomicDrive(xPower, yPower, turnPower, false, 0.0);
+            double heading = driveBase.getHeading();
+            driveBase.holonomicDrive(xPower, yPower, turnPower, heading - driveBase.getSavedReferenceFrame().heading);
         }
         else if (turnOnly)
         {
