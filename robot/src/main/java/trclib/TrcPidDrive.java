@@ -410,7 +410,6 @@ public class TrcPidDrive
                 yError = yPidCtrl.getError();
             }
 
-
             if (turnPidCtrl != null)
             {
                 turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled ? warpSpace : null);
@@ -436,6 +435,7 @@ public class TrcPidDrive
             driveBase.saveReferenceFrame();
 
             setTaskEnabled(true);
+        }
 
         if (debugEnabled)
         {
@@ -759,7 +759,8 @@ public class TrcPidDrive
         else if (xPidCtrl != null && driveBase.supportsHolonomicDrive())
         {
             double heading = driveBase.getHeading();
-            driveBase.holonomicDrive(owner, xPower, yPower, turnPower, heading - driveBase.getSavedReferenceFrame().heading);
+            double savedHeading = driveBase.getSavedReferenceFrame().heading;
+            driveBase.holonomicDrive(owner, xPower, yPower, turnPower, heading - savedHeading);
         }
         else if (turnOnly)
         {

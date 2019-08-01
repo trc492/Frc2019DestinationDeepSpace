@@ -1218,7 +1218,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     public void holonomicDrive_Polar(String owner, double magnitude, double direction, double rotation)
     {
         double dirInRads = Math.toRadians(direction);
-        holonomicDrive(owner, magnitude * Math.sin(dirInRads), magnitude * Math.cos(dirInRads), rotation, false, gyroAngle);
+        holonomicDrive(owner, magnitude * Math.sin(dirInRads), magnitude * Math.cos(dirInRads), rotation, false, 0.0);
     }   //holonomicDrive_Polar
 
     /**
