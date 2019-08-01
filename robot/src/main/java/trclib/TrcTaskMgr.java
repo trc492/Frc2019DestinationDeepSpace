@@ -305,6 +305,52 @@ public class TrcTaskMgr
         }   //unregisterTask
 
         /**
+         * This method unregisters the given task object from all task types.
+         *
+         * @return true if successfully removed from any task type, false otherwise.
+         */
+        public synchronized boolean unregisterTask()
+        {
+            boolean removed = false;
+            for (TaskType taskType : TaskType.values())
+            {
+                if (unregisterTask(taskType))
+                {
+                    removed = true;
+                }
+            }
+            return removed;
+        }
+
+        /**
+         * This method checks if the given task type is registered with this task object.
+         *
+         * @param type specifies the task type to be checked against.
+         * @return true if this task is registered as the given type, false otherwise.
+         */
+        public synchronized boolean isRegistered(TaskType type)
+        {
+            return hasType(type);
+        }
+
+        /**
+         * This method checks if this task object is registered for any task type.
+         *
+         * @return true if this task is registered as any type, false otherwise.
+         */
+        public synchronized boolean isRegistered()
+        {
+            for (TaskType taskType : TaskType.values())
+            {
+                if (isRegistered(taskType))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /**
          * This method checks if the given task type is registered with this task object.
          *
          * @param type specifies the task type to be checked against.

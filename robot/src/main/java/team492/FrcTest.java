@@ -350,6 +350,8 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
+                robot.driveBase.saveReferenceFrame();
+                processedInput = true;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
