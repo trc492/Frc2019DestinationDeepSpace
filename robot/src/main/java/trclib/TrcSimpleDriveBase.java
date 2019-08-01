@@ -31,7 +31,12 @@ public class TrcSimpleDriveBase extends TrcDriveBase
 {
     public enum MotorType
     {
-        LEFT_FRONT(0), RIGHT_FRONT(1), LEFT_REAR(2), RIGHT_REAR(3), LEFT_MID(4), RIGHT_MID(5);
+        LEFT_FRONT(0),
+        RIGHT_FRONT(1),
+        LEFT_REAR(2),
+        RIGHT_REAR(3),
+        LEFT_MID(4),
+        RIGHT_MID(5);
 
         public final int value;
 
@@ -51,23 +56,26 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 6-wheel drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftMidMotor    specifies the left mid motor of a 6-wheel drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftMidMotor specifies the left mid motor of a 6-wheel drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightMidMotor   specifies the right mid motor of a 6-wheel drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
-     * @param gyro            specifies the gyro. If none, it can be set to null.
+     * @param rightMidMotor specifies the right mid motor of a 6-wheel drive base.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param gyro specifies the gyro. If none, it can be set to null.
      */
-    public TrcSimpleDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftMidMotor,
-        TrcMotorController leftRearMotor, TrcMotorController rightFrontMotor, TrcMotorController rightMidMotor,
-        TrcMotorController rightRearMotor, TrcGyro gyro)
+    public TrcSimpleDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftMidMotor, TrcMotorController leftRearMotor,
+        TrcMotorController rightFrontMotor, TrcMotorController rightMidMotor, TrcMotorController rightRearMotor,
+        TrcGyro gyro)
     {
-        super(new TrcMotorController[] { leftFrontMotor, rightFrontMotor, leftRearMotor, rightRearMotor, leftMidMotor,
-            rightMidMotor }, gyro);
+        super(new TrcMotorController[]
+                {leftFrontMotor, rightFrontMotor, leftRearMotor, rightRearMotor, leftMidMotor, rightMidMotor},
+              gyro);
 
-        if (leftFrontMotor == null || rightFrontMotor == null || leftRearMotor == null || rightRearMotor == null
-            || leftMidMotor == null || rightMidMotor == null)
+        if (leftFrontMotor == null || rightFrontMotor == null ||
+            leftRearMotor == null || rightRearMotor == null ||
+            leftMidMotor == null || rightMidMotor == null)
         {
             throw new IllegalArgumentException("All 6 motors must not be null.");
         }
@@ -83,16 +91,16 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 6-wheel drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftMidMotor    specifies the left mid motor of a 6-wheel drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftMidMotor specifies the left mid motor of a 6-wheel drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightMidMotor   specifies the right mid motor of a 6-wheel drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
+     * @param rightMidMotor specifies the right mid motor of a 6-wheel drive base.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
      */
-    public TrcSimpleDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftMidMotor,
-        TrcMotorController leftRearMotor, TrcMotorController rightFrontMotor, TrcMotorController rightMidMotor,
-        TrcMotorController rightRearMotor)
+    public TrcSimpleDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftMidMotor, TrcMotorController leftRearMotor,
+        TrcMotorController rightFrontMotor, TrcMotorController rightMidMotor, TrcMotorController rightRearMotor)
     {
         this(leftFrontMotor, leftMidMotor, leftRearMotor, rightFrontMotor, rightMidMotor, rightRearMotor, null);
     }   //TrcSimpleDriveBase
@@ -100,16 +108,18 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 4-wheel drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
-     * @param gyro            specifies the gyro. If none, it can be set to null.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param gyro specifies the gyro. If none, it can be set to null.
      */
-    public TrcSimpleDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
-        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor, TrcGyro gyro)
+    public TrcSimpleDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor,
+        TrcGyro gyro)
     {
-        super(new TrcMotorController[] { leftFrontMotor, rightFrontMotor, leftRearMotor, rightRearMotor }, gyro);
+        super(new TrcMotorController[] {leftFrontMotor, rightFrontMotor, leftRearMotor, rightRearMotor}, gyro);
 
         if (leftFrontMotor == null || rightFrontMotor == null || leftRearMotor == null || rightRearMotor == null)
         {
@@ -127,12 +137,13 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 4-wheel drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
      */
-    public TrcSimpleDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+    public TrcSimpleDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
         TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor)
     {
         this(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, null);
@@ -141,13 +152,14 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 2-wheel drive base.
      *
-     * @param leftMotor  specifies the left rear motor of the drive base.
+     * @param leftMotor specifies the left rear motor of the drive base.
      * @param rightMotor specifies the right rear motor of the drive base.
-     * @param gyro       specifies the gyro. If none, it can be set to null.
+     * @param gyro specifies the gyro. If none, it can be set to null.
      */
-    public TrcSimpleDriveBase(TrcMotorController leftMotor, TrcMotorController rightMotor, TrcGyro gyro)
+    public TrcSimpleDriveBase(
+        TrcMotorController leftMotor, TrcMotorController rightMotor, TrcGyro gyro)
     {
-        super(new TrcMotorController[] { leftMotor, rightMotor }, gyro);
+        super(new TrcMotorController[] {leftMotor, rightMotor}, gyro);
 
         if (leftMotor == null || rightMotor == null)
         {
@@ -165,7 +177,7 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     /**
      * Constructor: Create an instance of a 2-wheel drive base.
      *
-     * @param leftMotor  specifies the left rear motor of the drive base.
+     * @param leftMotor specifies the left rear motor of the drive base.
      * @param rightMotor specifies the right rear motor of the drive base.
      */
     public TrcSimpleDriveBase(TrcMotorController leftMotor, TrcMotorController rightMotor)
@@ -173,16 +185,11 @@ public class TrcSimpleDriveBase extends TrcDriveBase
         this(leftMotor, rightMotor, null);
     }   //TrcSimpleDriveBase
 
-    public void setWheelBaseWidth(double width)
-    {
-        setPositionScales(xScale, yScale, yScale / width);
-    }
-
     /**
      * This method inverts direction of a given motor in the drive train.
      *
      * @param motorType specifies the motor in the drive train.
-     * @param inverted  specifies true if inverting motor direction.
+     * @param inverted specifies true if inverting motor direction.
      */
     public void setInvertedMotor(MotorType motorType, boolean inverted)
     {
@@ -209,7 +216,7 @@ public class TrcSimpleDriveBase extends TrcDriveBase
      *              ownership aware.
      * @param leftPower specifies left power value.
      * @param rightPower specifies right power value.
-     * @param inverted   specifies true to invert control (i.e. robot front becomes robot back).
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
      */
     @Override
     public void tankDrive(String owner, double leftPower, double rightPower, boolean inverted)
@@ -320,13 +327,13 @@ public class TrcSimpleDriveBase extends TrcDriveBase
     }   //tankDrive
 
     /**
-     * This method is called periodically to monitor the position sensors to update the odometry data.
+     * This method is called periodically to monitor the position sensors to update the odometry data. It assumes the
+     * caller has the odometry lock.
      *
-     * @param motorValues specifies the MotorValues object containing the relevant data to calculate pose.
-     * @return A TrcPose2D object describing the change in position since the last update.
+     * @param odometry specifies the odometry object to be updated.
      */
     @Override
-    protected TrcPose2D updateOdometry(MotorValues motorValues)
+    protected void updateOdometry(Odometry odometry)
     {
         final String funcName = "updateOdometry";
 
@@ -335,48 +342,22 @@ public class TrcSimpleDriveBase extends TrcDriveBase
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
 
-        TrcPose2D odometry = new TrcPose2D();
-
-        odometry.x = 0;
-        odometry.y = TrcUtil.average(motorValues.motorPosDiffs) * yScale;
-
-        odometry.xVel = 0;
-        odometry.yVel = TrcUtil.average(motorValues.currVelocities) * xScale;
-
-        // Get the average of all left and right motors separately, since this drivebase may have between 2-6 motors
-        double l = 0, r = 0;
-        double lVel = 0, rVel = 0;
-        for (int i = 0; i < motorValues.motorPosDiffs.length; i++)
-        {
-            double posDiff = motorValues.motorPosDiffs[i];
-            double vel = motorValues.currVelocities[i];
-            if (i % 2 == 0)
-            {
-                l += posDiff;
-                lVel += vel;
-            }
-            else
-            {
-                r += posDiff;
-                rVel += vel;
-            }
-        }
-
-        double motorsPerSide = getNumMotors() / 2.0;
-        l /= motorsPerSide;
-        r /= motorsPerSide;
-        lVel /= motorsPerSide;
-        rVel /= motorsPerSide;
-
-        odometry.heading = Math.toDegrees((l - r) * rotScale);
-        odometry.turnRate = Math.toDegrees((lVel - rVel) * rotScale);
+        odometry.yRawPos = TrcUtil.average(
+                odometry.currPositions[MotorType.LEFT_FRONT.value], odometry.currPositions[MotorType.RIGHT_FRONT.value],
+                odometry.currPositions[MotorType.LEFT_REAR.value], odometry.currPositions[MotorType.RIGHT_REAR.value]);
+        odometry.yRawVel = TrcUtil.average(
+                odometry.currVelocities[MotorType.LEFT_FRONT.value], odometry.currVelocities[MotorType.RIGHT_FRONT.value],
+                odometry.currVelocities[MotorType.LEFT_REAR.value], odometry.currVelocities[MotorType.RIGHT_REAR.value]);
+        odometry.rotRawPos = TrcUtil.average(
+                odometry.currPositions[MotorType.LEFT_FRONT.value],
+                odometry.currPositions[MotorType.LEFT_REAR.value],
+                -odometry.currPositions[MotorType.RIGHT_FRONT.value],
+                -odometry.currPositions[MotorType.RIGHT_REAR.value]);
 
         if (debugEnabled)
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
-
-        return odometry;
     }   //updateOdometry
 
 }   //class TrcSimpleDriveBase

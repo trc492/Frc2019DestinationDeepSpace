@@ -31,7 +31,7 @@ import edu.wpi.first.wpilibj.Notifier;
 
 import trclib.TrcEvent;
 import trclib.TrcTankMotionProfile;
-import trclib.TrcWaypoint;
+import trclib.TrcTankMotionProfile.TrcMotionProfilePoint;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -548,7 +548,7 @@ public class FrcTankMotionProfileFollower extends TrcTankMotionProfileFollower
         TrajectoryPoint point = new TrajectoryPoint();
         for (int i = startIndex; i < endIndex; i++)
         {
-            TrcWaypoint profilePoint = profile.getLeftPoints()[i];
+            TrcMotionProfilePoint profilePoint = profile.getLeftPoints()[i];
             point.position = profilePoint.encoderPosition;
             point.velocity = profilePoint.velocity;
             point.timeDur = (int) profilePoint.timeStep * 1000; // Convert from sec to ms
