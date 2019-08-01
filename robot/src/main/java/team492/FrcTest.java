@@ -311,6 +311,10 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
+                robot.lfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                robot.rfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                robot.lrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                robot.rrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
@@ -437,18 +441,26 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard
             .displayPrintf(2, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
-        robot.dashboard.displayPrintf(3, "LF: rev=%b,forward=%b,adc=%b", robot.lfSteerMotor.isLowerLimitSwitchActive(),
-            robot.lfSteerMotor.isUpperLimitSwitchActive(),
-            robot.lfSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2);
-        robot.dashboard.displayPrintf(4, "RF: rev=%b,forward=%b,adc=%b", robot.rfSteerMotor.isLowerLimitSwitchActive(),
-            robot.rfSteerMotor.isUpperLimitSwitchActive(),
-            robot.rfSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2);
-        robot.dashboard.displayPrintf(5, "LR: rev=%b,forward=%b,adc=%b", robot.lrSteerMotor.isLowerLimitSwitchActive(),
-            robot.lrSteerMotor.isUpperLimitSwitchActive(),
-            robot.lrSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2);
-        robot.dashboard.displayPrintf(6, "RR: rev=%b,forward=%b,adc=%b", robot.rrSteerMotor.isLowerLimitSwitchActive(),
-            robot.rrSteerMotor.isUpperLimitSwitchActive(),
-            robot.rrSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2);
+        robot.dashboard
+            .displayPrintf(3, "LF: rev=%b,forward=%b,adc=%b,pos=%.2f", robot.lfSteerMotor.isLowerLimitSwitchActive(),
+                robot.lfSteerMotor.isUpperLimitSwitchActive(),
+                robot.lfSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2,
+                robot.leftFrontWheel.getSteerAngle());
+        robot.dashboard
+            .displayPrintf(4, "RF: rev=%b,forward=%b,adc=%b,pos=%.2f", robot.rfSteerMotor.isLowerLimitSwitchActive(),
+                robot.rfSteerMotor.isUpperLimitSwitchActive(),
+                robot.rfSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2,
+                robot.rightFrontWheel.getSteerAngle());
+        robot.dashboard
+            .displayPrintf(5, "LR: rev=%b,forward=%b,adc=%b,pos=%.2f", robot.lrSteerMotor.isLowerLimitSwitchActive(),
+                robot.lrSteerMotor.isUpperLimitSwitchActive(),
+                robot.lrSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2,
+                robot.leftRearWheel.getSteerAngle());
+        robot.dashboard
+            .displayPrintf(6, "RR: rev=%b,forward=%b,adc=%b,pos=%.2f", robot.rrSteerMotor.isLowerLimitSwitchActive(),
+                robot.rrSteerMotor.isUpperLimitSwitchActive(),
+                robot.rrSteerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2,
+                robot.rightRearWheel.getSteerAngle());
     } // doSensorsTest
 
     /**
