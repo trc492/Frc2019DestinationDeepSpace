@@ -56,7 +56,6 @@ public class RaspiVision
         NONE, REGULAR, BOUNDING_BOX, MASK, CORNERS, FULL_PNP
     }
 
-    private static final int TEAM_NUMBER = 492;
     private static final boolean SERVER = false; // true for debugging only
     private static final boolean MEASURE_FPS = true;
     private static final double FPS_AVG_WINDOW = 5; // 5 seconds

@@ -72,7 +72,6 @@ public class FrcAuto extends FrcTeleOp
         autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
     } // FrcAuto
 
-    // CodeReview: Where is the auto tie-in???
     public boolean isAutoActive()
     {
         return autoCommand != null && autoCommand.isActive();

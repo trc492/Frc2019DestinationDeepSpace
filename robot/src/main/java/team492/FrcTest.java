@@ -30,7 +30,6 @@ import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
 import trclib.TrcEvent;
-import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;

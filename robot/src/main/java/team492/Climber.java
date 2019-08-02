@@ -30,7 +30,6 @@ import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
 import trclib.TrcTaskMgr;
-import trclib.TrcUtil;
 
 public class Climber
 {
@@ -302,6 +301,10 @@ public class Climber
                     robot.driveBase.arcadeDrive(robot.rightDriveStick.getYWithDeadband(true), 0.0);
                     break;
             }
+        }
+        else
+        {
+            robot.dashboard.displayPrintf(9, "State: DISABLED");
         }
     }
 }

@@ -23,7 +23,6 @@
 package team492;
 
 import frclib.FrcJoystick;
-import frclib.FrcPixyCam1;
 import trclib.TrcUtil;
 
 public class RobotInfo

@@ -49,13 +49,11 @@ public class Elevator
 
         robot.pdp.registerEnergyUsed(RobotInfo.PDP_CHANNEL_ELEVATOR, "Elevator");
 
-        // TODO: Tune ALL of these constants
         TrcPidController.PidCoefficients pidCoefficients = new TrcPidController.PidCoefficients(RobotInfo.ELEVATOR_KP,
             RobotInfo.ELEVATOR_KI, RobotInfo.ELEVATOR_KD);
         pidController = new TrcPidController("ElevatorPidController", pidCoefficients, RobotInfo.ELEVATOR_TOLERANCE,
             this::getPosition);
         FrcCANTalonLimitSwitch lowerLimitSwitch = new FrcCANTalonLimitSwitch("ElevatorLowerLimitSwitch", motor, false);
-        // TODO: Need to determine the proper gravity compensation value.
         elevator = new TrcPidActuator("ElevatorActuator", motor, lowerLimitSwitch, pidController,
             RobotInfo.ELEVATOR_CALIBRATE_POWER, RobotInfo.ELEVATOR_PID_FLOOR, RobotInfo.ELEVATOR_PID_CEILING,
             () -> RobotInfo.ELEVATOR_GRAVITY_COMP);
