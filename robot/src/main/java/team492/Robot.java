@@ -48,7 +48,13 @@ import trclib.TrcSwerveDriveBase;
 import trclib.TrcSwerveModule;
 import trclib.TrcUtil;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.PrintStream;
 import java.util.Date;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -154,11 +160,13 @@ public class Robot extends FrcRobotBase
         super(programName);
     }   //Robot
 
-    private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor)
+    private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor,
+        int steerZero)
     {
-        int absPosTicks = steerMotor.motor.getSensorCollection().getPulseWidthPosition() % 4096;
+        int absPosTicks = (int) TrcUtil
+            .modulo(steerMotor.motor.getSensorCollection().getPulseWidthPosition() - steerZero, 4096);
         double absPos = absPosTicks * 360.0 / 4096.0;
-        boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023/2;
+        boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2;
         if (TrcUtil.inRange(absPos, 33, 327) && !isRightHemisphere || absPos > 327)
         {
             absPosTicks -= 4096;
@@ -186,6 +194,33 @@ public class Robot extends FrcRobotBase
         }
         module.setSteeringLimits(RobotInfo.STEER_LIMIT_LOW, RobotInfo.STEER_LIMIT_HIGH);
         return module;
+    }
+
+    private int[] getSteerZeroPositions()
+    {
+        try (Scanner in = new Scanner(new FileReader("/home/lvuser/steerzeros.txt")))
+        {
+            return IntStream.range(0, 4).map(e -> in.nextInt()).toArray();
+        }
+        catch (Exception e)
+        {
+            return new int[4];
+        }
+    }
+
+    public void setSteerZeroPosition()
+    {
+        try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
+        {
+            out.println(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+            out.println(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+            out.println(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+            out.println(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
     }
 
     private FrcCANTalon createTalon(String instanceName, int canID, boolean steer)
@@ -250,10 +285,11 @@ public class Robot extends FrcRobotBase
         //
         // Initialize each drive motor controller.
         //
-        leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor);
-        rightFrontWheel = createModule("rf", rfDriveMotor, rfSteerMotor);
-        leftRearWheel = createModule("lr", lrDriveMotor, lrSteerMotor);
-        rightRearWheel = createModule("rr", rrDriveMotor, rrSteerMotor);
+        int[] steerZeros = getSteerZeroPositions();
+        leftFrontWheel = createModule("lf", lfDriveMotor, lfSteerMotor, steerZeros[0]);
+        rightFrontWheel = createModule("rf", rfDriveMotor, rfSteerMotor, steerZeros[1]);
+        leftRearWheel = createModule("lr", lrDriveMotor, lrSteerMotor, steerZeros[2]);
+        rightRearWheel = createModule("rr", rrDriveMotor, rrSteerMotor, steerZeros[3]);
 
         leftFrontWheel.setInverted(false);
         leftRearWheel.setInverted(false);

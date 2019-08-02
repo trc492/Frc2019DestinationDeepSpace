@@ -308,6 +308,8 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
+                robot.setSteerZeroPosition();
+                processedInput = true;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
@@ -315,6 +317,7 @@ public class FrcTest extends FrcTeleOp
                 robot.rfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
                 robot.lrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
                 robot.rrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                processedInput = true;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON10:
