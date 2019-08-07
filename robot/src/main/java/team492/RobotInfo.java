@@ -25,8 +25,8 @@ package team492;
 public class RobotInfo
 {
 
-    public static final double ROBOT_WIDTH                      = 1.0;
-    public static final double ROBOT_LENGTH                     = 1.0;
+    public static final double ROBOT_WIDTH                      = 9.5;
+    public static final double ROBOT_LENGTH                     = 21.5;
 
     public static final double BATTERY_CAPACITY_WATT_HOUR       = 18.0*12.0;
 
