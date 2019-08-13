@@ -22,6 +22,8 @@
 
 package trclib;
 
+import hallib.HalDashboard;
+
 /**
  * This class implements a platform independent Swerve Drive module. A Swerve Drive module consists of a drive motor
  * and a steer motor. The steer motor is a PID controlled motor with zero calibration limit switches that allows an
@@ -238,6 +240,8 @@ public class TrcSwerveModule implements TrcMotorController
         }
         prevSteerAngle = newAngle;
 
+        HalDashboard.putNumber(instanceName, newAngle);
+
         if (debugEnabled)
         {
             if (optimize)
@@ -279,7 +283,7 @@ public class TrcSwerveModule implements TrcMotorController
     {
         final String funcName = "getSteerAngle";
         // TODO: technically, the spec for servos says getPosition returns between 0 and 1, so eventually change FrcTalonServo and also change this
-        double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getPosition();
+        double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getPhysicalPosition();
 
         if (debugEnabled)
         {

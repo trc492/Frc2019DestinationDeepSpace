@@ -212,10 +212,10 @@ public class Robot extends FrcRobotBase
     {
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
-            out.println(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
-            out.println(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
-            out.println(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
-            out.println(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+            out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
         }
         catch (FileNotFoundException e)
         {
@@ -229,7 +229,7 @@ public class Robot extends FrcRobotBase
         talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         talon.motor.enableVoltageCompensation(true);
-        talon.motor.overrideLimitSwitchesEnable(steer);
+        talon.motor.overrideLimitSwitchesEnable(false); // TODO: Enable limits for steer
         if (steer)
         {
             talon.configRevLimitSwitchNormallyOpen(false);
