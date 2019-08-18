@@ -229,10 +229,11 @@ public class Robot extends FrcRobotBase
         talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         talon.motor.enableVoltageCompensation(true);
-        talon.motor.overrideLimitSwitchesEnable(false); // TODO: Enable limits for steer
+        talon.motor.overrideLimitSwitchesEnable(steer); // TODO: Enable limits for steer
         if (steer)
         {
             talon.configRevLimitSwitchNormallyOpen(false);
+            talon.configFwdLimitSwitchNormallyOpen(false);
         }
         return talon;
     }
