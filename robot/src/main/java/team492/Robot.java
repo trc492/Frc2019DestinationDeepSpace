@@ -75,7 +75,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_STREAM_CAMERA = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
-    private static final boolean DEBUG_DRIVE_BASE = false;
+    private static final boolean DEBUG_DRIVE_BASE = true;
     private static final boolean DEBUG_PID_DRIVE = false;
     private static final boolean DEBUG_SUBSYSTEMS = false;
     private static final boolean DEBUG_VISION_TARGET = false;
