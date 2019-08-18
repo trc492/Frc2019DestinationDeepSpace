@@ -298,6 +298,12 @@ public class Robot extends FrcRobotBase
         encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
         gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
 
+        if (DEBUG_DRIVE_BASE)
+        {
+            HalDashboard.putData("RobotHeading", gyro.getGyroSendable());
+            HalDashboard.putData("DriveBase/Mecanum_Drive", createMecanumDriveInfo());
+        }
+
         //
         // Create other hardware subsystems.
         //
@@ -542,9 +548,6 @@ public class Robot extends FrcRobotBase
 
                 HalDashboard.putNumber("DriveBase/xPos", xPos);
                 HalDashboard.putNumber("DriveBase/yPos", yPos);
-                HalDashboard.putData("DriveBase/heading", gyro.getGyroSendable());
-
-                HalDashboard.putData("DriveBase/Mecanum_Drive", createMecanumDriveInfo());
 
                 //
                 // DriveBase debug info.
