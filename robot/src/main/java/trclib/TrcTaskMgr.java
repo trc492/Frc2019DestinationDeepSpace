@@ -42,7 +42,7 @@ public class TrcTaskMgr
     private static TrcDbgTrace dbgTrace = null;
 
     private static final long INPUT_THREAD_INTERVAL = 50;       // in msec
-    private static final long OUTPUT_THREAD_INTERVAL = 50;      // in msec
+    private static final long OUTPUT_THREAD_INTERVAL = 10;      // in msec
     private static final long defTaskTimeThreshold = 50000000;  // 50 msec
 
     /**
@@ -83,13 +83,13 @@ public class TrcTaskMgr
         POSTCONTINUOUS_TASK(5),
 
         /**
-         * INPUT_TASK is called periodically at a rate about 50Hz on its own thread. Typically, it runs code that
+         * INPUT_TASK is called periodically at a rate about 20Hz on its own thread. Typically, it runs code that
          * reads sensor input.
          */
         INPUT_TASK(6),
 
         /**
-         * OUTPUT_TASK is called periodically at a rate about 50Hz on its own thread. Typically, it runs code that
+         * OUTPUT_TASK is called periodically at a rate about 100Hz on its own thread. Typically, it runs code that
          * updates the state of actuators.
          */
         OUTPUT_TASK(7),
