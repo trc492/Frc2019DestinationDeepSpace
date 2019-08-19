@@ -98,6 +98,8 @@ public class TrcHolonomicPurePursuitController
         headingController.setAbsoluteSetPoint(true);
         velocityController.setAbsoluteSetPoint(true);
 
+        headingController.setNoOscillation(true);
+
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
     }
 
@@ -369,12 +371,9 @@ public class TrcHolonomicPurePursuitController
                 break;
 
             case QUADRATIC_INV:
-            case QUARTIC_INV:
-                weight = 1.0 - Math.pow(weight - 1, interpolationType.getPower());
-                break;
-
             case CUBIC_INV:
-                weight = 1.0 + Math.pow(weight - 1, interpolationType.getPower());
+            case QUARTIC_INV:
+                weight = Math.pow(weight, 1.0 / interpolationType.getPower());
                 break;
         }
         return (1.0 - weight) * start + weight * end;
