@@ -22,6 +22,8 @@
 
 package trclib;
 
+import hallib.HalDashboard;
+
 /**
  * This class implements a platform independent swerve drive base. A swerve drive base consists of 4 swerve modules
  * each of which consists of a driving motor and a PID controlled steering motor. It extends the TrcSimpleDriveBase
@@ -79,17 +81,6 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
     {
         this(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, null, wheelBaseWidth, wheelBaseLength);
     }   //TrcSwerveDriveBase
-
-    /**
-     * This method does zero calibration on the steer angle encoders.
-     */
-    public void zeroCalibrateSteering()
-    {
-        lfModule.zeroCalibrateSteering();
-        rfModule.zeroCalibrateSteering();
-        lrModule.zeroCalibrateSteering();
-        rrModule.zeroCalibrateSteering();
-    }   //zeroCalibrateSteering
 
     /**
      * This method checks if it supports holonomic drive.
@@ -301,6 +292,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
                 rrPower = motorPowerMapper.translateMotorPower(rrPower, rrModule.getVelocity());
             }
 
+            HalDashboard.putString("input", String.format("x=%.2f,y=%.2f,rot=%.2f", x, y, rotation));
             lfModule.setSteerAngle(lfAngle);
             rfModule.setSteerAngle(rfAngle);
             lrModule.setSteerAngle(lrAngle);
