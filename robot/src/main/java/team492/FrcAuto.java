@@ -54,7 +54,6 @@ public class FrcAuto extends FrcTeleOp
     //
     private FrcChoiceMenu<AutoStrategy> autoStrategyMenu;
     private AutoStrategy autoStrategy;
-    private TrcHolonomicPurePursuitController purePursuit;
     private double delay;
 
     private TrcRobot.RobotCommand autoCommand;
@@ -84,7 +83,7 @@ public class FrcAuto extends FrcTeleOp
     // CodeReview: Where is the auto tie-in???
     public boolean isAutoActive()
     {
-        return autoCommand != null && autoCommand.isActive() || purePursuit != null && purePursuit.isActive();
+        return autoCommand != null && autoCommand.isActive();
     }
 
     public void cancel()
@@ -127,15 +126,9 @@ public class FrcAuto extends FrcTeleOp
         switch (autoStrategy)
         {
             case PP_TEST:
-                TrcPidController.PidCoefficients distPid = new TrcPidController.PidCoefficients(0.011, 0, 0.001);
-                TrcPidController.PidCoefficients turnPid = new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP);
-                TrcPidController.PidCoefficients velPid = new TrcPidController.PidCoefficients(0, 0, 0, 1.0 / 223);
-                purePursuit = new TrcHolonomicPurePursuitController("pp", robot.driveBase, 10, 3.0, distPid, turnPid,
-                    velPid);
-                TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(0, 0), new TrcPose2D(0, 24, 0, 0, 60, 0),
-                    new TrcPose2D(-24, 84, 0, 0, 60, 0), new TrcPose2D(-24, 108) };
-                purePursuit
-                    .start(new TrcPath(true, Arrays.stream(poses).map(TrcWaypoint::new).toArray(TrcWaypoint[]::new)));
+                PurePursuitTestAuto auto = new PurePursuitTestAuto(robot);
+                auto.start();
+                autoCommand = auto;
                 break;
             case X_TIMED_DRIVE:
                 autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
@@ -171,9 +164,9 @@ public class FrcAuto extends FrcTeleOp
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        if (purePursuit != null)
+        if (autoCommand != null)
         {
-            purePursuit.cancel();
+            autoCommand.cancel();
         }
         TrcTaskMgr.getInstance().printTaskPerformanceMetrics(robot.globalTracer);
     } // stopMode
@@ -196,7 +189,7 @@ public class FrcAuto extends FrcTeleOp
     @Override
     public void runContinuous(double elapsedTime)
     {
-        if (purePursuit != null)
+        if (autoCommand instanceof PurePursuitTestAuto)
         {
             robot.dashboard.displayPrintf(5, "x=%.2f,y=%.2f,heading=%.2f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading());

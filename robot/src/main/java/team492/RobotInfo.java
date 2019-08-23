@@ -188,7 +188,7 @@ public class RobotInfo
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
 
     // practice robot: 0.012/0.0/0.0
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.1311748;
+    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.6577438;
     public static final double ENCODER_X_KP                     = 0.017;
     public static final double ENCODER_X_KI                     = 0.0;
     public static final double ENCODER_X_KD                     = 0.0;
