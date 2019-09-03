@@ -81,7 +81,7 @@ public class TrcOwnershipManager
     {
         String currOwner = getOwner(subsystem);
 
-        return owner == null && currOwner == null || currOwner != null && currOwner.equals(owner);
+        return currOwner == null && owner == null || currOwner != null && currOwner.equals(owner);
     }   //hasOwnership
 
     /**
@@ -93,12 +93,12 @@ public class TrcOwnershipManager
      *
      * @param owner specifies the ID string of the caller, can be null if caller is unaware of exclusive ownership.
      * @param subsystem specifies the subsystem to be checked of its ownership.
-     * @return true if the caller currently owns the subsystem or the subystem is unowned, false otherwise.
-     * @throws IllegalStateException
+     * @return true if the caller currently owns the subsystem, false otherwise.
+     * @throws IllegalStateException if caller is not the owner of the subsystem.
      */
     public synchronized boolean validateOwnership(String owner, TrcExclusiveSubsystem subsystem)
     {
-        boolean success = getOwner(subsystem) == null || hasOwnership(owner, subsystem);
+        boolean success = hasOwnership(owner, subsystem);
 
         if (!success && owner != null)
         {
@@ -141,8 +141,7 @@ public class TrcOwnershipManager
      */
     public synchronized boolean releaseOwnership(String owner, TrcExclusiveSubsystem subsystem)
     {
-        // This works because of boolean short-circuiting
-        return hasOwnership(owner, subsystem) && ownershipMap.remove(subsystem) != null;
+        return ownershipMap.remove(subsystem) != null;
     }   //releaseOwnership
 
 }   //class TrcOwnershipManager

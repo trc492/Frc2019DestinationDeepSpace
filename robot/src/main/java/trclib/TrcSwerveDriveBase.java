@@ -29,9 +29,9 @@ import org.apache.commons.math3.linear.RealVector;
  * This class implements a platform independent swerve drive base. A swerve drive base consists of 4 swerve modules
  * each of which consists of a driving motor and a PID controlled steering motor. It extends the TrcSimpleDriveBase
  * class so it inherits all the SimpleDriveBase methods and features
- * <p>
+ *
  * The implementation of swerve algorithm is based on Ether's white paper:
- * http://www.chiefdelphi.com/media/papers/download/3028
+ *  http://www.chiefdelphi.com/media/papers/download/3028
  */
 public class TrcSwerveDriveBase extends TrcSimpleDriveBase
 {
@@ -42,17 +42,18 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
-     * @param gyro            specifies the gyro. If none, it can be set to null.
-     * @param wheelBaseWidth  specifies the width of the wheel base in inches.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param gyro specifies the gyro. If none, it can be set to null.
+     * @param wheelBaseWidth specifies the width of the wheel base in inches.
      * @param wheelBaseLength specifies the length of the wheel base in inches.
      */
-    public TrcSwerveDriveBase(TrcSwerveModule leftFrontMotor, TrcSwerveModule leftRearMotor,
-        TrcSwerveModule rightFrontMotor, TrcSwerveModule rightRearMotor, TrcGyro gyro, double wheelBaseWidth,
-        double wheelBaseLength)
+    public TrcSwerveDriveBase(
+        TrcSwerveModule leftFrontMotor, TrcSwerveModule leftRearMotor,
+        TrcSwerveModule rightFrontMotor, TrcSwerveModule rightRearMotor,
+        TrcGyro gyro, double wheelBaseWidth, double wheelBaseLength)
     {
         super(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, gyro);
 
@@ -68,15 +69,17 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel swerve drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
-     * @param wheelBaseWidth  specifies the width of the wheel base in inches.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param wheelBaseWidth specifies the width of the wheel base in inches.
      * @param wheelBaseLength specifies the length of the wheel base in inches.
      */
-    public TrcSwerveDriveBase(TrcSwerveModule leftFrontMotor, TrcSwerveModule leftRearMotor,
-        TrcSwerveModule rightFrontMotor, TrcSwerveModule rightRearMotor, double wheelBaseWidth, double wheelBaseLength)
+    public TrcSwerveDriveBase(
+        TrcSwerveModule leftFrontMotor, TrcSwerveModule leftRearMotor,
+        TrcSwerveModule rightFrontMotor, TrcSwerveModule rightRearMotor,
+        double wheelBaseWidth, double wheelBaseLength)
     {
         this(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, null, wheelBaseWidth, wheelBaseLength);
     }   //TrcSwerveDriveBase
@@ -103,6 +106,14 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         return true;
     }   //supportsHolonomicDrive
 
+    /**
+     * This method sets the position scales. The raw position from the encoder is in encoder counts. By setting the
+     * scale factor, one could make getPosition to return unit in inches, for example.
+     *
+     * @param xScale   specifies the X position scale.
+     * @param yScale   specifies the Y position scale.
+     * @param rotScale specifies the rotation scale.
+     */
     @Override
     public void setPositionScales(double xScale, double yScale, double rotScale)
     {
@@ -111,10 +122,8 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             throw new IllegalArgumentException("Swerve does not have different x and y scales!");
         }
 
-        this.xScale = xScale;
-        this.yScale = yScale;
-        this.rotScale = rotScale;
-    }
+        super.setPositionScales(xScale, yScale, rotScale);
+    }   //setPositionScales
 
     /**
      * This method sets the position scales. The raw position from the encoder is in encoder counts. By setting the
@@ -123,9 +132,10 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
      *
      * @param scale specifies the position scale for each motor.
      */
-    public void setPositionScale(double scale)
+    @Override
+    public void setPositionScales(double scale)
     {
-        setPositionScales(scale, scale, 1.0);
+        super.setPositionScales(scale, scale, 1.0);
     }   //setPositionScales
 
     /**
@@ -239,7 +249,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
      *              ownership aware.
      * @param leftPower specifies left power value.
      * @param rightPower specifies right power value.
-     * @param inverted   specifies true to invert control (i.e. robot front becomes robot back).
+     * @param inverted specifies true to invert control (i.e. robot front becomes robot back).
      */
     @Override
     public void tankDrive(String owner, double leftPower, double rightPower, boolean inverted)
@@ -366,11 +376,11 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
     /**
      * This method is called periodically to monitor the position sensors to update the odometry data.
      *
-     * @param motorValues specifies the MotorValues object containing the relevant data to calculate pose.
-     * @return A TrcPose2D object describing the change in position since the last update.
+     * @param motorsState specifies the state information of the drivebase motors for calculating pose.
+     * @return a TrcPose2D object describing the change in position since the last update.
      */
     @Override
-    protected TrcPose2D updateOdometry(MotorValues motorValues)
+    protected TrcPose2D updateOdometry(MotorsState motorsState)
     {
         final String funcName = "updateOdometry";
 
@@ -382,11 +392,13 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         TrcSwerveModule[] modules = new TrcSwerveModule[] { lfModule, rfModule, lrModule, rrModule };
         RealVector[] wheelVectors = new RealVector[4];
         RealVector[] wheelVelocities = new RealVector[4];
+
         for (int i = 0; i < modules.length; i++)
         {
             double angle = modules[i].getSteerAngle();
             double pos = modules[i].getPosition();
             double posDiff = pos - lastWheelPos[i];
+
             lastWheelPos[i] = pos;
             wheelVectors[i] = TrcUtil.polarToCartesian(posDiff, angle).mapMultiply(xScale); // x and y scales are same
             wheelVelocities[i] = TrcUtil.polarToCartesian(modules[i].getVelocity(), angle).mapMultiply(xScale);
@@ -394,6 +406,7 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
 
         RealVector posSum = new ArrayRealVector(2);
         RealVector velSum = new ArrayRealVector(2);
+
         for (int i = 0; i < 4; i++)
         {
             posSum = posSum.add(wheelVectors[i]);
@@ -414,17 +427,19 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
         double x = wheelBaseWidth / 2;
         double y = wheelBaseLength / 2;
         // This is black magic math, and it actually needs to be tested.
-        double dRot = x * (wheelVectors[0].getEntry(1) + wheelVectors[2].getEntry(1) - wheelVectors[1].getEntry(1)
-            - wheelVectors[3].getEntry(1)) + y * (wheelVectors[0].getEntry(0) + wheelVectors[1].getEntry(0)
-            - wheelVectors[2].getEntry(0) - wheelVectors[3].getEntry(0));
+        double dRot = x * (wheelVectors[0].getEntry(1) + wheelVectors[2].getEntry(1) -
+                           wheelVectors[1].getEntry(1) - wheelVectors[3].getEntry(1)) +
+                      y * (wheelVectors[0].getEntry(0) + wheelVectors[1].getEntry(0) -
+                           wheelVectors[2].getEntry(0) - wheelVectors[3].getEntry(0));
+
         dRot /= 4 * Math.pow(wheelBaseDiagonal, 2);
         dRot = Math.toDegrees(dRot);
         odometry.heading = dRot;
 
-        double rotVel =
-            x * (wheelVelocities[0].getEntry(1) + wheelVelocities[2].getEntry(1) - wheelVelocities[1].getEntry(1)
-                - wheelVelocities[3].getEntry(1)) + y * (wheelVelocities[0].getEntry(0) + wheelVelocities[1].getEntry(0)
-                - wheelVelocities[2].getEntry(0) - wheelVelocities[3].getEntry(0));
+        double rotVel = x * (wheelVelocities[0].getEntry(1) + wheelVelocities[2].getEntry(1) -
+                             wheelVelocities[1].getEntry(1) - wheelVelocities[3].getEntry(1)) +
+                        y * (wheelVelocities[0].getEntry(0) + wheelVelocities[1].getEntry(0) -
+                             wheelVelocities[2].getEntry(0) - wheelVelocities[3].getEntry(0));
         rotVel /= 4 * Math.pow(wheelBaseDiagonal, 2);
         rotVel = Math.toDegrees(rotVel);
         odometry.turnRate = rotVel;

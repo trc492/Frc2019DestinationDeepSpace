@@ -25,25 +25,28 @@ package trclib;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealVector;
 
+/**
+ * This class implements a 2D pose object that represents the positional state of an object.
+ */
 public class TrcPose2D
 {
-    public double x, y, heading, xVel, yVel, turnRate;
+    public double x;
+    public double y;
+    public double heading;
+    public double xVel;
+    public double yVel;
+    public double turnRate;
 
-    public TrcPose2D()
-    {
-
-    }
-
-    public TrcPose2D(double x, double y)
-    {
-        this(x, y, 0, 0, 0, 0);
-    }
-
-    public TrcPose2D(double x, double y, double heading)
-    {
-        this(x, y, heading, 0, 0, 0);
-    }
-
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param x specifies the x component of the position.
+     * @param y specifies the y component of the position.
+     * @param heading specifies the heading.
+     * @param xVel specifies the x component of the velocity.
+     * @param yVel specifies the y component of the velocity.
+     * @param turnRate specifies the turn velocity.
+     */
     public TrcPose2D(double x, double y, double heading, double xVel, double yVel, double turnRate)
     {
         this.x = x;
@@ -52,24 +55,97 @@ public class TrcPose2D
         this.xVel = xVel;
         this.yVel = yVel;
         this.turnRate = turnRate;
-    }
+    }   //TrcPose2D
 
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param x specifies the x coordinate of the position.
+     * @param y specifies the y coordinate of the position.
+     * @param heading specifies the heading.
+     */
+    public TrcPose2D(double x, double y, double heading)
+    {
+        this(x, y, heading, 0.0, 0.0, 0.0);
+    }   //TrcPose2D
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param x specifies the x coordinate of the position.
+     * @param y specifies the y coordinate of the position.
+     */
+    public TrcPose2D(double x, double y)
+    {
+        this(x, y, 0.0, 0.0, 0.0, 0.0);
+    }   //TrcPose2D
+
+    /**
+     * Constructor: Create an instance of the object.
+     */
+    public TrcPose2D()
+    {
+        this(0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+    }   //TrcPose2D
+
+    /**
+     * This method creates and returns a copy of the given pose.
+     *
+     * @return a copy of this pose.
+     */
+    public static TrcPose2D duplicate(TrcPose2D pose)
+    {
+        return new TrcPose2D(pose.x, pose.y, pose.heading, pose.xVel, pose.yVel, pose.turnRate);
+    }   //duplicate
+
+    /**
+     * This method creates and returns a copy of this pose.
+     *
+     * @return a copy of this pose.
+     */
+    public TrcPose2D duplicate()
+    {
+        return TrcPose2D.duplicate(this);
+    }   //duplicate
+
+    /**
+     * This method returns the position in vector form.
+     *
+     * @return position vector.
+     */
     public RealVector getPositionVector()
     {
         return MatrixUtils.createRealVector(new double[] { x, y });
-    }
+    }   //getPositionVector
 
+    /**
+     * This method returns the velocity in vector form.
+     *
+     * @return velocity vector.
+     */
     public RealVector getVelocityVector()
     {
         return MatrixUtils.createRealVector(new double[] { xVel, yVel });
-    }
+    }   //getVelocityVector
 
+    /**
+     * This method subtracts the given pose from this pose and returns a relative position from the given pose.
+     *
+     * @param pose specifies the pose to be subtracted from this one.
+     * @return relative pose from the given pose.
+     */
     public TrcPose2D minus(TrcPose2D pose)
     {
         return new TrcPose2D(x - pose.x, y - pose.y, heading, xVel, yVel, turnRate);
-    }
+    }   //minus
 
-    public TrcPose2D inReferenceFrameOf(TrcPose2D pose)
+    /**
+     * This method returns a transformed pose relative to the given pose.
+     *
+     * @param pose specifies the reference pose.
+     * @return pose relative to the given pose.
+     */
+    public TrcPose2D relativeTo(TrcPose2D pose)
     {
         TrcPose2D transformed = this.minus(pose);
         RealVector newPos = TrcUtil.rotateCCW(transformed.getPositionVector(), pose.heading);
@@ -80,6 +156,8 @@ public class TrcPose2D
 
         transformed.xVel = newVel.getEntry(0);
         transformed.yVel = newVel.getEntry(1);
+
         return transformed;
-    }
-}
+    }   //relativeTo
+
+}   //class TrcPose2D

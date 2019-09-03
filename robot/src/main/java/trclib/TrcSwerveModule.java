@@ -42,12 +42,12 @@ public class TrcSwerveModule implements TrcMotorController
     public final TrcMotorController driveMotor;
     public final TrcPidMotor steerMotor;
     public final TrcEnhancedServo steerServo;
+    private TrcWarpSpace warpSpace;
     private double prevSteerAngle = 0.0;
     private double optimizedWheelDir = 1.0;
-    private TrcWarpSpace warpSpace;
-    private boolean useSteerLimits;
-    private double steerHighLimit;
-    private double steerLowLimit;
+    private boolean steerLimitsEnabled = false;
+    private double steerLowLimit = 0.0;
+    private double steerHighLimit = 0.0;
 
     /**
      * Constructor: Create an instance of the object.
@@ -100,40 +100,42 @@ public class TrcSwerveModule implements TrcMotorController
     }   //TrcSwerveModule
 
     /**
-     * Set the hard steer limits, used for noncontinuous swerve modules. The angles must be in range (-180,180].
-     * The angles must also be more than 180 degrees apart.
+     * This method returns the instance name.
+     *
+     * @return instance name.
+     */
+    @Override
+    public String toString()
+    {
+        return instanceName;
+    }   //toString
+
+    /**
+     * This method sets the hard steer limits, used for noncontinuous swerve modules. The angles must be in range
+     * (-180,180]. The limits must also be more than 180 degrees apart.
      *
      * @param steerLowLimit  The low steer limit.
      * @param steerHighLimit The high steer limit.
      */
     public void setSteeringLimits(double steerLowLimit, double steerHighLimit)
     {
-        if (steerHighLimit - 180.0 < steerLowLimit)
+        if (steerHighLimit - steerLowLimit < 180.0)
         {
             throw new IllegalArgumentException("steerLowLimit must be at least 180 less than steerHighLimit!");
         }
-        this.useSteerLimits = true;
+
+        this.steerLimitsEnabled = true;
         this.steerLowLimit = steerLowLimit;
         this.steerHighLimit = steerHighLimit;
-    }
+    }   //setSteeringLimits
 
     /**
-     * Disables the steer limits.
+     * This method disables the steer limits.
      */
     public void disableSteeringLimits()
     {
-        this.useSteerLimits = false;
-    }
-
-    /**
-     * This method returns the instance name.
-     *
-     * @return instance name.
-     */
-    public String toString()
-    {
-        return instanceName;
-    }   //toString
+        this.steerLimitsEnabled = false;
+    }   //disableSteeringLimits
 
     /**
      * This method performs a zero calibration on the steering motor.
@@ -214,9 +216,9 @@ public class TrcSwerveModule implements TrcMotorController
             optimizedWheelDir = -1.0;
         }
 
-        if (useSteerLimits)
+        if (steerLimitsEnabled)
         {
-            double boundedAngle = TrcUtil.modulo(newAngle, 360.0); // Bound angle within [0,360).
+            double boundedAngle = TrcUtil.modulo(newAngle, 360.0);  // Bound angle within [0,360).
             // Convert angle to range (-180,180].
             boundedAngle = boundedAngle > 180 ? boundedAngle - 360.0 : boundedAngle;
             if (boundedAngle < steerLowLimit)
@@ -238,8 +240,8 @@ public class TrcSwerveModule implements TrcMotorController
         {
             if (optimize)
             {
-                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)", instanceName, angle,
-                    newAngle, optimizedWheelDir);
+                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)",
+                    instanceName, angle, newAngle, optimizedWheelDir);
             }
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (angle=%f)", angle);
         }

@@ -135,6 +135,7 @@ public abstract class TrcMotor implements TrcMotorController
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;

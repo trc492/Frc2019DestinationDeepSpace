@@ -31,14 +31,16 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel mecanum drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
-     * @param gyro            specifies the gyro. If none, it can be set to null.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
+     * @param gyro specifies the gyro. If none, it can be set to null.
      */
-    public TrcMecanumDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
-        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor, TrcGyro gyro)
+    public TrcMecanumDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+        TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor,
+        TrcGyro gyro)
     {
         super(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, gyro);
     }   //TrcMecanumDriveBase
@@ -46,12 +48,13 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     /**
      * Constructor: Create an instance of the 4-wheel mecanum drive base.
      *
-     * @param leftFrontMotor  specifies the left front motor of the drive base.
-     * @param leftRearMotor   specifies the left rear motor of the drive base.
+     * @param leftFrontMotor specifies the left front motor of the drive base.
+     * @param leftRearMotor specifies the left rear motor of the drive base.
      * @param rightFrontMotor specifies the right front motor of the drive base.
-     * @param rightRearMotor  specifies the right rear motor of the drive base.
+     * @param rightRearMotor specifies the right rear motor of the drive base.
      */
-    public TrcMecanumDriveBase(TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
+    public TrcMecanumDriveBase(
+        TrcMotorController leftFrontMotor, TrcMotorController leftRearMotor,
         TrcMotorController rightFrontMotor, TrcMotorController rightRearMotor)
     {
         super(leftFrontMotor, leftRearMotor, rightFrontMotor, rightRearMotor, null);
@@ -115,7 +118,7 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
                 rotation += getGyroAssistPower(rotation);
             }
 
-            double wheelPowers[] = new double[4];
+            double[] wheelPowers = new double[4];
             wheelPowers[MotorType.LEFT_FRONT.value] = x1 + y1 + rotation;
             wheelPowers[MotorType.RIGHT_FRONT.value] = -x1 + y1 - rotation;
             wheelPowers[MotorType.LEFT_REAR.value] = -x1 + y1 + rotation;
@@ -162,24 +165,28 @@ public class TrcMecanumDriveBase extends TrcSimpleDriveBase
     /**
      * This method is called periodically to monitor the position sensors to update the odometry data.
      *
-     * @param motorValues specifies the MotorValues object containing the relevant data to calculate pose.
-     * @return A TrcPose2D object describing the change in position since the last update.
+     * @param motorsState specifies the state information of the drivebase motors for calculating pose.
+     * @return a TrcPose2D object describing the change in position since the last update.
      */
     @Override
-    protected TrcPose2D updateOdometry(MotorValues motorValues)
+    protected TrcPose2D updateOdometry(MotorsState motorsState)
     {
-        // Get y and turn data from the super class
-        TrcPose2D odometry = super.updateOdometry(motorValues);
+        //
+        // Call super class to get Y and turn data.
+        //
+        TrcPose2D odometry = super.updateOdometry(motorsState);
 
-        odometry.x = xScale * TrcUtil.average(motorValues.motorPosDiffs[MotorType.LEFT_FRONT.value],
-            motorValues.motorPosDiffs[MotorType.RIGHT_REAR.value],
-            -motorValues.motorPosDiffs[MotorType.RIGHT_FRONT.value],
-            -motorValues.motorPosDiffs[MotorType.LEFT_REAR.value]);
+        odometry.x = xScale * TrcUtil.average(
+                motorsState.motorPosDiffs[MotorType.LEFT_FRONT.value],
+                motorsState.motorPosDiffs[MotorType.RIGHT_REAR.value],
+                -motorsState.motorPosDiffs[MotorType.RIGHT_FRONT.value],
+                -motorsState.motorPosDiffs[MotorType.LEFT_REAR.value]);
 
-        odometry.xVel = xScale * TrcUtil.average(motorValues.currVelocities[MotorType.LEFT_FRONT.value],
-            motorValues.currVelocities[MotorType.RIGHT_REAR.value],
-            -motorValues.currVelocities[MotorType.RIGHT_FRONT.value],
-            -motorValues.currVelocities[MotorType.LEFT_REAR.value]);
+        odometry.xVel = xScale * TrcUtil.average(
+                motorsState.currVelocities[MotorType.LEFT_FRONT.value],
+                motorsState.currVelocities[MotorType.RIGHT_REAR.value],
+                -motorsState.currVelocities[MotorType.RIGHT_FRONT.value],
+                -motorsState.currVelocities[MotorType.LEFT_REAR.value]);
 
         return odometry;
     }   //updateOdometry

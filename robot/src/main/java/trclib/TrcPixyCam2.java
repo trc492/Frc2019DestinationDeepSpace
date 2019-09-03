@@ -24,6 +24,7 @@ package trclib;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * This class implements a platform independent pixy camera 2. This class is intended to be extended by a platform
@@ -139,10 +140,11 @@ public abstract class TrcPixyCam2
          *
          * @return string containing all the fields.
          */
+        @Override
         public String toString()
         {
             return String.format(
-                "sig=%d, centerX=%3d, centerY=%3d, width=%3d, height=%3d, angle=%3d, index=%d, age=%d",
+                Locale.US, "sig=%d, centerX=%3d, centerY=%3d, width=%3d, height=%3d, angle=%3d, index=%d, age=%d",
                 signature, centerX, centerY, width, height, angle, trackingIndex, age);
         }   //toString
 
@@ -167,9 +169,10 @@ public abstract class TrcPixyCam2
             flags = data[startIndex + 5];
         }   //Vector
 
+        @Override
         public String toString()
         {
-            return String.format("x0=%d, y0=%d, x1=%d, y1=%d, index=%d, flags=0x%x",
+            return String.format(Locale.US, "x0=%d, y0=%d, x1=%d, y1=%d, index=%d, flags=0x%x",
                 x0, y0, x1, y1, index, flags);
         }   //toString
 
@@ -188,9 +191,10 @@ public abstract class TrcPixyCam2
             angle = TrcUtil.bytesToShort(data[startIndex + 2], data[startIndex + 3]);
         }   //IntersectionLine
 
+        @Override
         public String toString()
         {
-            return String.format("index=%d, reserved=%d, angle=%d", index, reserved, angle);
+            return String.format(Locale.US, "index=%d, reserved=%d, angle=%d", index, reserved, angle);
         }   //toString
 
     }   //class IntersectionLine
@@ -215,9 +219,10 @@ public abstract class TrcPixyCam2
             }
         }   //Intersection
 
+        @Override
         public String toString()
         {
-            String s = String.format("x=%d, y=%d, n=%d, reserved=%d, lines:", x, y, n, reserved);
+            String s = String.format(Locale.US, "x=%d, y=%d, n=%d, reserved=%d, lines:", x, y, n, reserved);
             for (int i = 0; i < n; i++)
             {
                 s += "\n\t" + intersectionLines[i].toString();
@@ -242,9 +247,10 @@ public abstract class TrcPixyCam2
             code = data[startIndex + 3];
         }   //Barcode
 
+        @Override
         public String toString()
         {
-            return String.format("x=%d, y=%d, flags=0x%x, code=0x%x", x, y, flags, code);
+            return String.format(Locale.US, "x=%d, y=%d, flags=0x%x, code=0x%x", x, y, flags, code);
         }   //toString
 
     }   //class Barcode
@@ -285,6 +291,7 @@ public abstract class TrcPixyCam2
             }
         }   //FeatureVectors
 
+        @Override
         public String toString()
         {
             String feature = "Vectors: ";
@@ -319,6 +326,7 @@ public abstract class TrcPixyCam2
             intersections = list.toArray(intersections);
         }   //FeatureIntersections
 
+        @Override
         public String toString()
         {
             String feature = "Intersections: ";
@@ -347,6 +355,7 @@ public abstract class TrcPixyCam2
             }
         }   //FeatureBarcodes
 
+        @Override
         public String toString()
         {
             String feature = "Barcodes: ";
@@ -390,6 +399,7 @@ public abstract class TrcPixyCam2
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -514,7 +524,7 @@ public abstract class TrcPixyCam2
     /**
      * This method returns the firmware version info.
      *
-     * @retrun firmware version info.
+     * @return firmware version info.
      */
     public int getFirmwareVersion()
     {
@@ -525,7 +535,7 @@ public abstract class TrcPixyCam2
     /**
      * This method returns the firmware type info.
      *
-     * @retrun firmware type info.
+     * @return firmware type info.
      */
     public byte getFirmwareType()
     {

@@ -164,7 +164,7 @@ public abstract class TrcRevBlinkin
          *
          * @param value specifies the value of the new member.
          */
-        private LEDPattern(double value)
+        LEDPattern(double value)
         {
             this.value = value;
         }   //LEDPattern
@@ -247,6 +247,7 @@ public abstract class TrcRevBlinkin
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;

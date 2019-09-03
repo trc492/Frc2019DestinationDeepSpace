@@ -30,14 +30,14 @@ import java.util.Arrays;
 public class TrcLidarLite
 {
     private static final String moduleName = "TrcLidarLite";
-    private static final boolean debugEnabled = true;
+    private static final boolean debugEnabled = false;
     private static final boolean tracingEnabled = false;
     private static final boolean useGlobalTracer = true;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
     private TrcDbgTrace dbgTrace = null;
 
-    public static enum RequestId
+    public enum RequestId
     {
         READ_DISTANCE,
         GET_DISTANCE

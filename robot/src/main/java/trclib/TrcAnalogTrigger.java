@@ -74,30 +74,14 @@ public class TrcAnalogTrigger<D>
      * @param sensor specifies the sensor that is used to detect the trigger.
      * @param index specifies the data index of the sensor to read the sensor value.
      * @param dataType specifies the data type of the sensor to read the sensor value.
-     * @param triggerPoints specifies the data value trigger points array.
+     * @param dataPoints specifies an array of trigger points or an array of thresholds if dataIsTrigger is true.
      * @param triggerHandler specifies the object to handle the trigger event.
+     * @param dataIsTrigger specifies true if dataPoints specifies an array of trigger points, false if it is an
+     *                      array of thresholds.
      */
     public TrcAnalogTrigger(
         final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
-        final double[] triggerPoints, final TriggerHandler triggerHandler)
-    {
-        this(instanceName, sensor, index, dataType, triggerPoints, triggerHandler, true);
-    }
-
-    /**
-     * Constructor: Create an instance of the object.
-     *
-     * @param instanceName specifies the instance name.
-     * @param sensor specifies the sensor that is used to detect the trigger.
-     * @param index specifies the data index of the sensor to read the sensor value.
-     * @param dataType specifies the data type of the sensor to read the sensor value.
-     * @param triggersOrThresholds if providedTriggerPoints is true, this is an array of data value trigger points.
-     *                             If providedTriggerPoints is false, these are directly the thresholds to measure against.
-     * @param triggerHandler specifies the object to handle the trigger event.
-     */
-    public TrcAnalogTrigger(
-        final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
-        final double[] triggersOrThresholds, final TriggerHandler triggerHandler, boolean providedTriggerPoints)
+        final double[] dataPoints, final TriggerHandler triggerHandler, boolean dataIsTrigger)
     {
         if (debugEnabled)
         {
@@ -111,13 +95,13 @@ public class TrcAnalogTrigger<D>
             throw new NullPointerException("Sensor/TriggerHandler cannot be null");
         }
 
-        if (providedTriggerPoints)
+        if (dataIsTrigger)
         {
-            setTriggerPoints(triggersOrThresholds);
+            setTriggerPoints(dataPoints);
         }
         else
         {
-            setThresholds(triggersOrThresholds);
+            setThresholds(dataPoints);
         }
         this.instanceName = instanceName;
         this.sensor = sensor;
@@ -128,10 +112,28 @@ public class TrcAnalogTrigger<D>
     }   //TrcAnalogTrigger
 
     /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param instanceName specifies the instance name.
+     * @param sensor specifies the sensor that is used to detect the trigger.
+     * @param index specifies the data index of the sensor to read the sensor value.
+     * @param dataType specifies the data type of the sensor to read the sensor value.
+     * @param dataPoints specifies an array of trigger points.
+     * @param triggerHandler specifies the object to handle the trigger event.
+     */
+    public TrcAnalogTrigger(
+            final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
+            final double[] dataPoints, final TriggerHandler triggerHandler)
+    {
+        this(instanceName, sensor, index, dataType, dataPoints, triggerHandler, true);
+    }   //TrcAnalogTrigger
+
+    /**
      * This method returns the instance name.
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -149,7 +151,8 @@ public class TrcAnalogTrigger<D>
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "triggerPts=%s", Arrays.toString(triggerPoints));
+            dbgTrace.traceEnter(
+                    funcName, TrcDbgTrace.TraceLevel.API, "triggerPts=%s", Arrays.toString(triggerPoints));
         }
 
         if (triggerPoints == null)
@@ -174,13 +177,19 @@ public class TrcAnalogTrigger<D>
         }
     }   //setTriggerPoints
 
+    /**
+     * This method stores the threshold array.
+     *
+     * @param thresholds specifies the array of thresholds.
+     */
     public synchronized void setThresholds(double[] thresholds)
     {
         final String funcName = "setThresholds";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "thresholds=%s", Arrays.toString(thresholds));
+            dbgTrace.traceEnter(
+                    funcName, TrcDbgTrace.TraceLevel.API, "thresholds=%s", Arrays.toString(thresholds));
         }
 
         if (thresholds == null)
@@ -197,9 +206,9 @@ public class TrcAnalogTrigger<D>
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", Arrays.toString(thresholds));
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
-    }
+    }   //setThresholds
 
     /**
      * This method enables/disables the task that monitors the sensor value.
@@ -283,7 +292,7 @@ public class TrcAnalogTrigger<D>
 
         if (data != null && data.value != null)
         {
-            double sample = (double)data.value;
+            double sample = data.value;
             int currZone = -1;
 
             if (sample < thresholds[0])

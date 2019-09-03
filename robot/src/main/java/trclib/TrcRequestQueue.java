@@ -58,9 +58,8 @@ public class TrcRequestQueue<R>
          * Constructor: Create an instance of the object.
          *
          * @param request specifies the request.
-         * @param requesthandler specifies the request handler to call when the request is up for processing.
+         * @param requestHandler specifies the request handler to call when the request is up for processing.
          * @param repeat specifies true to re-queue the request when completed.
-         * @param event specifies the event to signal when the request is completed, can be null if none specified.
          */
         public RequestEntry(R request, TrcNotifier.Receiver requestHandler, boolean repeat)
         {
@@ -95,6 +94,7 @@ public class TrcRequestQueue<R>
          *
          * @return request info string.
          */
+        @Override
         public String toString()
         {
             return String.format(Locale.US, "request=%s, repeat=%s, canceled=%s", request, repeat, canceled);
@@ -134,6 +134,7 @@ public class TrcRequestQueue<R>
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -258,8 +259,7 @@ public class TrcRequestQueue<R>
 
         if (debugEnabled)
         {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s",
-                priorityRequest == null ? "null" : entry);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", entry);
         }
 
         return entry;
@@ -268,7 +268,7 @@ public class TrcRequestQueue<R>
     /**
      * This method cancels a request.
      *
-     * @param request specifies the request entry from add or addPriorityRequest to be canceled.
+     * @param entry specifies the request entry from add or addPriorityRequest to be canceled.
      * @return true if the request entry is found in the queue and canceled, false otherwise.
      */
     public synchronized boolean cancelRequest(RequestEntry entry)

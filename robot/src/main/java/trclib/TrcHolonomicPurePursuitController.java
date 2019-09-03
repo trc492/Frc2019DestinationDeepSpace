@@ -25,24 +25,37 @@ package trclib;
 import org.apache.commons.math3.linear.ArrayRealVector;
 import org.apache.commons.math3.linear.RealVector;
 
+/**
+ * CodeReview: explain what it is!!! Also give reference to paper.
+ * This class implements a platform independent Pure Pursuit controller. A pure pursuit controller navigates the
+ * robot following a given path. A path is an array of waypoints that specifies points on the path at different
+ * timestamps and at a specified velocity....
+ */
 public class TrcHolonomicPurePursuitController
 {
     public enum InterpolationType
     {
-        LINEAR(1), QUADRATIC(2), CUBIC(3), QUARTIC(4), QUADRATIC_INV(2), CUBIC_INV(3), QUARTIC_INV(4);
+        LINEAR(1),
+        QUADRATIC(2),
+        CUBIC(3),
+        QUARTIC(4),
+        QUADRATIC_INV(2),
+        CUBIC_INV(3),
+        QUARTIC_INV(4);
 
-        private int power;
+        private int value;
 
-        InterpolationType(int power)
+        InterpolationType(int value)
         {
-            this.power = power;
-        }
+            this.value = value;
+        }   //InterpolationType
 
-        public int getPower()
+        public int getValue()
         {
-            return power;
-        }
-    }
+            return value;
+        }   //getValue
+
+    }   //enum InterpolationType
 
     private final String instanceName;
     private final TrcDriveBase driveBase;
@@ -59,15 +72,6 @@ public class TrcHolonomicPurePursuitController
     private InterpolationType interpolationType = InterpolationType.LINEAR;
     private volatile boolean maintainHeading = false;
     private double startHeading;
-
-    public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
-        double tolerance, TrcPidController.PidCoefficients pidCoefficients,
-        TrcPidController.PidCoefficients turnPidCoefficients, TrcPidController.PidCoefficients velocityPidCoefficients)
-    {
-        this(instanceName, driveBase, followingDistance, tolerance, 5.0, pidCoefficients, turnPidCoefficients,
-            velocityPidCoefficients);
-        setMaintainHeading(true);
-    }
 
     public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
         double tolerance, double headingTolerance, TrcPidController.PidCoefficients pidCoefficients,
@@ -102,6 +106,26 @@ public class TrcHolonomicPurePursuitController
 
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
     }
+
+    public TrcHolonomicPurePursuitController(String instanceName, TrcDriveBase driveBase, double followingDistance,
+                                             double tolerance, TrcPidController.PidCoefficients pidCoefficients,
+                                             TrcPidController.PidCoefficients turnPidCoefficients, TrcPidController.PidCoefficients velocityPidCoefficients)
+    {
+        this(instanceName, driveBase, followingDistance, tolerance, 5.0, pidCoefficients, turnPidCoefficients,
+                velocityPidCoefficients);
+        setMaintainHeading(true);
+    }
+
+    /**
+     * This method returns the instance name.
+     *
+     * @return instance name.
+     */
+    @Override
+    public String toString()
+    {
+        return instanceName;
+    }   //toString
 
     /**
      * Maintain heading during path following, or follow the heading values in the path. If not maintaining heading,
@@ -367,13 +391,13 @@ public class TrcHolonomicPurePursuitController
             case QUADRATIC:
             case CUBIC:
             case QUARTIC:
-                weight = Math.pow(weight, interpolationType.getPower());
+                weight = Math.pow(weight, interpolationType.getValue());
                 break;
 
             case QUADRATIC_INV:
             case CUBIC_INV:
             case QUARTIC_INV:
-                weight = Math.pow(weight, 1.0 / interpolationType.getPower());
+                weight = Math.pow(weight, 1.0 / interpolationType.getValue());
                 break;
         }
         return (1.0 - weight) * start + weight * end;
@@ -448,4 +472,5 @@ public class TrcHolonomicPurePursuitController
         }
         return closestPoint;
     }
-}
+
+}   //class TrcPurePursuitController

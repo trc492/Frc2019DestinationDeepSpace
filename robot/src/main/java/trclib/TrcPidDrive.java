@@ -57,7 +57,7 @@ public class TrcPidDrive
          * This method is called when a stuck wheel is detected.
          *
          * @param pidDrive specifies this TrcPidDrive instance.
-         * @param index    specifies which wheel in the DriveBase is stuck.
+         * @param index specifies which wheel in the DriveBase is stuck.
          */
         void stuckWheel(TrcPidDrive pidDrive, int index);
 
@@ -68,7 +68,10 @@ public class TrcPidDrive
      */
     public enum TurnMode
     {
-        IN_PLACE, PIVOT_FORWARD, PIVOT_BACKWARD, CURVE
+        IN_PLACE,
+        PIVOT_FORWARD,
+        PIVOT_BACKWARD,
+        CURVE
     }   //enum TurnMode
 
     private static final double DEF_BEEP_FREQUENCY = 880.0; //in Hz
@@ -105,18 +108,19 @@ public class TrcPidDrive
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param driveBase    specifies the drive base object.
-     * @param xPidCtrl     specifies the PID controller for the X direction.
-     * @param yPidCtrl     specifies the PID controller for the Y direction.
-     * @param turnPidCtrl  specifies the PID controller for turn.
+     * @param driveBase specifies the drive base object.
+     * @param xPidCtrl specifies the PID controller for the X direction.
+     * @param yPidCtrl specifies the PID controller for the Y direction.
+     * @param turnPidCtrl specifies the PID controller for turn.
      */
-    public TrcPidDrive(String instanceName, TrcDriveBase driveBase, TrcPidController xPidCtrl,
-        TrcPidController yPidCtrl, TrcPidController turnPidCtrl)
+    public TrcPidDrive(
+        String instanceName, TrcDriveBase driveBase,
+        TrcPidController xPidCtrl, TrcPidController yPidCtrl, TrcPidController turnPidCtrl)
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer ?
-                TrcDbgTrace.getGlobalTracer() :
+            dbgTrace = useGlobalTracer?
+                TrcDbgTrace.getGlobalTracer():
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -140,6 +144,7 @@ public class TrcPidDrive
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -148,9 +153,9 @@ public class TrcPidDrive
     /**
      * This method sets the message tracer for logging trace messages.
      *
-     * @param tracer       specifies the tracer for logging messages.
+     * @param tracer specifies the tracer for logging messages.
      * @param tracePidInfo specifies true to enable tracing of PID info, false otherwise.
-     * @param battery      specifies the battery object to get battery info for the message.
+     * @param battery specifies the battery object to get battery info for the message.
      */
     public synchronized void setMsgTracer(TrcDbgTrace tracer, boolean tracePidInfo, TrcRobotBattery battery)
     {
@@ -162,7 +167,7 @@ public class TrcPidDrive
     /**
      * This method sets the message tracer for logging trace messages.
      *
-     * @param tracer       specifies the tracer for logging messages.
+     * @param tracer specifies the tracer for logging messages.
      * @param tracePidInfo specifies true to enable tracing of PID info, false otherwise.
      */
     public void setMsgTracer(TrcDbgTrace tracer, boolean tracePidInfo)
@@ -213,7 +218,7 @@ public class TrcPidDrive
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s",
-                xPidCtrl != null ? xPidCtrl.toString() : "null");
+                    xPidCtrl != null? xPidCtrl.toString(): "null");
         }
 
         return xPidCtrl;
@@ -232,7 +237,7 @@ public class TrcPidDrive
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s",
-                yPidCtrl != null ? yPidCtrl.toString() : "null");
+                    yPidCtrl != null? yPidCtrl.toString(): "null");
         }
 
         return yPidCtrl;
@@ -251,7 +256,7 @@ public class TrcPidDrive
         {
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s",
-                turnPidCtrl != null ? turnPidCtrl.toString() : "null");
+                    turnPidCtrl != null? turnPidCtrl.toString(): "null");
         }
 
         return turnPidCtrl;
@@ -261,7 +266,7 @@ public class TrcPidDrive
      * This method sets a stuck wheel handler to enable stuck wheel detection.
      *
      * @param stuckWheelHandler specifies the stuck wheel handler.
-     * @param stuckTimeout      specifies the stuck timeout in seconds.
+     * @param stuckTimeout specifies the stuck timeout in seconds.
      */
     public synchronized void setStuckWheelHandler(StuckWheelHandler stuckWheelHandler, double stuckTimeout)
     {
@@ -269,9 +274,8 @@ public class TrcPidDrive
 
         if (debugEnabled)
         {
-            dbgTrace
-                .traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "stuckWheelHandler=%s,timeout=%f", stuckWheelHandler,
-                    stuckTimeout);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                    "stuckWheelHandler=%s,timeout=%f", stuckWheelHandler, stuckTimeout);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
@@ -319,9 +323,9 @@ public class TrcPidDrive
      * This method sets the beep device and the beep tones so that it can play beeps when motor stalled or if the
      * limit switches are activated/deactivated.
      *
-     * @param beepDevice    specifies the beep device object.
+     * @param beepDevice specifies the beep device object.
      * @param beepFrequency specifies the beep frequency.
-     * @param beepDuration  specifies the beep duration.
+     * @param beepDuration specifies the beep duration.
      */
     public synchronized void setBeep(TrcTone beepDevice, double beepFrequency, double beepDuration)
     {
@@ -329,8 +333,8 @@ public class TrcPidDrive
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "beep=%s,freq=%.0f,duration=%.3f",
-                beepDevice.toString(), beepFrequency, beepDuration);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                    "beep=%s,freq=%.0f,duration=%.3f", beepDevice.toString(), beepFrequency, beepDuration);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
@@ -372,15 +376,15 @@ public class TrcPidDrive
     /**
      * This method starts a PID operation by setting the PID targets.
      *
-     * @param owner      specifies the ID string of the caller requesting exclusive access.
-     * @param xTarget    specifies the X target position.
-     * @param yTarget    specifies the Y target position.
+     * @param owner specifies the ID string of the caller requesting exclusive access.
+     * @param xTarget specifies the X target position.
+     * @param yTarget specifies the Y target position.
      * @param turnTarget specifies the target heading.
      * @param holdTarget specifies true for holding the target position at the end, false otherwise.
-     * @param event      specifies an event object to signal when done.
-     * @param timeout    specifies a timeout value in seconds. If the operation is not completed without the specified
-     *                   timeout, the operation will be canceled and the event will be signaled. If no timeout is
-     *                   specified, it should be set to zero.
+     * @param event specifies an event object to signal when done.
+     * @param timeout specifies a timeout value in seconds. If the operation is not completed without the specified
+     *                timeout, the operation will be canceled and the event will be signaled. If no timeout is
+     *                specified, it should be set to zero.
      */
     public synchronized void setTarget(String owner, double xTarget, double yTarget, double turnTarget,
         boolean holdTarget, TrcEvent event, double timeout)
@@ -389,15 +393,16 @@ public class TrcPidDrive
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                "owner=%s,x=%f,y=%f,turn=%f,hold=%s,event=%s,timeout=%.3f", owner, xTarget, yTarget, turnTarget,
-                Boolean.toString(holdTarget), event.toString(), timeout);
+            dbgTrace.traceEnter(
+                    funcName, TrcDbgTrace.TraceLevel.API, "x=%f,y=%f,turn=%f,hold=%s,event=%s,timeout=%.3f",
+                    xTarget, yTarget, turnTarget, Boolean.toString(holdTarget), event.toString(), timeout);
         }
 
         if (driveBase.validateOwnership(owner))
         {
             this.owner = owner;
             double xError = 0.0, yError = 0.0, turnError = 0.0;
+
             if (xPidCtrl != null)
             {
                 xPidCtrl.setTarget(xTarget);
@@ -412,7 +417,7 @@ public class TrcPidDrive
 
             if (turnPidCtrl != null)
             {
-                turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled ? warpSpace : null);
+                turnPidCtrl.setTarget(turnTarget, warpSpaceEnabled? warpSpace: null);
                 turnError = turnPidCtrl.getError();
             }
 
@@ -432,7 +437,8 @@ public class TrcPidDrive
             this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
             driveBase.resetStallTimer();
 
-            driveBase.saveReferenceFrame();
+            //CodeReview: do you need to clear the reference pose at the end of PidDrive???
+            driveBase.setReferencePose();
 
             setTaskEnabled(true);
         }
@@ -456,7 +462,7 @@ public class TrcPidDrive
      *                   specified, it should be set to zero.
      */
     public synchronized void setTarget(double xTarget, double yTarget, double turnTarget, boolean holdTarget,
-        TrcEvent event, double timeout)
+                                       TrcEvent event, double timeout)
     {
         setTarget(null, xTarget, yTarget, turnTarget, holdTarget, event, timeout);
     }   //setTarget
@@ -464,11 +470,11 @@ public class TrcPidDrive
     /**
      * This method starts a PID operation by setting the PID targets.
      *
-     * @param xTarget    specifies the X target position.
-     * @param yTarget    specifies the Y target position.
+     * @param xTarget specifies the X target position.
+     * @param yTarget specifies the Y target position.
      * @param turnTarget specifies the target heading.
      * @param holdTarget specifies true for holding the target position at the end, false otherwise.
-     * @param event      specifies an event object to signal when done.
+     * @param event specifies an event object to signal when done.
      */
     public void setTarget(double xTarget, double yTarget, double turnTarget, boolean holdTarget, TrcEvent event)
     {
@@ -478,13 +484,13 @@ public class TrcPidDrive
     /**
      * This method starts a PID operation by setting the PID targets.
      *
-     * @param yTarget    specifies the Y target position.
+     * @param yTarget specifies the Y target position.
      * @param turnTarget specifies the target heading.
      * @param holdTarget specifies true for holding the target position at the end, false otherwise.
-     * @param event      specifies an event object to signal when done.
-     * @param timeout    specifies a timeout value in seconds. If the operation is not completed without the specified
-     *                   timeout, the operation will be canceled and the event will be signaled. If no timeout is
-     *                   specified, it should be set to zero.
+     * @param event specifies an event object to signal when done.
+     * @param timeout specifies a timeout value in seconds. If the operation is not completed without the specified
+     *                timeout, the operation will be canceled and the event will be signaled. If no timeout is
+     *                specified, it should be set to zero.
      */
     public void setTarget(double yTarget, double turnTarget, boolean holdTarget, TrcEvent event, double timeout)
     {
@@ -494,10 +500,10 @@ public class TrcPidDrive
     /**
      * This method starts a PID operation by setting the PID targets.
      *
-     * @param yTarget    specifies the Y target position.
+     * @param yTarget specifies the Y target position.
      * @param turnTarget specifies the target heading.
      * @param holdTarget specifies true for holding the target position at the end, false otherwise.
-     * @param event      specifies an event object to signal when done.
+     * @param event specifies an event object to signal when done.
      */
     public void setTarget(double yTarget, double turnTarget, boolean holdTarget, TrcEvent event)
     {
@@ -507,8 +513,8 @@ public class TrcPidDrive
     /**
      * This method allows a mecanum drive base to drive and maintain a fixed heading.
      *
-     * @param xPower        specifies the X drive power.
-     * @param yPower        specifies the Y drive power.
+     * @param xPower specifies the X drive power.
+     * @param yPower specifies the Y drive power.
      * @param headingTarget specifies the heading to maintain.
      */
     public synchronized void driveMaintainHeading(double xPower, double yPower, double headingTarget)
@@ -517,8 +523,8 @@ public class TrcPidDrive
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "xPower=%f,yPower=%f,heading=%f", xPower, yPower,
-                headingTarget);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                    "xPower=%f,yPower=%f,heading=%f", xPower, yPower, headingTarget);
         }
 
         if (xPidCtrl != null)
@@ -681,7 +687,7 @@ public class TrcPidDrive
      * This method is called periodically to execute the PID drive operation.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
+     * @param runMode specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
      */
     private synchronized void driveTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
@@ -692,9 +698,9 @@ public class TrcPidDrive
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
         }
 
-        double xPower = turnOnly || xPidCtrl == null ? 0.0 : xPidCtrl.getOutput();
-        double yPower = turnOnly || yPidCtrl == null ? 0.0 : yPidCtrl.getOutput();
-        double turnPower = turnPidCtrl == null ? 0.0 : turnPidCtrl.getOutput();
+        double xPower = turnOnly || xPidCtrl == null? 0.0: xPidCtrl.getOutput();
+        double yPower = turnOnly || yPidCtrl == null? 0.0: yPidCtrl.getOutput();
+        double turnPower = turnPidCtrl == null? 0.0: turnPidCtrl.getOutput();
 
         boolean expired = expiredTime != 0.0 && TrcUtil.getCurrentTime() >= expiredTime;
         boolean stalled = stallTimeout != 0.0 && driveBase.isStalled(stallTimeout);
@@ -703,17 +709,18 @@ public class TrcPidDrive
         boolean turnOnTarget = turnPidCtrl == null || turnPidCtrl.isOnTarget();
         boolean onTarget = turnOnTarget && (turnOnly || xOnTarget && yOnTarget);
 
-        // Since nonholonomic drive bases can't drive in multiple axes, use the robot local reference frame.
+        // Since non-holonomic drive bases can't drive in multiple axes, use the robot local reference pose.
         if (!driveBase.supportsHolonomicDrive())
         {
-            driveBase.saveReferenceFrame();
+            //CodeReview: do you need to clear reference pose when you are done???
+            driveBase.setReferencePose();
         }
 
         if (stuckWheelHandler != null)
         {
             for (int i = 0; i < driveBase.getNumMotors(); i++)
             {
-                if (driveBase.isMotorStalled(i, stuckTimeout))
+                if(driveBase.isMotorStalled(i, stuckTimeout))
                 {
                     stuckWheelHandler.stuckWheel(this, i);
                 }
@@ -735,11 +742,11 @@ public class TrcPidDrive
 
         if (maintainHeading && driveBase.supportsHolonomicDrive())
         {
-            driveBase.holonomicDrive(owner, manualX, manualY, turnPower);
+            driveBase.holonomicDrive(owner, manualX, manualY, turnPower, false, 0.0);
         }
         else if (expired || stalled || onTarget)
         {
-            if (expired || stalled || onTarget && !holdTarget)
+            if (expired || stalled || !holdTarget)
             {
                 stopPid();
                 if (notifyEvent != null)
@@ -759,7 +766,7 @@ public class TrcPidDrive
         else if (xPidCtrl != null && driveBase.supportsHolonomicDrive())
         {
             double heading = driveBase.getHeading();
-            double savedHeading = driveBase.getSavedReferenceFrame().heading;
+            double savedHeading = driveBase.getReferencePose().heading;
             driveBase.holonomicDrive(owner, xPower, yPower, turnPower, heading - savedHeading);
         }
         else if (turnOnly)
@@ -807,12 +814,9 @@ public class TrcPidDrive
         if (msgTracer != null && tracePidInfo)
         {
             double currTime = TrcUtil.getCurrentTime();
-            if (xPidCtrl != null)
-                xPidCtrl.printPidInfo(msgTracer, currTime, battery);
-            if (yPidCtrl != null)
-                yPidCtrl.printPidInfo(msgTracer, currTime, battery);
-            if (turnPidCtrl != null)
-                turnPidCtrl.printPidInfo(msgTracer, currTime, battery);
+            if (xPidCtrl != null) xPidCtrl.printPidInfo(msgTracer, currTime, battery);
+            if (yPidCtrl != null) yPidCtrl.printPidInfo(msgTracer, currTime, battery);
+            if (turnPidCtrl != null) turnPidCtrl.printPidInfo(msgTracer, currTime, battery);
         }
 
         if (debugEnabled)
@@ -825,7 +829,7 @@ public class TrcPidDrive
      * This method is called when the competition mode is about to end to stop the PID drive operation if any.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
+     * @param runMode specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
      */
     private void stopTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {

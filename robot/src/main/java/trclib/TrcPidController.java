@@ -25,6 +25,7 @@ package trclib;
 import hallib.HalDashboard;
 
 import java.util.EmptyStackException;
+import java.util.Locale;
 import java.util.Stack;
 
 /**
@@ -47,10 +48,10 @@ public class TrcPidController
      */
     public static class PidCoefficients
     {
-        public double kP = 0.0;
-        public double kI = 0.0;
-        public double kD = 0.0;
-        public double kF = 0.0;
+        public double kP;
+        public double kI;
+        public double kD;
+        public double kF;
 
         /**
          * Constructor: Create an instance of the object.
@@ -103,6 +104,7 @@ public class TrcPidController
          *
          * @return PID coefficients string.
          */
+        @Override
         public String toString()
         {
             return String.format("(%f,%f,%f,%f)", kP, kI, kD, kF);
@@ -211,6 +213,7 @@ public class TrcPidController
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -224,9 +227,10 @@ public class TrcPidController
      */
     public void displayPidInfo(int lineNum)
     {
-        dashboard
-            .displayPrintf(lineNum, "%s:Target=%.1f,Input=%.1f,Error=%.1f", instanceName, setPoint, input, currError);
-        dashboard.displayPrintf(lineNum + 1, "minOutput=%.1f,Output=%.1f,maxOutput=%.1f", minOutput, output, maxOutput);
+        dashboard.displayPrintf(
+                lineNum, "%s:Target=%.1f,Input=%.1f,Error=%.1f", instanceName, setPoint, input, currError);
+        dashboard.displayPrintf(
+                lineNum + 1, "minOutput=%.1f,Output=%.1f,maxOutput=%.1f", minOutput, output, maxOutput);
     }   //displayPidInfo
 
     /**
@@ -248,15 +252,16 @@ public class TrcPidController
 
         if (tracer != null)
         {
-            String msg = timestamp != 0.0 ? String.format("[%.3f] ", timestamp) : "";
+            String msg = timestamp != 0.0 ? String.format(Locale.US, "[%.3f] ", timestamp) : "";
 
-            msg += String.format("%s: Target=%6.1f, Input=%6.1f, Error=%6.1f, "
+            msg += String.format(Locale.US, "%s: Target=%6.1f, Input=%6.1f, Error=%6.1f, "
                     + "PIDTerms=%6.3f/%6.3f/%6.3f/%6.3f, Output=%6.3f(%6.3f/%5.3f)", instanceName, setPoint, input,
                 currError, pTerm, iTerm, dTerm, fTerm, output, minOutput, maxOutput);
 
             if (battery != null)
             {
-                msg += String.format(", Volt=%.1f(%.1f)", battery.getVoltage(), battery.getLowestVoltage());
+                msg += String.format(Locale.US, ", Volt=%.1f(%.1f)",
+                        battery.getVoltage(), battery.getLowestVoltage());
             }
 
             tracer.traceInfo(funcName, msg);

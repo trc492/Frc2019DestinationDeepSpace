@@ -207,6 +207,7 @@ public class TrcTaskMgr
          *
          * @return instance name of the class.
          */
+        @Override
         public String toString()
         {
             return taskName;
@@ -312,6 +313,7 @@ public class TrcTaskMgr
         public synchronized boolean unregisterTask()
         {
             boolean removed = false;
+
             for (TaskType taskType : TaskType.values())
             {
                 if (unregisterTask(taskType))
@@ -320,35 +322,39 @@ public class TrcTaskMgr
                 }
             }
             return removed;
-        }
+        }   //unregisterTask
 
         /**
          * This method checks if the given task type is registered with this task object.
          *
          * @param type specifies the task type to be checked against.
-         * @return true if this task is registered as the given type, false otherwise.
+         * @return true if this task is registered with the given type, false otherwise.
          */
         public synchronized boolean isRegistered(TaskType type)
         {
             return hasType(type);
-        }
+        }   //isRegistered
 
         /**
          * This method checks if this task object is registered for any task type.
          *
-         * @return true if this task is registered as any type, false otherwise.
+         * @return true if this task is registered with any type, false otherwise.
          */
         public synchronized boolean isRegistered()
         {
+            boolean registered = false;
+
             for (TaskType taskType : TaskType.values())
             {
                 if (isRegistered(taskType))
                 {
-                    return true;
+                    registered = true;
+                    break;
                 }
             }
-            return false;
-        }
+
+            return registered;
+        }   //isRegistered
 
         /**
          * This method checks if the given task type is registered with this task object.
@@ -464,11 +470,9 @@ public class TrcTaskMgr
          */
         private synchronized double getAverageTaskElapsedTime(TaskType taskType)
         {
-            if (taskTimeSlotCounts[taskType.value] == 0)
-            {
-                return 0;
-            }
-            return taskTotalNanoTimes[taskType.value]/taskTimeSlotCounts[taskType.value]/1000000000.0;
+            int slotCount = taskTimeSlotCounts[taskType.value];
+
+            return slotCount == 0 ? 0.0 : (double)taskTotalNanoTimes[taskType.value]/slotCount/1000000000.0;
         } //getAverageTaskElapsedTime
 
     }   //class TaskObject

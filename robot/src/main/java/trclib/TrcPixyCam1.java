@@ -24,6 +24,7 @@ package trclib;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * This class implements a platform independent pixy camera 1. This class is intended to be extended by a platform
@@ -82,10 +83,12 @@ public abstract class TrcPixyCam1
         public int height;
         public int angle;
 
+        @Override
         public String toString()
         {
             return String.format(
-                "sync=0x%04x, chksum=0x%04x, sig=%d, centerX=%3d, centerY=%3d, width=%3d, height=%3d, angle=%3d",
+                Locale.US, "sync=0x%04x, chksum=0x%04x, sig=%d, centerX=%3d, centerY=%3d, width=%3d, height=%3d, " +
+                            "angle=%3d",
                 sync, checksum, signature, centerX, centerY, width, height, angle);
         }
     }   //class ObjectBlock
@@ -93,7 +96,7 @@ public abstract class TrcPixyCam1
     /**
      * This is used identify the request type.
      */
-    public static enum RequestId
+    public enum RequestId
     {
         SYNC,
         ALIGN,
@@ -107,7 +110,6 @@ public abstract class TrcPixyCam1
     private ArrayList<ObjectBlock> objects = new ArrayList<>();
     private ObjectBlock[] detectedObjects = null;
     private ObjectBlock currBlock = null;
-    private int runningChecksum = 0;
     private boolean started = false;
 
     /**
@@ -134,6 +136,7 @@ public abstract class TrcPixyCam1
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -277,7 +280,7 @@ public abstract class TrcPixyCam1
     public ObjectBlock[] getDetectedObjects()
     {
         final String funcName = "getDetectedObjects";
-        ObjectBlock[] objectBlocks = null;
+        ObjectBlock[] objectBlocks;
 
         if (debugEnabled)
         {
@@ -491,7 +494,7 @@ public abstract class TrcPixyCam1
                 else
                 {
                     int index;
-                    runningChecksum = 0;
+                    int runningChecksum = 0;
                     //
                     // Save away the signature and accumulate checksum.
                     //

@@ -22,6 +22,7 @@
 
 package trclib;
 
+//CodeReview: Do we really need this? Nobody is using it. What scenarios do we need this?
 public class TrcPidMotorToMotorAdapter extends TrcMotor
 {
     private TrcPidMotor pidMotor;

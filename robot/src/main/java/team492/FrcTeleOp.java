@@ -25,7 +25,7 @@ package team492;
 import frclib.FrcJoystick;
 import frclib.FrcRemoteVisionProcessor;
 import hallib.HalDashboard;
-import trclib.TrcLoopTimeCounter;
+import trclib.TrcLoopPerformanceMonitor;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 
@@ -50,7 +50,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     private boolean gyroAssist = false;
     private double lastElevatorPower;
     private double lastActuatorPower;
-    private TrcLoopTimeCounter loopTimeCounter;
+    private TrcLoopPerformanceMonitor loopPerformanceMonitor;
 
     public FrcTeleOp(Robot robot)
     {
@@ -93,7 +93,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         if (DEBUG_LOOP_TIME)
         {
-            loopTimeCounter = new TrcLoopTimeCounter(1.0);
+            loopPerformanceMonitor = new TrcLoopPerformanceMonitor("TeleOpLoop", 1.0);
         }
 
         lastElevatorPower = 0.0;
@@ -283,11 +283,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         if (DEBUG_LOOP_TIME)
         {
-            loopTimeCounter.update();
-            robot.dashboard
-                .displayPrintf(1, "Period: %.3f/%.3f/%3f, Frequency: %.2f/%.2f/%.2f", loopTimeCounter.getMinPeriod(),
-                    loopTimeCounter.getPeriod(), loopTimeCounter.getMaxPeriod(), loopTimeCounter.getMinFrequency(),
-                    loopTimeCounter.getFrequency(), loopTimeCounter.getMaxFrequency());
+            loopPerformanceMonitor.update();
+            robot.dashboard.displayPrintf(1, "Period: %.3f/%.3f/%3f, Frequency: %.2f/%.2f/%.2f",
+                loopPerformanceMonitor.getMinPeriod(), loopPerformanceMonitor.getAveragePeriod(),
+                loopPerformanceMonitor.getMaxPeriod(), loopPerformanceMonitor.getMinFrequency(),
+                loopPerformanceMonitor.getAverageFrequency(), loopPerformanceMonitor.getMaxFrequency());
         }
     } // runContinuous
 

@@ -22,31 +22,54 @@
 
 package trclib;
 
+/**
+ * This class implements a stopwatch.
+ */
 public class TrcStopwatch
 {
-    private Double startTime;
+    private double startTime = 0.0;
+    private double lastElapsedTime = 0.0;
 
+    /**
+     * This method starts the stopwatch.
+     */
     public synchronized void start()
     {
+        lastElapsedTime = 0.0;
         startTime = TrcUtil.getCurrentTime();
-    }
+    }   //start
 
-    public synchronized void cancel()
+    /**
+     * This method stops the stopwatch.
+     */
+    public synchronized void stop()
     {
-        startTime = null;
-    }
+        if (isRunning())
+        {
+            lastElapsedTime = TrcUtil.getCurrentTime() - startTime;
+            startTime = 0.0;
+        }
+    }   //stop
 
-    public synchronized boolean isActive()
+    /**
+     * This method checks if the stopwatch is running.
+     *
+     * @return true if the stopwatch is running, false otherwise.
+     */
+    public synchronized boolean isRunning()
     {
-        return startTime != null;
-    }
+        return startTime != 0.0;
+    }   //isRunning
 
+    /**
+     * This method returns the elapsed time since the start time. If the stopwatch is not running, it returns the
+     * last elapsed time.
+     *
+     * @return elapsed time since start, -1 if the stopwatch wasn't started.
+     */
     public synchronized double getElapsedTime()
     {
-        if (!isActive())
-        {
-            return -1;
-        }
-        return TrcUtil.getCurrentTime() - startTime;
-    }
-}
+        return isRunning() ? TrcUtil.getCurrentTime() - startTime : lastElapsedTime;
+    }   //getElapsedTime;
+
+}   //class TrcStopwatch

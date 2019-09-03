@@ -39,7 +39,7 @@ public class TrcUtil
 {
     public static final double INCHES_PER_CM = 0.393701;
     public static final double MM_PER_INCH = 25.4;
-    public static final double EARTH_GRAVITATIONAL_CONSTANT = 9.807;
+    public static final double EARTH_GRAVITATIONAL_CONSTANT = 9.807;    //in m/s2
 
     /**
      * This interface provides the method to get data of the specified type. This is to replaced the Supplier
@@ -165,29 +165,32 @@ public class TrcUtil
     }   //sum
 
     /**
-     * This method calculates and returns the medians of the numbers in the given array.
+     * This method calculates and returns the median of the numbers in the given array.
      *
      * @param num specifies the number array.
-     * @return Median of
+     * @return median of numbers in the array.
      */
     public static double median(double... num)
     {
-        if (num.length == 0)
+        double m = 0.0;
+
+        if (num.length > 0)
         {
-            return 0;
+            double[] nums = num.clone();
+
+            Arrays.sort(nums);
+            if (nums.length % 2 == 0)
+            {
+                m = TrcUtil.average(nums[(nums.length / 2) - 1], nums[nums.length / 2]);
+            }
+            else
+            {
+                m = nums[nums.length / 2];
+            }
         }
 
-        double[] nums = num.clone();
-        Arrays.sort(nums);
-        if (nums.length % 2 == 0)
-        {
-            return TrcUtil.average(nums[(nums.length / 2) - 1], nums[nums.length / 2]);
-        }
-        else
-        {
-            return nums[nums.length / 2];
-        }
-    }
+        return m;
+    }   //median
 
     /**
      * This method calculates and returns the average of the numbers in the given array.
@@ -197,11 +200,7 @@ public class TrcUtil
      */
     public static double average(double... nums)
     {
-        if (nums.length == 0)
-        {
-            return 0;
-        }
-        return sum(nums) / nums.length;
+        return nums.length == 0 ? 0.0 : sum(nums) / nums.length;
     }   //average
 
     /**
@@ -336,7 +335,6 @@ public class TrcUtil
      * the magnitude of 1.0, nothing will change, otherwise the original nums array will be modified in place.
      *
      * @param nums specifies the number array.
-     * @return normalized number array.
      */
     public static void normalizeInPlace(double[] nums)
     {

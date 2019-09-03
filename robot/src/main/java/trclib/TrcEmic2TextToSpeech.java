@@ -23,6 +23,8 @@
 package trclib;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 /**
  * This class implements a platform independent Emic2 text to speech device that is connected to a Serial Port.
@@ -122,7 +124,7 @@ public abstract class TrcEmic2TextToSpeech
     /**
      * This is used identify the request type.
      */
-    public static enum RequestId
+    public enum RequestId
     {
         PROMPT,
         CONFIG_MSG,
@@ -156,6 +158,7 @@ public abstract class TrcEmic2TextToSpeech
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -203,7 +206,7 @@ public abstract class TrcEmic2TextToSpeech
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        asyncWriteString(String.format("D%d\n", msg.value), false);
+        asyncWriteString(String.format(Locale.US, "D%d\n", msg.value), false);
         asyncReadString(RequestId.PROMPT);
     }   //playDemoMessage
 
@@ -254,7 +257,7 @@ public abstract class TrcEmic2TextToSpeech
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        asyncWriteString(String.format("N%d\n", voice.value), false);
+        asyncWriteString(String.format(Locale.US, "N%d\n", voice.value), false);
         asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //selectVoice
@@ -279,7 +282,7 @@ public abstract class TrcEmic2TextToSpeech
         else if (vol > MAX_VOLUME)
             vol = MAX_VOLUME;
 
-        asyncWriteString(String.format("V%d\n", vol), false);
+        asyncWriteString(String.format(Locale.US, "V%d\n", vol), false);
         asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setVolume
@@ -315,7 +318,7 @@ public abstract class TrcEmic2TextToSpeech
             throw new IllegalArgumentException("Invalid speaking rate, must be between 75 to 600 words/min.");
         }
 
-        asyncWriteString(String.format("W%d\n", rate), false);
+        asyncWriteString(String.format(Locale.US, "W%d\n", rate), false);
         asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setSpeakingRate
@@ -335,7 +338,7 @@ public abstract class TrcEmic2TextToSpeech
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        asyncWriteString(String.format("L%d\n", lang.value), false);
+        asyncWriteString(String.format(Locale.US, "L%d\n", lang.value), false);
         asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //setLanguage
@@ -355,7 +358,7 @@ public abstract class TrcEmic2TextToSpeech
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        asyncWriteString(String.format("P%d\n", parser.value), false);
+        asyncWriteString(String.format(Locale.US, "P%d\n", parser.value), false);
         asyncReadString(RequestId.PROMPT);
         configMsg = null;
     }   //selectParser
@@ -474,18 +477,10 @@ public abstract class TrcEmic2TextToSpeech
 
         if (request.readRequest && request.buffer != null)
         {
-            try
+            reply = new String(request.buffer, StandardCharsets.US_ASCII);
+            if (debugEnabled)
             {
-                reply = new String(request.buffer, "US-ASCII");
-                if (debugEnabled)
-                {
-                    dbgTrace.traceInfo(funcName, "reply=<%s>", reply);
-                }
-            }
-            catch (UnsupportedEncodingException e)
-            {
-                globalTracer.traceErr(funcName, "Unsupported Encoding: %s", e.getMessage());
-                e.printStackTrace();
+                dbgTrace.traceInfo(funcName, "reply=<%s>", reply);
             }
         }
 

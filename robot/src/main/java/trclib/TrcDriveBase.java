@@ -30,7 +30,9 @@ import org.apache.commons.math3.linear.RealVector;
  * This class implements a platform independent drive base. It is intended to be extended by subclasses that
  * implements different drive base configurations (e.g. SimpleDriveBase, MecanumDriveBase and SwerveDriveBase).
  * The subclasses must provide the tankDrive and holonomicDrive methods. If the subclass cannot support a certain
- * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException.
+ * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException. They must also provide
+ * the updateOdometry method where it will update the drivebase position info according to sensors such as encoders
+ * and gyro.
  */
 public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 {
@@ -44,24 +46,24 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private static final boolean USE_POSE_EXP = true;
     protected TrcDbgTrace dbgTrace = null;
 
-    protected class MotorValues
+    protected class MotorsState
     {
-        public double prevTimestamp;
-        public double currTimestamp;
-        public double[] currPositions;
-        public double[] currVelocities;
-        public double[] prevPositions;
-        public double[] stallStartTimes;
-        public double[] motorPosDiffs;
-    }
+        double prevTimestamp;
+        double currTimestamp;
+        double[] currPositions;
+        double[] currVelocities;
+        double[] prevPositions;
+        double[] stallStartTimes;
+        double[] motorPosDiffs;
+    }   //class MotorsState
 
     /**
      * This method is called periodically to monitor the position sensors to update the odometry data.
      *
-     * @param motorValues specifies the MotorValues object containing the relevant data to calculate pose.
-     * @return A TrcPose2D object describing the change in position since the last update.
+     * @param motorsState specifies the MotorsState object containing the relevant data to calculate pose.
+     * @return a TrcPose2D object describing the change in position since the last update.
      */
-    protected abstract TrcPose2D updateOdometry(MotorValues motorValues);
+    protected abstract TrcPose2D updateOdometry(MotorsState motorsState);
 
     /**
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
@@ -100,7 +102,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private final TrcMotorController[] motors;
     private final TrcGyro gyro;
     protected final TrcPose2D odometry;
-    private final MotorValues motorValues;
+    private final MotorsState motorsState;
     protected double xScale, yScale, rotScale;
     private TrcTaskMgr.TaskObject odometryTaskObj;
     private TrcTaskMgr.TaskObject stopTaskObj;
@@ -110,7 +112,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private double gyroMaxRotationRate = 0.0;
     private double gyroAssistKp = 1.0;
     private boolean gyroAssistEnabled = false;
-    private TrcPose2D referenceFrame = null;
+    private TrcPose2D referencePose = null;
     // Change of basis matrices to convert between coordinate systems
     private final RealMatrix enuToNwuChangeOfBasis = MatrixUtils
         .createRealMatrix(new double[][] { { 0, 1 }, { -1, 0 } });
@@ -135,12 +137,12 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         this.gyro = gyro;
 
         odometry = new TrcPose2D();
-        motorValues = new MotorValues();
-        motorValues.motorPosDiffs = new double[motors.length];
-        motorValues.currPositions = new double[motors.length];
-        motorValues.currVelocities = new double[motors.length];
-        motorValues.prevPositions = new double[motors.length];
-        motorValues.stallStartTimes = new double[motors.length];
+        motorsState = new MotorsState();
+        motorsState.motorPosDiffs = new double[motors.length];
+        motorsState.currPositions = new double[motors.length];
+        motorsState.currVelocities = new double[motors.length];
+        motorsState.prevPositions = new double[motors.length];
+        motorsState.stallStartTimes = new double[motors.length];
         resetOdometry(true, true);
         xScale = yScale = rotScale = 1.0;
         resetStallTimer();
@@ -148,6 +150,16 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         TrcTaskMgr taskMgr = TrcTaskMgr.getInstance();
         odometryTaskObj = taskMgr.createTask(moduleName + ".odometryTask", this::odometryTask);
         stopTaskObj = taskMgr.createTask(moduleName + ".stopTask", this::stopTask);
+    }   //TrcDriveBase
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param motors specifies the array of motors in the drive base.
+     */
+    public TrcDriveBase(TrcMotorController... motors)
+    {
+        this(motors, null);
     }   //TrcDriveBase
 
     /**
@@ -183,80 +195,70 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     }   //setOdometryEnabled
 
     /**
-     * Constructor: Create an instance of the object.
+     * This method returns the absolute robot pose. The absolute position is in reference to the robot starting
+     * position.
      *
-     * @param motors specifies the array of motors in the drive base.
+     * @return a copy of the pose object relative to the robot starting position.
      */
-    public TrcDriveBase(TrcMotorController... motors)
-    {
-        this(motors, null);
-    }   //TrcDriveBase
-
-    /**
-     * Get the robot pose in the global reference frame. This is the reference frame relative to the robot starting position.
-     *
-     * @return A copy of the pose object in the global reference frame.
-     */
-    public TrcPose2D getGlobalPose()
+    public TrcPose2D getAbsolutePose()
     {
         synchronized (odometry)
         {
-            return new TrcPose2D(odometry.x, odometry.y, odometry.heading, odometry.xVel, odometry.yVel,
-                odometry.turnRate);
+            return TrcPose2D.duplicate(odometry);
         }
-    }
+    }   //getAbsolutePose
 
     /**
-     * Get the robot pose relative to the saved reference frame, or the global reference frame if there is none saved.
+     * This method returns the robot pose relative to <code>pose</code>.
      *
-     * @return The robot pose relative to the last saved reference frame, or the global reference frame.
-     */
-    public TrcPose2D getRelativePose()
-    {
-        return referenceFrame == null ? getGlobalPose() : getPoseRelativeTo(referenceFrame);
-    }
-
-    /**
-     * Get the robot pose relative to <code>pose</code>.
-     *
-     * @param pose The new reference frame to transform to.
-     * @return The pose object transformed into the new reference frame.
+     * @param pose The new reference pose to transform to.
+     * @return The pose object transformed into the new reference pose.
      */
     public TrcPose2D getPoseRelativeTo(TrcPose2D pose)
     {
-        return getGlobalPose().inReferenceFrameOf(pose);
-    }
-
-    /**
-     * Get the last saved reference frame, or the global origin if none available.
-     *
-     * @return The last saved reference frame, or if none have been saved, return the global origin. (all zeros)
-     */
-    public TrcPose2D getSavedReferenceFrame()
-    {
-        if (referenceFrame == null)
+        synchronized (odometry)
         {
-            return new TrcPose2D();
+            return odometry.relativeTo(pose);
         }
-        return new TrcPose2D(referenceFrame.x, referenceFrame.y, referenceFrame.heading, referenceFrame.xVel,
-            referenceFrame.yVel, referenceFrame.turnRate);
-    }
+    }   //getPoseRelativeTo
 
     /**
-     * Save this reference frame. All relative poses will be relative to this reference frame.
+     * This method returns the robot pose relative to the reference pose, or the robot absolute pose if there is no
+     * reference pose.
+     *
+     * @return robot pose relative to the reference pose, or robot absolute pose if no reference pose.
      */
-    public void saveReferenceFrame()
+    public TrcPose2D getRelativePose()
     {
-        referenceFrame = getGlobalPose();
-    }
+        return referencePose == null ? getAbsolutePose() : getPoseRelativeTo(referencePose);
+    }   //getRelativePose
 
     /**
-     * Clear the saved reference frame. All relative poses will instead be global poses.
+     * This method returns the reference pose, or the global origin if none available.
+     *
+     * @return the reference pose, or if none have been set, return the global origin. (all zeros)
      */
-    public void clearReferenceFrame()
+    public TrcPose2D getReferencePose()
     {
-        referenceFrame = null;
-    }
+        return referencePose == null ? new TrcPose2D() : TrcPose2D.duplicate(referencePose);
+    }   //getReferencePose
+
+    /**
+     * This method sets the current pose as the reference pose. All relative poses will be relative to this reference
+     * pose.
+     */
+    public void setReferencePose()
+    {
+        referencePose = getAbsolutePose();
+    }   //setReferencePose
+
+    /**
+     * This method clears the reference pose. All relative poses will instead be absolute poses.
+     */
+    public void clearReferencePose()
+    {
+        referencePose = null;
+    }   //clearReferencePose
 
     /**
      * This method sets the position scales. The raw position from the encoder is in encoder counts. By setting the
@@ -454,19 +456,19 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        clearReferenceFrame();
+        clearReferencePose();
 
         synchronized (odometry)
         {
-            motorValues.prevTimestamp = motorValues.currTimestamp = TrcUtil.getCurrentTime();
+            motorsState.prevTimestamp = motorsState.currTimestamp = TrcUtil.getCurrentTime();
 
             for (int i = 0; i < motors.length; i++)
             {
                 motors[i].resetPosition(hardware);
-                motorValues.currPositions[i] = 0.0;
-                motorValues.currVelocities[i] = 0.0;
-                motorValues.prevPositions[i] = 0.0;
-                motorValues.stallStartTimes[i] = motorValues.currTimestamp;
+                motorsState.currPositions[i] = 0.0;
+                motorsState.currVelocities[i] = 0.0;
+                motorsState.prevPositions[i] = 0.0;
+                motorsState.stallStartTimes[i] = motorsState.currTimestamp;
             }
 
             odometry.x = odometry.y = 0.0;
@@ -548,7 +550,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        this.maxOutput = maxOutput;
+        this.maxOutput = Math.abs(maxOutput);
     }   //setMaxOutput
 
     /**
@@ -635,7 +637,8 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     }   //getGyroAssistPower
 
     /**
-     * This method checks if it supports holonomic drive.
+     * This method checks if it supports holonomic drive. Subclasses that support holonomic drive should override
+     * this method.
      *
      * @return true if this drive base supports holonomic drive, false otherwise.
      */
@@ -696,7 +699,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 
         synchronized (odometry)
         {
-            stalled = currTime - motorValues.stallStartTimes[index] > stallTime;
+            stalled = currTime - motorsState.stallStartTimes[index] > stallTime;
         }
 
         if (debugEnabled)
@@ -725,9 +728,9 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         {
             double currTime = TrcUtil.getCurrentTime();
 
-            for (int i = 0; i < motorValues.stallStartTimes.length; i++)
+            for (int i = 0; i < motorsState.stallStartTimes.length; i++)
             {
-                motorValues.stallStartTimes[i] = currTime;
+                motorsState.stallStartTimes[i] = currTime;
             }
         }
     }   //resetStallTimer
@@ -750,7 +753,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 
         synchronized (odometry)
         {
-            for (int i = 0; i < motorValues.stallStartTimes.length; i++)
+            for (int i = 0; i < motorsState.stallStartTimes.length; i++)
             {
                 if (!isMotorStalled(i, stallTime))
                 {
@@ -1033,7 +1036,8 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     /**
      * This method implements holonomic drive where x controls how fast the robot will go in the x direction, and y
      * controls how fast the robot will go in the y direction. Rotation controls how fast the robot rotates and
-     * gyroAngle specifies the heading the robot should maintain.
+     * gyroAngle specifies the heading the robot should maintain. Subclasses that supports holonomic drive should
+     * override this method.
      *
      * @param owner     specifies the ID string of the caller for checking ownership, can be null if caller is not
      *                  ownership aware.
@@ -1251,40 +1255,40 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 
         synchronized (odometry)
         {
-            motorValues.prevTimestamp = motorValues.currTimestamp;
-            motorValues.currTimestamp = TrcUtil.getCurrentTime();
+            motorsState.prevTimestamp = motorsState.currTimestamp;
+            motorsState.currTimestamp = TrcUtil.getCurrentTime();
 
             for (int i = 0; i < motors.length; i++)
             {
-                motorValues.prevPositions[i] = motorValues.currPositions[i];
+                motorsState.prevPositions[i] = motorsState.currPositions[i];
 
                 try
                 {
-                    motorValues.currPositions[i] = motors[i].getPosition();
+                    motorsState.currPositions[i] = motors[i].getPosition();
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    motorValues.currPositions[i] = 0;
+                    motorsState.currPositions[i] = 0;
                 }
 
-                motorValues.motorPosDiffs[i] = motorValues.currPositions[i] - motorValues.prevPositions[i];
+                motorsState.motorPosDiffs[i] = motorsState.currPositions[i] - motorsState.prevPositions[i];
 
                 try
                 {
-                    motorValues.currVelocities[i] = motors[i].getVelocity();
+                    motorsState.currVelocities[i] = motors[i].getVelocity();
                 }
                 catch (UnsupportedOperationException e)
                 {
-                    motorValues.currVelocities[i] = 0;
+                    motorsState.currVelocities[i] = 0;
                 }
 
-                if (motorValues.currPositions[i] != motorValues.prevPositions[i] || motors[i].getPower() == 0.0)
+                if (motorsState.currPositions[i] != motorsState.prevPositions[i] || motors[i].getPower() == 0.0)
                 {
-                    motorValues.stallStartTimes[i] = motorValues.currTimestamp;
+                    motorsState.stallStartTimes[i] = motorsState.currTimestamp;
                 }
             }
 
-            TrcPose2D poseDelta = updateOdometry(motorValues);
+            TrcPose2D poseDelta = updateOdometry(motorsState);
             if (gyro != null)
             {
                 // Overwrite the heading/turnrate values if gyro present, since that's more accurate
@@ -1292,6 +1296,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                 poseDelta.turnRate = gyro.getZRotationRate().value;
             }
 
+            // CodeReview: What is POSE_EXP???
             if (USE_POSE_EXP)
             {
                 updatePose(poseDelta, odometry.heading);
@@ -1320,7 +1325,31 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     }   //odometryTask
 
     /**
-     * Update the current robot pose with a poseDelta using 1st order dynamics.
+     * This method is called when the competition mode is about to end to stop the drive base.
+     *
+     * @param taskType specifies the type of task being run.
+     * @param runMode  specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
+     */
+    private void stopTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
+    {
+        final String funcName = "stopTask";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
+        }
+
+        stop();
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
+        }
+    }   //stopTask
+
+    // CodeReview: need a better name?
+    /**
+     * This method updates the current robot pose with a poseDelta using 1st order dynamics.
      *
      * @param poseDelta The pose delta since the last update.
      * @param heading   The robot heading in the last update.
@@ -1369,29 +1398,6 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         odometry.yVel = vel.getEntry(1);
         odometry.heading += theta;
         odometry.turnRate = poseDelta.turnRate;
-    }
-
-    /**
-     * This method is called when the competition mode is about to end to stop the drive base.
-     *
-     * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the competition mode that is about to end (e.g. Autonomous, TeleOp, Test).
-     */
-    private void stopTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
-    {
-        final String funcName = "stopTask";
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
-        }
-
-        stop();
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
-        }
-    }   //stopTask
+    }   //updatePose
 
 }   //class TrcDriveBase

@@ -38,8 +38,8 @@ package trclib;
  */
 public class TrcPidActuator extends TrcPidMotor
 {
-    private double minPos = 0.0;
-    private double maxPos = 0.0;
+    private double minPos;
+    private double maxPos;
     private boolean manualOverride = false;
 
     /**

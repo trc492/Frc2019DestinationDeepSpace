@@ -86,6 +86,17 @@ public class TrcDigitalTrigger
     }   //TrcDigitalTrigger
 
     /**
+     * This method returns the instance name.
+     *
+     * @return instance name.
+     */
+    @Override
+    public String toString()
+    {
+        return instanceName;
+    }   //toString
+
+    /**
      * This method enables/disables the task that monitors the device state.
      *
      * @param enabled specifies true to enable the task, false to disable.

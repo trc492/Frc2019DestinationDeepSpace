@@ -129,7 +129,7 @@ public class TrcRobot
         boolean isActive();
 
         /**
-         * Cancel this command prematurely.
+         * This method is called to cancel the RobotCommand prematurely.
          */
         void cancel();
 

@@ -31,15 +31,89 @@ import java.util.List;
 
 public class TrcWaypoint
 {
+    public double timeStep;
+    public double x;
+    public double y;
+    public double encoderPosition;
+    public double velocity;
+    public double acceleration;
+    public double jerk;
+    public double heading;
+
+    // CodeReview: Need to add comments.
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param timeStep specifies the speed denomination in seconds.
+     * @param x
+     * @param y
+     * @param position
+     * @param velocity
+     * @param acceleration
+     * @param jerk
+     * @param heading
+     */
+    public TrcWaypoint(double timeStep, double x, double y, double position, double velocity, double acceleration,
+                       double jerk, double heading)
+    {
+        this.timeStep = timeStep;
+        this.x = x;
+        this.y = y;
+        this.encoderPosition = position;
+        this.velocity = velocity;
+        this.acceleration = acceleration;
+        this.jerk = jerk;
+        this.heading = heading;
+    }   //TrcWaypoint
+
+    /**
+     * Copy constructor: Create a copy of the given object.
+     *
+     * @param other specifies the other object to be copied.
+     */
+    public TrcWaypoint(TrcWaypoint other)
+    {
+        this.timeStep = other.timeStep;
+        this.x = other.x;
+        this.y = other.y;
+        this.encoderPosition = other.encoderPosition;
+        this.velocity = other.velocity;
+        this.acceleration = other.acceleration;
+        this.jerk = other.jerk;
+        this.heading = other.heading;
+    }   //TrcWaypoint
+
+    /**
+     * Constructor: Create an instance of the object from a given 2D pose.
+     *
+     * @param pose specifies the 2D pose.
+     */
+    public TrcWaypoint(TrcPose2D pose)
+    {
+        this(0, pose.x, pose.y, 0, TrcUtil.magnitude(pose.xVel, pose.yVel), 0, 0,
+                pose.heading);
+    }   //TrcWaypoint
+
+    /**
+     * This method loads waypoint data from a CSV file either on the external file system or attached resources.
+     *
+     * @param path specifies the file system path or resource name.
+     * @param loadFromResources specifies true if the data is from attached resources, false if from file system.
+     * @return an array of waypoints.
+     */
     public static TrcWaypoint[] loadPointsFromCsv(String path, boolean loadFromResources)
     {
+        TrcWaypoint[] waypoints = null;
+
         if (!path.endsWith(".csv"))
         {
             throw new IllegalArgumentException(String.format("%s is not a csv file!", path));
         }
+
         try
         {
             BufferedReader in;
+
             if (loadFromResources)
             {
                 in = new BufferedReader(
@@ -52,66 +126,49 @@ public class TrcWaypoint
 
             List<TrcWaypoint> points = new ArrayList<>();
             String line;
-            in.readLine(); // Get rid of the first line
+
+            in.readLine(); // Get rid of the first header line
             while ((line = in.readLine()) != null)
             {
                 String[] tokens = line.split(",");
+
+                if (tokens.length != 8)
+                {
+                    throw new IllegalArgumentException("There must be 8 columns in the csv file!");
+                }
+
                 double[] parts = new double[tokens.length];
+
                 for (int i = 0; i < parts.length; i++)
                 {
                     parts[i] = Double.parseDouble(tokens[i]);
                 }
-                if (parts.length != 8)
-                {
-                    throw new IllegalArgumentException("There must be 8 columns in the csv file!");
-                }
+
                 TrcWaypoint point = new TrcWaypoint(parts[0], parts[1], parts[2], parts[3],
                     parts[4], parts[5], parts[6], parts[7]);
                 points.add(point);
             }
             in.close();
-            return points.toArray(new TrcWaypoint[0]);
+
+            waypoints = (TrcWaypoint[])points.toArray();
         }
         catch (IOException e)
         {
             throw new RuntimeException(e);
         }
-    }
 
-    public double timeStep, x, y, encoderPosition, velocity, acceleration, jerk, heading;
+        return waypoints;
+    }   //loadPointsFromCsv
 
-    public TrcWaypoint(TrcPose2D pose)
-    {
-        this(0, pose.x, pose.y, 0, TrcUtil.magnitude(pose.xVel, pose.yVel), 0, 0, pose.heading);
-    }
-
-    public TrcWaypoint(double timeStep, double x, double y, double position, double velocity,
-        double acceleration, double jerk, double heading)
-    {
-        this.timeStep = timeStep;
-        this.x = x;
-        this.y = y;
-        this.encoderPosition = position;
-        this.velocity = velocity;
-        this.acceleration = acceleration;
-        this.jerk = jerk;
-        this.heading = heading;
-    }
-
-    public TrcWaypoint(TrcWaypoint other)
-    {
-        this.timeStep = other.timeStep;
-        this.x = other.x;
-        this.y = other.y;
-        this.encoderPosition = other.encoderPosition;
-        this.velocity = other.velocity;
-        this.acceleration = other.acceleration;
-        this.jerk = other.jerk;
-        this.heading = other.heading;
-    }
-
+    /**
+     * This method calculates the distance between this waypoint and the other waypoint.
+     *
+     * @param point specifies the other waypoint.
+     * @return distance to the other waypoint.
+     */
     public double distanceTo(TrcWaypoint point)
     {
         return TrcUtil.magnitude(point.x - x, point.y - y);
-    }
-}
+    }   //distanceTo
+
+}   //class TrcWaypoint

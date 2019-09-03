@@ -86,7 +86,7 @@ public abstract class TrcSerialBusDevice
          * @param buffer specifies the buffer that contains data for a write request, ignored for read request.
          * @param length specifies the number of bytes to read or write.
          * @param completionEvent specifies the event to signal when the request is completed.
-         * @param completionhandler specifies the notification handler to call when the request is completed,
+         * @param completionHandler specifies the notification handler to call when the request is completed,
          *                          can be null if none specified.
          */
         public Request(
@@ -108,6 +108,7 @@ public abstract class TrcSerialBusDevice
          *
          * @return request info string.
          */
+        @Override
         public String toString()
         {
             return String.format(Locale.US, "%s: %s, addr=%d, buff=%s, len=%d, event=%s, canceled=%s",
@@ -143,6 +144,7 @@ public abstract class TrcSerialBusDevice
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -168,7 +170,7 @@ public abstract class TrcSerialBusDevice
      */
     public synchronized boolean isEnabled()
     {
-        return requestQueue != null ? requestQueue.isEnabled() : true;
+        return requestQueue == null || requestQueue.isEnabled();
     }   //isEnabled
 
     /**
@@ -575,8 +577,7 @@ public abstract class TrcSerialBusDevice
             }
             else
             {
-                int length = writeData(request.address, request.buffer, request.length);
-                request.length = length;
+                request.length = writeData(request.address, request.buffer, request.length);
             }
         }
 

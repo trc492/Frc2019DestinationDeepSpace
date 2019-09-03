@@ -78,7 +78,7 @@ public class TrcPidMotor
     private final TrcTaskMgr.TaskObject pidMotorTaskObj;
     private final TrcTaskMgr.TaskObject stopMotorTaskObj;
     private boolean active = false;
-    private double syncGain = 0.0;
+    private double syncGain;
     private double positionScale = 1.0;
     private double positionOffset = 0.0;
     private boolean holdTarget = false;
@@ -235,6 +235,7 @@ public class TrcPidMotor
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -963,18 +964,19 @@ public class TrcPidMotor
     }   //setTaskEnabled
 
     /**
-     * Used for zero calibration of a motor. This should ONLY be called by the calibration task.
+     * This method is called by the calibration task to zero calibrate of a motor.
      *
-     * @param motor The motor being calibrated.
-     * @return True if the limit switch is activated, false otherwise.
+     * @param motor specifies the motor being calibrated.
+     * @return true if calibration is done, false otherwise.
      */
-    private boolean calibrateMotor(TrcMotor motor)
+    private boolean zeroCalibratingMotor(TrcMotor motor)
     {
         boolean done = motor.isLowerLimitSwitchActive();
+
         if (done)
         {
             //
-            // Done with motor zero calibration. Call the motor directly to stop, do not call any of
+            // Done with zero calibration of the motor. Call the motor directly to stop, do not call any of
             // the setPower or setMotorPower because they do not handle zero calibration mode.
             //
             motor.set(0.0);
@@ -984,8 +986,9 @@ public class TrcPidMotor
         {
             motor.set(calPower);
         }
+
         return done;
-    }
+    }   //zeroCalibratingMotor
 
     /**
      * This method is called periodically to perform the PID motor task. The PID motor task can be in one of two
@@ -1013,12 +1016,12 @@ public class TrcPidMotor
             //
             if (!motor1ZeroCalDone)
             {
-                motor1ZeroCalDone = calibrateMotor(motor1);
+                motor1ZeroCalDone = zeroCalibratingMotor(motor1);
             }
 
             if (!motor2ZeroCalDone)
             {
-                motor2ZeroCalDone = calibrateMotor(motor2);
+                motor2ZeroCalDone = zeroCalibratingMotor(motor2);
             }
 
             if (motor1ZeroCalDone && motor2ZeroCalDone)

@@ -56,7 +56,7 @@ public interface TrcExclusiveSubsystem
      *
      * @param owner specifies the ID string of the caller, can be null if caller is unaware of exclusive ownership.
      * @return true if the caller currently owns the subsystem, false otherwise.
-     * @throws IllegalStateException
+     * @throws IllegalStateException if caller is not the owner of the subsystem.
      */
     default boolean validateOwnership(String owner)
     {
