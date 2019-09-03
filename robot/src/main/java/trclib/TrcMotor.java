@@ -207,13 +207,19 @@ public abstract class TrcMotor implements TrcMotorController
             resetOdometry();
             synchronized (odometryMotors)
             {
-                odometryMotors.add(this);
-                if (odometryMotors.size() == 1)
+                //
+                // Add only if this motor is not already on the list.
+                //
+                if (!odometryMotors.contains(this))
                 {
-                    //
-                    // We are the first one on the list, start the task.
-                    //
-                    odometryTaskObj.registerTask(TaskType.INPUT_TASK);
+                    odometryMotors.add(this);
+                    if (odometryMotors.size() == 1)
+                    {
+                        //
+                        // We are the first one on the list, start the task.
+                        //
+                        odometryTaskObj.registerTask(TaskType.INPUT_TASK);
+                    }
                 }
             }
         }
@@ -288,8 +294,8 @@ public abstract class TrcMotor implements TrcMotorController
 
                     if (debugEnabled)
                     {
-                        globalTracer.traceInfo(funcName, "[%.3f]: %s encPos=%.0f", motor.odometry.currTimestamp, motor,
-                            motor.odometry.currPos);
+                        globalTracer.traceInfo(funcName, "[%.3f]: %s encPos=%.0f",
+                                motor.odometry.currTimestamp, motor, motor.odometry.currPos);
                     }
                 }
             }
@@ -329,8 +335,8 @@ public abstract class TrcMotor implements TrcMotorController
         }
 
         this.maxMotorVelocity = maxVelocity;
-        velocityPidCtrl = new TrcPidController(instanceName + ".velocityCtrl", pidCoefficients, 1.0,
-            this::getNormalizedVelocity);
+        velocityPidCtrl = new TrcPidController(
+                instanceName + ".velocityCtrl", pidCoefficients, 1.0, this::getNormalizedVelocity);
         velocityPidCtrl.setAbsoluteSetPoint(true);
 
         velocityCtrlTaskObj.registerTask(TaskType.OUTPUT_TASK);
