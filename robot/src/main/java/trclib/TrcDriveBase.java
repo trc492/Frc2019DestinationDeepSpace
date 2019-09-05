@@ -43,10 +43,11 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
-    /**
-     * If true, the change in pose is a twist, and is applied to the current pose using a nonzero curvature. (nonzero rotation velocity)
-     * If false, use zero curvature (assume path is a bunch of straight lines). This is less accurate.
-     */
+    //
+    // If true, the change in pose is a twist, and is applied to the current pose using a non-zero curvature
+    // (non-zero rotation velocity).
+    // If false, use zero curvature (assume path is a bunch of straight lines). This is less accurate.
+    //
     private static final boolean USE_CURVED_PATH = true;
     protected TrcDbgTrace dbgTrace = null;
 
@@ -248,16 +249,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     }   //getReferencePose
 
     /**
-     * This method sets the current pose as the reference pose. All relative poses will be relative to this reference
-     * pose.
-     */
-    public void setReferencePose()
-    {
-        setReferencePose(getAbsolutePose());
-    }   //setReferencePose
-
-    /**
-     * This method sets the current pose as the reference pose. All relative poses will be relative to this reference
+     * This method sets the given pose as the reference pose. All relative poses will be relative to this reference
      * pose.
      *
      * @param referencePose The pose to set as the reference for all relative poses.
@@ -265,6 +257,15 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     public void setReferencePose(TrcPose2D referencePose)
     {
         this.referencePose = referencePose;
+    }   //setReferencePose
+
+    /**
+     * This method sets the current pose as the reference pose. All relative poses will be relative to this reference
+     * pose.
+     */
+    public void setReferencePose()
+    {
+        setReferencePose(getAbsolutePose());
     }   //setReferencePose
 
     /**
@@ -1378,13 +1379,16 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         double theta = Math.toRadians(-poseDelta.heading);
         double headingRad = Math.toRadians(-heading);
 
-        // The derivation of the following math is here in section 11.1 (https://file.tavsys.net/control/state-space-guide.pdf)
+        // The derivation of the following math is here in section
+        // (https://file.tavsys.net/control/state-space-guide.pdf)
         // A is a transformation matrix representing a CCW rotation by headingRad radians
         // This is used to bring the change in pose into the global reference frame
         RealMatrix A = MatrixUtils.createRealMatrix(new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
             { Math.sin(headingRad), Math.cos(headingRad), 0 }, { 0, 0, 1 } });
-        // B is used to apply a nonzero curvature to the path. When the curvature is zero, B resolves to the identity matrix.
-        // The math involved isn't immediately intuitive, but it's basically the integration of the forward odometry matrix equation.
+        // B is used to apply a nonzero curvature to the path. When the curvature is zero, B resolves to the
+        // identity matrix.
+        // The math involved isn't immediately intuitive, but it's basically the integration of the forward odometry
+        // matrix equation.
         RealMatrix B;
         if (Math.abs(theta) <= 1E-9)
         {
@@ -1398,7 +1402,8 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                 { 1 - Math.cos(theta), Math.sin(theta), 0 }, { 0, 0, theta } });
             B = B.scalarMultiply(1.0 / theta);
         }
-        // C is the column vector containing the "raw" change in pose. This is the immediate output of the forward odometry multiplied by timestep
+        // C is the column vector containing the "raw" change in pose. This is the immediate output of the forward
+        // odometry multiplied by timestep
         RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
         // Get the change in global pose
         RealVector globalPose = A.multiply(B).operate(C);
