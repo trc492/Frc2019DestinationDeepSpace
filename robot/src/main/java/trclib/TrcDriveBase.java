@@ -43,7 +43,11 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
-    private static final boolean USE_POSE_EXP = true;
+    /**
+     * If true, the change in pose is a twist, and is applied to the current pose using a nonzero curvature. (nonzero rotation velocity)
+     * If false, use zero curvature (assume path is a bunch of straight lines). This is less accurate.
+     */
+    private static final boolean USE_CURVED_PATH = true;
     protected TrcDbgTrace dbgTrace = null;
 
     protected class MotorsState
@@ -249,7 +253,18 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
      */
     public void setReferencePose()
     {
-        referencePose = getAbsolutePose();
+        setReferencePose(getAbsolutePose());
+    }   //setReferencePose
+
+    /**
+     * This method sets the current pose as the reference pose. All relative poses will be relative to this reference
+     * pose.
+     *
+     * @param referencePose The pose to set as the reference for all relative poses.
+     */
+    public void setReferencePose(TrcPose2D referencePose)
+    {
+        this.referencePose = referencePose;
     }   //setReferencePose
 
     /**
@@ -1296,8 +1311,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                 poseDelta.turnRate = gyro.getZRotationRate().value;
             }
 
-            // CodeReview: What is POSE_EXP???
-            if (USE_POSE_EXP)
+            if (USE_CURVED_PATH)
             {
                 updatePose(poseDelta, odometry.heading);
             }
@@ -1364,9 +1378,13 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         double theta = Math.toRadians(-poseDelta.heading);
         double headingRad = Math.toRadians(-heading);
 
-        // The following black magic has been ripped straight out of some book (https://file.tavsys.net/control/state-space-guide.pdf)
+        // The derivation of the following math is here in section 11.1 (https://file.tavsys.net/control/state-space-guide.pdf)
+        // A is a transformation matrix representing a CCW rotation by headingRad radians
+        // This is used to bring the change in pose into the global reference frame
         RealMatrix A = MatrixUtils.createRealMatrix(new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
             { Math.sin(headingRad), Math.cos(headingRad), 0 }, { 0, 0, 1 } });
+        // B is used to apply a nonzero curvature to the path. When the curvature is zero, B resolves to the identity matrix.
+        // The math involved isn't immediately intuitive, but it's basically the integration of the forward odometry matrix equation.
         RealMatrix B;
         if (Math.abs(theta) <= 1E-9)
         {
@@ -1380,7 +1398,9 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                 { 1 - Math.cos(theta), Math.sin(theta), 0 }, { 0, 0, theta } });
             B = B.scalarMultiply(1.0 / theta);
         }
+        // C is the column vector containing the "raw" change in pose. This is the immediate output of the forward odometry multiplied by timestep
         RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
+        // Get the change in global pose
         RealVector globalPose = A.multiply(B).operate(C);
         // Convert back to our (ENU) reference frame
         RealVector pos = nwuToEnuChangeOfBasis.operate(globalPose.getSubVector(0, 2));
