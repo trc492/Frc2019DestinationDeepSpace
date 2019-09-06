@@ -1379,7 +1379,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         double theta = Math.toRadians(-poseDelta.heading);
         double headingRad = Math.toRadians(-heading);
 
-        // The derivation of the following math is here in section
+        // The derivation of the following math is here in section 11.1
         // (https://file.tavsys.net/control/state-space-guide.pdf)
         // A is a transformation matrix representing a CCW rotation by headingRad radians
         // This is used to bring the change in pose into the global reference frame
