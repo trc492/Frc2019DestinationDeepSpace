@@ -37,6 +37,7 @@ import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import frclib.FrcTalonServo;
 import hallib.HalDashboard;
+import trclib.TrcDbgTrace;
 import trclib.TrcEnhancedServo;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
@@ -78,6 +79,8 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_SUBSYSTEMS = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
+
+    public static Robot robot;
 
     public DriverStation ds = DriverStation.getInstance();
     public HalDashboard dashboard = HalDashboard.getInstance();
@@ -158,11 +161,13 @@ public class Robot extends FrcRobotBase
     public Robot()
     {
         super(programName);
+        Robot.robot = this;
     }   //Robot
 
     private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor,
         int steerZero)
     {
+        steerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
         int absPosTicks = (int) TrcUtil
             .modulo(steerMotor.motor.getSensorCollection().getPulseWidthPosition() - steerZero, 4096);
         double absPos = absPosTicks * 360.0 / 4096.0;
@@ -185,7 +190,7 @@ public class Robot extends FrcRobotBase
         }
         else
         {
-            PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
+            PidCoefficients coeff = new PidCoefficients(0.08);
             TrcPidController ctrl = new TrcPidController(instanceName + ".ctrl", coeff, RobotInfo.STEER_TOLERANCE,
                 steerMotor::getPosition);
             TrcPidMotor pidMotor = new TrcPidMotor(instanceName + ".pid", steerMotor, ctrl, 0.0);
@@ -210,6 +215,7 @@ public class Robot extends FrcRobotBase
 
     public void setSteerZeroPosition()
     {
+        TrcDbgTrace.getGlobalTracer().tracePrintf("Resetting zeros!");
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
             out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
