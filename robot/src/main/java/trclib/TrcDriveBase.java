@@ -209,7 +209,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     {
         synchronized (odometry)
         {
-            return TrcPose2D.duplicate(odometry);
+            return TrcPose2D.copyOf(odometry);
         }
     }   //getAbsolutePose
 
@@ -245,7 +245,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
      */
     public TrcPose2D getReferencePose()
     {
-        return referencePose == null ? new TrcPose2D() : TrcPose2D.duplicate(referencePose);
+        return referencePose == null ? new TrcPose2D() : TrcPose2D.copyOf(referencePose);
     }   //getReferencePose
 
     /**

@@ -29,6 +29,11 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * This class implements a waypoint. A waypoint specifies a point on a path that consists of a relative time step
+ * relative to the previous point, the x and y components of its position relative to a reference point, the encoder
+ * position, velocity and acceleration at this point.
+ */
 public class TrcWaypoint
 {
     public double timeStep;
@@ -44,13 +49,13 @@ public class TrcWaypoint
      * Constructor: Create an instance of the object.
      *
      * @param timeStep     specifies the speed denomination in seconds.
-     * @param x            The x position in the path reference frame.
-     * @param y            The y position in the path reference frame.
-     * @param position     The encoder position at this points. (arc length)
-     * @param velocity     The tangential velocity of the wheel at this point.
-     * @param acceleration The tangential acceleration at this point.
-     * @param jerk         The tangential jerk at this point.
-     * @param heading      The heading of the robot at this point.
+     * @param x            specifies the x position in the path reference frame.
+     * @param y            specifies the y position in the path reference frame.
+     * @param position     specifies the encoder position at this points. (arc length)
+     * @param velocity     specifies the tangential velocity of the wheel at this point.
+     * @param acceleration specifies the tangential acceleration at this point.
+     * @param jerk         specifies the tangential jerk at this point.
+     * @param heading      specifies the heading of the robot at this point.
      */
     public TrcWaypoint(double timeStep, double x, double y, double position, double velocity, double acceleration,
         double jerk, double heading)

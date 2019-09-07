@@ -39,7 +39,10 @@ import org.apache.commons.math3.linear.RealVector;
  * heading values. Otherwise, call setMaintainHeading(false), ensure that the heading tolerance and pid coefficients
  * are set, and it will follow the heading values specified by the path.
  *
- * A somewhat similar idea is here: https://www.chiefdelphi.com/t/paper-implementation-of-the-adaptive-pure-pursuit-controller/166552
+ * A somewhat similar idea is here:
+ * https://www.chiefdelphi.com/t/paper-implementation-of-the-adaptive-pure-pursuit-controller/166552 or
+ * https://www.ri.cmu.edu/pub_files/pub3/coulter_r_craig_1992_1/coulter_r_craig_1992_1.pdf
+ *
  * Note that this paper is for non-holonomic robots. This means that all the turning radius stuff isn't very relevant.
  * Technically, we could impose limits on the turning radius as a function of robot velocity and max rot vel, but that's
  * unnecessarily complicated, in my view. Additionally, it does point injection instead of interpolation, and path
