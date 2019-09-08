@@ -31,11 +31,6 @@ import trclib.TrcRobot.RunMode;
 
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
-    private enum DriveMode
-    {
-        MECANUM_MODE, ARCADE_MODE, TANK_MODE
-    } // enum DriveMode
-
     public static final boolean DEBUG_LOOP_TIME = true;
 
     protected Robot robot;
@@ -46,7 +41,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     }
 
     private DriveSpeed driveSpeed = DriveSpeed.MEDIUM;
-    private DriveMode driveMode = DriveMode.MECANUM_MODE;
     private boolean gyroAssist = false;
     private double lastElevatorPower;
     private double lastActuatorPower;
@@ -182,8 +176,39 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         else
         {
             robot.climber.setWheelPower(0.0);
-            switch (driveMode)
+            switch (robot.driveMode)
             {
+                case HOLONOMIC_MODE:
+                    double x = leftDriveX;
+                    double y = rightDriveY;
+                    double rot = rightTwist;
+                    switch (driveSpeed)
+                    {
+                        case SLOW:
+                            x *= RobotInfo.DRIVE_SLOW_XSCALE;
+                            y *= RobotInfo.DRIVE_SLOW_YSCALE;
+                            rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
+                            break;
+
+                        case MEDIUM:
+                            x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
+                            y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
+                            rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
+                            break;
+
+                        case FAST:
+                            x *= RobotInfo.DRIVE_FAST_XSCALE;
+                            y *= RobotInfo.DRIVE_FAST_YSCALE;
+                            rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
+                            break;
+                    }
+
+                    if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
+                    {
+                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
+                    }
+                    break;
+
                 case TANK_MODE:
                     double leftPower = leftDriveY;
                     double rightPower = rightDriveY;
@@ -235,37 +260,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
                     {
                         robot.driveBase.arcadeDrive(drivePower, turnPower, robot.driveInverted);
-                    }
-                    break;
-
-                case MECANUM_MODE:
-                    double x = leftDriveX;
-                    double y = rightDriveY;
-                    double rot = rightTwist;
-                    switch (driveSpeed)
-                    {
-                        case SLOW:
-                            x *= RobotInfo.DRIVE_SLOW_XSCALE;
-                            y *= RobotInfo.DRIVE_SLOW_YSCALE;
-                            rot *= RobotInfo.DRIVE_SLOW_TURNSCALE;
-                            break;
-
-                        case MEDIUM:
-                            x *= RobotInfo.DRIVE_MEDIUM_XSCALE;
-                            y *= RobotInfo.DRIVE_MEDIUM_YSCALE;
-                            rot *= RobotInfo.DRIVE_MEDIUM_TURNSCALE;
-                            break;
-
-                        case FAST:
-                            x *= RobotInfo.DRIVE_FAST_XSCALE;
-                            y *= RobotInfo.DRIVE_FAST_YSCALE;
-                            rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
-                            break;
-                    }
-
-                    if (robot.visionPidDrive == null || !robot.visionPidDrive.isActive())
-                    {
-                        robot.driveBase.holonomicDrive(x, y, rot, robot.driveInverted);
                     }
                     break;
             }

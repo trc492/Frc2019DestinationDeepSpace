@@ -134,10 +134,10 @@ public class TrcPose2D
      * @param pose specifies the pose to be subtracted from this one.
      * @return relative pose from the given pose.
      */
-    public TrcPose2D distanceTo(TrcPose2D pose)
+    public TrcPose2D poseDistance(TrcPose2D pose)
     {
         return new TrcPose2D(x - pose.x, y - pose.y, heading, xVel, yVel, turnRate);
-    }   //distanceTo
+    }   //poseDistance
 
     /**
      * This method returns a transformed pose relative to the given pose.
@@ -147,7 +147,7 @@ public class TrcPose2D
      */
     public TrcPose2D relativeTo(TrcPose2D pose)
     {
-        TrcPose2D transformed = distanceTo(pose);
+        TrcPose2D transformed = poseDistance(pose);
         RealVector newPos = TrcUtil.rotateCCW(transformed.getPositionVector(), pose.heading);
         RealVector newVel = TrcUtil.rotateCCW(transformed.getVelocityVector(), pose.heading);
 

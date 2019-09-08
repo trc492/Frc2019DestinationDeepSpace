@@ -65,6 +65,11 @@ import java.util.Date;
  */
 public class Robot extends FrcRobotBase
 {
+    public enum DriveMode
+    {
+        HOLONOMIC_MODE, TANK_MODE, ARCADE_MODE
+    } // enum DriveMode
+
     public static final String programName = "DestinationDeepSpace";
 
     public static final boolean USE_TRACELOG = true;
@@ -148,6 +153,7 @@ public class Robot extends FrcRobotBase
     public FrcCANSparkMax rightFrontWheel;
     public FrcCANSparkMax rightRearWheel;
     public TrcMecanumDriveBase driveBase;
+    public DriveMode driveMode;
 
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
@@ -291,7 +297,7 @@ public class Robot extends FrcRobotBase
         //
         driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
         driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
-
+        driveMode = DriveMode.HOLONOMIC_MODE;
         //
         // Create PID controllers for DriveBase PID drive.
         //

@@ -31,7 +31,7 @@ import org.apache.commons.math3.linear.RealVector;
  * implements different drive base configurations (e.g. SimpleDriveBase, MecanumDriveBase and SwerveDriveBase).
  * The subclasses must provide the tankDrive and holonomicDrive methods. If the subclass cannot support a certain
  * driving strategy (e.g. holonomicDrive), it should throw an UnsupportedOperationException. They must also provide
- * the updateOdometry method where it will update the drivebase position info according to sensors such as encoders
+ * the getPoseDelta method where it will calculate the drivebase position info according to sensors such as encoders
  * and gyro.
  */
 public abstract class TrcDriveBase implements TrcExclusiveSubsystem
@@ -63,12 +63,12 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     }   //class MotorsState
 
     /**
-     * This method is called periodically to monitor the position sensors to update the odometry data.
+     * This method is called periodically to calculate the position delta from the previouse pose.
      *
      * @param motorsState specifies the MotorsState object containing the relevant data to calculate pose.
      * @return a TrcPose2D object describing the change in position since the last update.
      */
-    protected abstract TrcPose2D updateOdometry(MotorsState motorsState);
+    protected abstract TrcPose2D getPoseDelta(MotorsState motorsState);
 
     /**
      * This method implements tank drive where leftPower controls the left motors and right power controls the right
@@ -1271,6 +1271,9 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 
         synchronized (odometry)
         {
+            //
+            // Update all motor states.
+            //
             motorsState.prevTimestamp = motorsState.currTimestamp;
             motorsState.currTimestamp = TrcUtil.getCurrentTime();
 
@@ -1303,8 +1306,10 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                     motorsState.stallStartTimes[i] = motorsState.currTimestamp;
                 }
             }
-
-            TrcPose2D poseDelta = updateOdometry(motorsState);
+            //
+            // Calculate pose delta from last pose and update odometry accordingly.
+            //
+            TrcPose2D poseDelta = getPoseDelta(motorsState);
             if (gyro != null)
             {
                 // Overwrite the heading/turnrate values if gyro present, since that's more accurate
