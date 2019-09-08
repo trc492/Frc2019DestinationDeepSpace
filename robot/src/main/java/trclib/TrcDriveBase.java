@@ -1317,25 +1317,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
                 poseDelta.turnRate = gyro.getZRotationRate().value;
             }
 
-            if (USE_CURVED_PATH)
-            {
-                updatePose(poseDelta, odometry.heading);
-            }
-            else
-            {
-                RealVector pos = MatrixUtils.createRealVector(new double[] { poseDelta.x, poseDelta.y });
-                RealVector vel = MatrixUtils.createRealVector(new double[] { poseDelta.xVel, poseDelta.yVel });
-
-                pos = TrcUtil.rotateCW(pos, odometry.heading);
-                vel = TrcUtil.rotateCW(vel, odometry.heading);
-
-                odometry.x += pos.getEntry(0);
-                odometry.y += pos.getEntry(1);
-                odometry.xVel = vel.getEntry(0);
-                odometry.yVel = vel.getEntry(1);
-                odometry.heading += poseDelta.heading;
-                odometry.turnRate = poseDelta.turnRate;
-            }
+            updateOdometry(poseDelta, odometry.heading);
         }
 
         if (debugEnabled)
@@ -1367,67 +1349,87 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         }
     }   //stopTask
 
-    // CodeReview: need a better name?
+    // CodeReview: please update the description below.
     /**
-     * This method updates the current robot pose with a poseDelta using 1st order dynamics.
+     * This method updates the current robot pose with a poseDelta either using 1st order dynamics or ???.
      *
      * @param poseDelta The pose delta since the last update.
      * @param heading   The robot heading in the last update.
      */
-    private void updatePose(TrcPose2D poseDelta, double heading)
+    private void updateOdometry(TrcPose2D poseDelta, double heading)
     {
-        // The math below uses a different coordinate system (NWU) so we have to convert
-        double[] posArr = enuToNwuChangeOfBasis.operate(new double[] { poseDelta.x, poseDelta.y });
-        double x = posArr[0];
-        double y = posArr[1];
-        // Convert clockwise degrees to counter-clockwise radians
-        double theta = Math.toRadians(-poseDelta.heading);
-        double headingRad = Math.toRadians(-heading);
-
-        // The derivation of the following math is here in section 11.1
-        // (https://file.tavsys.net/control/state-space-guide.pdf)
-        // A is a transformation matrix representing a CCW rotation by headingRad radians
-        // This is used to bring the change in pose into the global reference frame
-        RealMatrix A = MatrixUtils.createRealMatrix(new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
-            { Math.sin(headingRad), Math.cos(headingRad), 0 }, { 0, 0, 1 } });
-        // B is used to apply a nonzero curvature to the path. When the curvature is zero, B resolves to the
-        // identity matrix.
-        // The math involved isn't immediately intuitive, but it's basically the integration of the forward odometry
-        // matrix equation.
-        RealMatrix B;
-        if (Math.abs(theta) <= 1E-9)
+        if (USE_CURVED_PATH)
         {
-            // Use the taylor series approximations, since some values are indeterminate
-            B = MatrixUtils.createRealMatrix(new double[][] { { 1 - theta * theta / 6.0, -theta / 2.0, 0 },
-                { theta / 2.0, 1 - theta * theta / 6.0, 0 }, { 0, 0, 1 } });
+            // The math below uses a different coordinate system (NWU) so we have to convert
+            double[] posArr = enuToNwuChangeOfBasis.operate(new double[] { poseDelta.x, poseDelta.y });
+            double x = posArr[0];
+            double y = posArr[1];
+            // Convert clockwise degrees to counter-clockwise radians
+            double theta = Math.toRadians(-poseDelta.heading);
+            double headingRad = Math.toRadians(-heading);
+
+            // The derivation of the following math is here in section 11.1
+            // (https://file.tavsys.net/control/state-space-guide.pdf)
+            // A is a transformation matrix representing a CCW rotation by headingRad radians
+            // This is used to bring the change in pose into the global reference frame
+            RealMatrix A = MatrixUtils.createRealMatrix(
+                new double[][] { { Math.cos(headingRad), -Math.sin(headingRad), 0 },
+                                 { Math.sin(headingRad), Math.cos(headingRad), 0 },
+                                 { 0, 0, 1 } });
+            // B is used to apply a nonzero curvature to the path. When the curvature is zero, B resolves to the
+            // identity matrix.
+            // The math involved isn't immediately intuitive, but it's basically the integration of the forward odometry
+            // matrix equation.
+            RealMatrix B;
+            if (Math.abs(theta) <= 1E-9)
+            {
+                // Use the taylor series approximations, since some values are indeterminate
+                B = MatrixUtils.createRealMatrix(new double[][] { { 1 - theta * theta / 6.0, -theta / 2.0, 0 },
+                    { theta / 2.0, 1 - theta * theta / 6.0, 0 }, { 0, 0, 1 } });
+            }
+            else
+            {
+                B = MatrixUtils.createRealMatrix(new double[][] { { Math.sin(theta), Math.cos(theta) - 1, 0 },
+                    { 1 - Math.cos(theta), Math.sin(theta), 0 }, { 0, 0, theta } });
+                B = B.scalarMultiply(1.0 / theta);
+            }
+            // C is the column vector containing the "raw" change in pose. This is the immediate output of the forward
+            // odometry multiplied by timestep
+            RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
+            // Get the change in global pose
+            RealVector globalPose = A.multiply(B).operate(C);
+            // Convert back to our (ENU) reference frame
+            RealVector pos = nwuToEnuChangeOfBasis.operate(globalPose.getSubVector(0, 2));
+            // Convert back to clockwise degrees for heading
+            theta = Math.toDegrees(-globalPose.getEntry(2));
+
+            // Rotate the velocity vector into the global reference frame
+            RealVector vel = MatrixUtils.createRealVector(new double[] { poseDelta.xVel, poseDelta.yVel });
+            vel = TrcUtil.rotateCW(vel, heading);
+
+            // Update the odometry values
+            odometry.x += pos.getEntry(0);
+            odometry.y += pos.getEntry(1);
+            odometry.xVel = vel.getEntry(0);
+            odometry.yVel = vel.getEntry(1);
+            odometry.heading += theta;
+            odometry.turnRate = poseDelta.turnRate;
         }
         else
         {
-            B = MatrixUtils.createRealMatrix(new double[][] { { Math.sin(theta), Math.cos(theta) - 1, 0 },
-                { 1 - Math.cos(theta), Math.sin(theta), 0 }, { 0, 0, theta } });
-            B = B.scalarMultiply(1.0 / theta);
+            RealVector pos = MatrixUtils.createRealVector(new double[] { poseDelta.x, poseDelta.y });
+            RealVector vel = MatrixUtils.createRealVector(new double[] { poseDelta.xVel, poseDelta.yVel });
+
+            pos = TrcUtil.rotateCW(pos, odometry.heading);
+            vel = TrcUtil.rotateCW(vel, odometry.heading);
+
+            odometry.x += pos.getEntry(0);
+            odometry.y += pos.getEntry(1);
+            odometry.xVel = vel.getEntry(0);
+            odometry.yVel = vel.getEntry(1);
+            odometry.heading += poseDelta.heading;
+            odometry.turnRate = poseDelta.turnRate;
         }
-        // C is the column vector containing the "raw" change in pose. This is the immediate output of the forward
-        // odometry multiplied by timestep
-        RealVector C = MatrixUtils.createRealVector(new double[] { x, y, theta });
-        // Get the change in global pose
-        RealVector globalPose = A.multiply(B).operate(C);
-        // Convert back to our (ENU) reference frame
-        RealVector pos = nwuToEnuChangeOfBasis.operate(globalPose.getSubVector(0, 2));
-        // Convert back to clockwise degrees for heading
-        theta = Math.toDegrees(-globalPose.getEntry(2));
-
-        // Rotate the velocity vector into the global reference frame
-        RealVector vel = MatrixUtils.createRealVector(new double[] { poseDelta.xVel, poseDelta.yVel });
-        vel = TrcUtil.rotateCW(vel, heading);
-
-        // Update the odometry values
-        odometry.x += pos.getEntry(0);
-        odometry.y += pos.getEntry(1);
-        odometry.xVel = vel.getEntry(0);
-        odometry.yVel = vel.getEntry(1);
-        odometry.heading += theta;
-        odometry.turnRate = poseDelta.turnRate;
-    }   //updatePose
+    }   //updateOdometry
 
 }   //class TrcDriveBase
