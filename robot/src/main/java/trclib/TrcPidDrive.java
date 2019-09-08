@@ -45,6 +45,7 @@ public class TrcPidDrive
     private TrcDbgTrace msgTracer = null;
     private TrcRobotBattery battery = null;
     private boolean tracePidInfo = false;
+    private TrcPose2D oldReferenceFrame = null;
 
     /**
      * This interface provides a stuck wheel notification handler. It is useful for detecting drive base motor
@@ -437,7 +438,8 @@ public class TrcPidDrive
             this.turnOnly = xError == 0.0 && yError == 0.0 && turnError != 0.0;
             driveBase.resetStallTimer();
 
-            //CodeReview: do you need to clear the reference pose at the end of PidDrive???
+            // Cache the reference pose to reset it after the pid operation
+            oldReferenceFrame = driveBase.getReferencePose();
             driveBase.setReferencePose();
 
             setTaskEnabled(true);
@@ -639,6 +641,9 @@ public class TrcPidDrive
         {
             turnPidCtrl.reset();
         }
+
+        // reset the reference pose
+        driveBase.setReferencePose(oldReferenceFrame);
 
         holdTarget = false;
         turnOnly = false;
