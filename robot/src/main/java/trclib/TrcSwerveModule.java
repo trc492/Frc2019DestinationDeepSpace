@@ -218,7 +218,7 @@ public class TrcSwerveModule implements TrcMotorController
 
         if (steerLimitsEnabled)
         {
-            double boundedAngle = TrcUtil.modulo(newAngle, 360.0);  // Bound angle within [0,360).
+            double boundedAngle = TrcUtil.modulo(newAngle, 360.0); // Bound angle within [0,360).
             // Convert angle to range (-180,180].
             boundedAngle = boundedAngle > 180 ? boundedAngle - 360.0 : boundedAngle;
             if (boundedAngle < steerLowLimit)
@@ -233,7 +233,14 @@ public class TrcSwerveModule implements TrcMotorController
             }
         }
 
-        steerMotor.setTarget(newAngle, hold);
+        if (steerMotor != null)
+        {
+            steerMotor.setTarget(newAngle, hold);
+        }
+        else if (steerServo != null)
+        {
+            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
+        }
         prevSteerAngle = newAngle;
 
         if (debugEnabled)
@@ -276,7 +283,7 @@ public class TrcSwerveModule implements TrcMotorController
     public double getSteerAngle()
     {
         final String funcName = "getSteerAngle";
-        double angle = steerMotor.getPosition();
+        double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getEncoderPosition();
 
         if (debugEnabled)
         {

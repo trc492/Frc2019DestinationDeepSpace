@@ -71,12 +71,12 @@ public abstract class TrcServo
 
     public static final double CONTINUOUS_SERVO_FORWARD_MAX = 1.0;
     public static final double CONTINUOUS_SERVO_REVERSE_MAX = 0.0;
-    public static final double CONTINUOUS_SERVO_STOP        = 0.5;
+    public static final double CONTINUOUS_SERVO_STOP = 0.5;
 
-    private static final double DEF_PHYSICAL_MIN    = 0.0;
-    private static final double DEF_PHYSICAL_MAX    = 1.0;
-    private static final double DEF_LOGICAL_MIN     = 0.0;
-    private static final double DEF_LOGICAL_MAX     = 1.0;
+    private static final double DEF_PHYSICAL_MIN = 0.0;
+    private static final double DEF_PHYSICAL_MAX = 1.0;
+    private static final double DEF_LOGICAL_MIN = 0.0;
+    private static final double DEF_LOGICAL_MAX = 1.0;
 
     private final String instanceName;
     private double physicalMin = DEF_PHYSICAL_MIN;
@@ -93,8 +93,8 @@ public abstract class TrcServo
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                TrcDbgTrace.getGlobalTracer():
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -111,6 +111,18 @@ public abstract class TrcServo
     {
         return instanceName;
     }   //toString
+
+    /**
+     * This method returns the current position of the servo as read by an encoder. If there is no encoder (depending
+     * on the implementation) it will throw an exception.
+     *
+     * @return the physical position of the mechanism with an encoder.
+     * @throws UnsupportedOperationException if not supported by TrcServo implementation.
+     */
+    public double getEncoderPosition()
+    {
+        throw new UnsupportedOperationException("This implementation does not have an encoder!");
+    }
 
     /**
      * This method sets the physical range of the servo motor. This is typically
@@ -152,8 +164,8 @@ public abstract class TrcServo
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
-                                "logicalMin=%f,logicalMax=%f", logicalMin, logicalMax);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "logicalMin=%f,logicalMax=%f", logicalMin,
+                logicalMax);
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
