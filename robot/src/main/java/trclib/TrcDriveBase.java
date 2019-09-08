@@ -53,13 +53,13 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
 
     protected class MotorsState
     {
-        double prevTimestamp;
-        double currTimestamp;
-        double[] currPositions;
-        double[] currVelocities;
-        double[] prevPositions;
-        double[] stallStartTimes;
-        double[] motorPosDiffs;
+        public double prevTimestamp;
+        public double currTimestamp;
+        public double[] currPositions;
+        public double[] currVelocities;
+        public double[] prevPositions;
+        public double[] stallStartTimes;
+        public double[] motorPosDiffs;
     }   //class MotorsState
 
     /**
