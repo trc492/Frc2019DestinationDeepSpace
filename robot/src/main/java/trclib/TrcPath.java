@@ -23,8 +23,10 @@
 package trclib;
 
 /**
- * CodeReview: need to explain what a path is.
- * This class implements a path. A path is consists of an array of waypoints ...
+ * This class implements a path. A path is consists of an array of waypoints, and can be used for path following,
+ * such as motion profiling, pure pursuit, etc. Since heading could be in degrees or radians, each path object specifies
+ * the units of its heading value, and can be converted. If the timesteps are not specified, velocity and position data
+ * can be used to infer approximate timesteps. Paths can be read from CSV files.
  */
 public class TrcPath
 {

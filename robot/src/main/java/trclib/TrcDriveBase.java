@@ -1349,9 +1349,10 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         }
     }   //stopTask
 
-    // CodeReview: please update the description below.
     /**
-     * This method updates the current robot pose with a poseDelta either using 1st order dynamics or ???.
+     * This method updates the current robot pose with a poseDelta either using 0 or 1st order dynamics, depending on
+     * the value of <code>USE_CURVED_PATH</code>. If true, use a curved path (with nonzero curvature) otherwise model
+     * path as a bunch of straight lines. The curved path is more accurate.
      *
      * @param poseDelta The pose delta since the last update.
      * @param heading   The robot heading in the last update.
