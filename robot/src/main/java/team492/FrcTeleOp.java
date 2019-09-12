@@ -84,6 +84,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         driveSpeed = DriveSpeed.MEDIUM;
+        robot.driveBase.setSteerAngle(0.0);
 
         if (DEBUG_LOOP_TIME)
         {
@@ -175,6 +176,11 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     double x = leftDriveX;
                     double y = rightDriveY;
                     double rot = rightTwist;
+
+                    if (y != 0.0 || rot != 0.0)
+                    {
+                        System.out.printf("HolonomicDrv: rawX=%.2f, rawY=%.2f, rawRot=%.2f\n", x, y, rot);
+                    }
                     switch (driveSpeed)
                     {
                         case SLOW:
@@ -195,6 +201,12 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                             rot *= RobotInfo.DRIVE_FAST_TURNSCALE;
                             break;
                     }
+
+                    if (y != 0.0 || rot != 0.0)
+                    {
+                        System.out.printf("HolonomicDrv: AftrScl:x=%.2f, y=%.2f, rot=%.2f\n", x, y, rot);   
+                    }
+                    
 
                     switch (orientation)
                     {
@@ -252,6 +264,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
+                System.out.println("Awoo");
+                robot.driveBase.setSteerAngle(0.0, false);
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON5:

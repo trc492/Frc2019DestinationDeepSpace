@@ -23,7 +23,6 @@
 package trclib;
 
 import hallib.HalDashboard;
-import team492.Robot;
 
 /**
  * This class implements a platform independent Swerve Drive module. A Swerve Drive module consists of a drive motor
@@ -241,10 +240,7 @@ public class TrcSwerveModule implements TrcMotorController
         }
         prevSteerAngle = newAngle;
 
-        HalDashboard.putNumber(instanceName, angle);
-        if (Robot.robot.rightDriveStick.getRawButton(2)) {
-            throw new RuntimeException(angle + " - " + newAngle + " - " + getSteerAngle());
-        }
+        HalDashboard.putNumber(instanceName, newAngle);
 
         if (debugEnabled)
         {

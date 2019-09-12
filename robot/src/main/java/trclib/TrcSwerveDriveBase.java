@@ -228,10 +228,10 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
             lrModule.set(0.0);
             rrModule.set(0.0);
 
-//            lfModule.setSteerAngle(lfModule.getSteerAngle());
-//            rfModule.setSteerAngle(rfModule.getSteerAngle());
-//            lrModule.setSteerAngle(lrModule.getSteerAngle());
-//            rrModule.setSteerAngle(rrModule.getSteerAngle());
+            lfModule.setSteerAngle(lfModule.getSteerAngle());
+            rfModule.setSteerAngle(rfModule.getSteerAngle());
+            lrModule.setSteerAngle(lrModule.getSteerAngle());
+            rrModule.setSteerAngle(rrModule.getSteerAngle());
         }
         else
         {
@@ -292,6 +292,12 @@ public class TrcSwerveDriveBase extends TrcSimpleDriveBase
                 rrPower = motorPowerMapper.translateMotorPower(rrPower, rrModule.getVelocity());
             }
 
+            if (y != 0.0 || rotation != 0.0)
+            {
+                System.out.printf("SwerveHolonomicDrv: lfPower=%.2f, rfPower=%.2f, lrPower=%.2f, rrPower=%.2f\n", lfPower, rfPower, lrPower, rrPower);
+                System.out.printf("SwerveHolonomicDrv: lfAngle=%.2f, rfAngle=%.2f, lrAngle=%.2f, rfAngle=%.2f\n", lfAngle, rfAngle, lrAngle, rrAngle);    
+            }
+           
             HalDashboard.putString("input", String.format("x=%.2f,y=%.2f,rot=%.2f", x, y, rotation));
             lfModule.setSteerAngle(lfAngle);
             rfModule.setSteerAngle(rfAngle);
