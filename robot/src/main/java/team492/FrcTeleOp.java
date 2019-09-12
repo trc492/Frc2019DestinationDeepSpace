@@ -84,7 +84,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         driveSpeed = DriveSpeed.MEDIUM;
-        robot.driveBase.setSteerAngle(0.0);
 
         if (DEBUG_LOOP_TIME)
         {
@@ -264,7 +263,6 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:
-                System.out.println("Awoo");
                 robot.driveBase.setSteerAngle(0.0, false);
                 break;
 
