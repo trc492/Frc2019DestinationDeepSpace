@@ -216,7 +216,7 @@ public class Climber
 
                 case INIT_SUBSYSTEMS:
                     robot.globalTracer.traceInfo("climbTask", "Initializing climb!");
-                    robot.setHalfBrakeModeEnabled(true);
+                    robot.setHalfBrakeModeEnabled(false);
                     climberWheels.set(0.0);
                     climberWheels.setBrakeModeEnabled(true);
                     wheelContacted = false;

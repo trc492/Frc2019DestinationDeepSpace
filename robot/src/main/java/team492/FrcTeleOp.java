@@ -37,6 +37,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     } // enum DriveMode
 
     public static final boolean DEBUG_LOOP_TIME = true;
+    private static final String visionKey = "Camera/Alignment";
 
     protected Robot robot;
 
@@ -56,6 +57,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     public FrcTeleOp(Robot robot)
     {
         this.robot = robot;
+
+        HalDashboard.putBoolean(visionKey + "Left", false);
+        HalDashboard.putBoolean(visionKey + "Center", false);
+        HalDashboard.putBoolean(visionKey + "Right", false);
     } // FrcTeleOp
 
     //
@@ -115,18 +120,30 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             if (pose == null)
             {
                 robot.indicator.signalNoVisionDetected();
+                HalDashboard.putBoolean(visionKey + "Left", false);
+                HalDashboard.putBoolean(visionKey + "Center", false);
+                HalDashboard.putBoolean(visionKey + "Right", false);
             }
             else if (pose.x > RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
                 robot.indicator.signalVisionRight();
+                HalDashboard.putBoolean(visionKey + "Left", false);
+                HalDashboard.putBoolean(visionKey + "Center", false);
+                HalDashboard.putBoolean(visionKey + "Right", true);
             }
             else if (pose.x < -RobotInfo.CAMERA_CENTERED_THRESHOLD)
             {
                 robot.indicator.signalVisionLeft();
+                HalDashboard.putBoolean(visionKey + "Left", true);
+                HalDashboard.putBoolean(visionKey + "Center", false);
+                HalDashboard.putBoolean(visionKey + "Right", false);
             }
             else
             {
                 robot.indicator.signalVisionCentered();
+                HalDashboard.putBoolean(visionKey + "Left", false);
+                HalDashboard.putBoolean(visionKey + "Center", true);
+                HalDashboard.putBoolean(visionKey + "Right", false);
             }
         }
         boolean cargoDetected = robot.pickup.cargoDetected();
@@ -316,7 +333,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         {
             case FrcJoystick.LOGITECH_TRIGGER:
                 robot.driveInverted = pressed;
-                robot.setHalfBrakeModeEnabled(true);
+                robot.setHalfBrakeModeEnabled(false);
                 if (pressed)
                 {
                     robot.autoHeadingAlign.cancel();
