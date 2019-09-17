@@ -136,6 +136,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         odometryTaskObj = taskMgr.createTask(
                 moduleName + ".odometryTask", this::odometryTask);
         stopTaskObj = taskMgr.createTask(moduleName + ".stopTask", this::stopTask);
+        stopTaskObj.registerTask(TrcTaskMgr.TaskType.STOP_TASK);
     }   //TrcDriveBase
 
     /**
@@ -156,12 +157,10 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         {
             resetOdometry(false, false);
             odometryTaskObj.registerTask(TrcTaskMgr.TaskType.STANDALONE_TASK, 50);
-            stopTaskObj.registerTask(TrcTaskMgr.TaskType.STOP_TASK);
         }
         else
         {
             odometryTaskObj.unregisterTask(TrcTaskMgr.TaskType.STANDALONE_TASK);
-            stopTaskObj.unregisterTask(TrcTaskMgr.TaskType.STOP_TASK);
         }
 
         if (debugEnabled)
