@@ -158,7 +158,7 @@ public class FrcAuto extends FrcTeleOp
             robot.updateDashboard(RunMode.AUTO_MODE);
         }
 
-        if (autoStrategy == AutoStrategy.VIDEO_DRIVE || !robot.isAutoActive())
+        if (autoStrategy == AutoStrategy.VIDEO_DRIVE)
         {
             super.runPeriodic(elapsedTime);
         }

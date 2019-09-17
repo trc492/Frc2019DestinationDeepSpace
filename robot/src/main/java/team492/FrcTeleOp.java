@@ -172,7 +172,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
                     break;
 
                 case HOLONOMIC_MODE:
-                    double x = leftDriveX;
+                    double x = robot.rightDriveStick.getXWithDeadband(true);
                     double y = rightDriveY;
                     double rot = rightTwist;
 

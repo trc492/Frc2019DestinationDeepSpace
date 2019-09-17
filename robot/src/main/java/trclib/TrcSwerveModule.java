@@ -218,6 +218,8 @@ public class TrcSwerveModule implements TrcMotorController
             double boundedAngle = TrcUtil.modulo(newAngle, 360.0); // Bound angle within [0,360).
             // Convert angle to range (-180,180].
             boundedAngle = boundedAngle > 180 ? boundedAngle - 360.0 : boundedAngle;
+            System.out.printf("Limits: Module=%s,low=%.2f,high=%.2f,newAngle=%.2f,boundedAngle=%.2f\n", instanceName, steerLowLimit,
+                steerHighLimit, newAngle, boundedAngle);
             if (boundedAngle < steerLowLimit)
             {
                 newAngle = boundedAngle + 180;
@@ -228,6 +230,7 @@ public class TrcSwerveModule implements TrcMotorController
                 newAngle = boundedAngle - 180;
                 optimizedWheelDir *= -1;
             }
+            System.out.printf("New newAngle=%.2f\n", newAngle);
         }
 
         if (steerMotor != null)
@@ -236,7 +239,9 @@ public class TrcSwerveModule implements TrcMotorController
         }
         else if (steerServo != null)
         {
-            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
+            // TODO: Eventually, this needs to be coerced to within the range [0,1]. That's the logical range of a servo.
+            // The reason this is like this is because of the FrcTalonServo.
+            steerServo.setPosition(newAngle / 360.0);
         }
         prevSteerAngle = newAngle;
 
@@ -420,6 +425,11 @@ public class TrcSwerveModule implements TrcMotorController
         driveMotor.resetPosition(hardware);
     }   //resetPosition
 
+    private double getSteerError()
+    {
+        return prevSteerAngle - getSteerAngle();
+    }
+
     /**
      * This method sets the motor output value. The value can be power or velocity percentage depending on whether
      * the motor controller is in power mode or velocity mode.
@@ -437,7 +447,10 @@ public class TrcSwerveModule implements TrcMotorController
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
 
-        driveMotor.set(value * optimizedWheelDir);
+        double absError = Math.abs(getSteerError());
+        double scaleFactor = 1 / (absError/60.0 + 1);
+
+        driveMotor.set(value * optimizedWheelDir * scaleFactor);
     }   //set
 
     /**

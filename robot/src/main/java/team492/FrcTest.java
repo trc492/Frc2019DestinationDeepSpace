@@ -27,6 +27,7 @@ import common.CmdTimedDrive;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
+import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
@@ -290,6 +291,15 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
+                if (pressed)
+                {
+                    double angle = HalDashboard.getNumber("TargetAngle", 0);
+                    robot.leftFrontWheel.setSteerAngle(angle);
+                    robot.rightFrontWheel.setSteerAngle(angle);
+                    robot.leftRearWheel.setSteerAngle(angle);
+                    robot.rightRearWheel.setSteerAngle(angle);
+                }
+                processedInput = true;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
@@ -308,15 +318,21 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON8:
-                robot.setSteerZeroPosition();
+                if (pressed)
+                {
+                    robot.setSteerZeroPosition();
+                }
                 processedInput = true;
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON9:
-                robot.lfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
-                robot.rfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
-                robot.lrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
-                robot.rrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                if (pressed)
+                {
+                    robot.lfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                    robot.rfSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                    robot.lrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                    robot.rrSteerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+                }
                 processedInput = true;
                 break;
 

@@ -310,8 +310,8 @@ public class Robot extends FrcRobotBase
 
         leftFrontWheel.setInverted(false);
         leftRearWheel.setInverted(false);
-        rightFrontWheel.setInverted(true);
-        rightRearWheel.setInverted(true);
+        rightFrontWheel.setInverted(false);
+        rightRearWheel.setInverted(false);
 
         leftFrontWheel.setPositionSensorInverted(false);
         leftRearWheel.setPositionSensorInverted(false);
@@ -361,6 +361,8 @@ public class Robot extends FrcRobotBase
         setupRobotModes(new FrcTeleOp(this), autoMode, new FrcTest(this), new FrcDisabled(this));
 
         pdp.registerEnergyUsedForAllUnregisteredChannels();
+
+        HalDashboard.putNumber("TargetAngle", HalDashboard.getNumber("TargetAngle", 0.0));
     }   //robotInit
 
     public void robotStartMode(RunMode runMode, RunMode prevMode)

@@ -80,11 +80,15 @@ public class FrcTalonServo extends TrcServo
     public void setPosition(double position)
     {
         double angle = position * 360.0;
+        double oldAngle = angle;
+        double pos = getPosition();
         if (warpSpace != null)
         {
-            angle = warpSpace.getOptimizedTarget(angle, getPosition());
+            angle = warpSpace.getOptimizedTarget(angle, pos);
         }
-        double ticks = angle / degreesPerTick;
+        int ticks = TrcUtil.round(angle / degreesPerTick);
+        System.out.printf("TalonServo.setPosition: name=%s,rawAngle=%.2f,warpedAngle=%.2f,currPos=%.2f,ticks=%d\n",
+            toString(), oldAngle, angle, pos, ticks);
         talon.motor.set(ControlMode.MotionMagic, ticks);
     }
 
