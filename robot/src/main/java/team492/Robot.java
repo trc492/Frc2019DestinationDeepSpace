@@ -37,7 +37,6 @@ import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
 import frclib.FrcTalonServo;
 import hallib.HalDashboard;
-import trclib.TrcDbgTrace;
 import trclib.TrcEnhancedServo;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
@@ -79,8 +78,6 @@ public class Robot extends FrcRobotBase
     private static final boolean DEBUG_SUBSYSTEMS = false;
 
     private static final double DASHBOARD_UPDATE_INTERVAL = 0.1;
-
-    public static Robot robot;
 
     public DriverStation ds = DriverStation.getInstance();
     public HalDashboard dashboard = HalDashboard.getInstance();
@@ -161,21 +158,31 @@ public class Robot extends FrcRobotBase
     public Robot()
     {
         super(programName);
-        Robot.robot = this;
     }   //Robot
 
     private TrcSwerveModule createModule(String instanceName, FrcCANTalon driveMotor, FrcCANTalon steerMotor,
         int steerZero)
     {
-        steerMotor.motor.getSensorCollection().setPulseWidthPosition(0, 10);
+        int pulseWidthPosition = steerMotor.motor.getSensorCollection().getPulseWidthPosition();
         int absPosTicks = (int) TrcUtil
-            .modulo(steerMotor.motor.getSensorCollection().getPulseWidthPosition() - steerZero, 4096);
+            .modulo(pulseWidthPosition - steerZero, 4096);
         double absPos = absPosTicks * 360.0 / 4096.0;
-        boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() >= 1023 / 2;
+        // this is a bit confusing. we don't know whether this is. 
+        boolean isRightHemisphere = steerMotor.motor.getSensorCollection().getAnalogInRaw() <= 1023 / 2;
+       
+        System.out.printf("Create module %s: pulseWidthPosition=%d, steerZero=%d, absPos=%.2f, absPosTicks=%d, isRightHemisphere=%b\n", instanceName, pulseWidthPosition, steerZero, absPos, absPosTicks, isRightHemisphere);
+       
         if (TrcUtil.inRange(absPos, 33, 327) && !isRightHemisphere || absPos > 327)
         {
+            if (TrcUtil.inRange(absPos, 33, 327) && !isRightHemisphere)
+            {
+                System.out.printf("Module %s: applying offset to absPosTicks\n", instanceName);
+            }
+           
             absPosTicks -= 4096;
         }
+
+        // steer zero, absposticks
         steerMotor.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
 
         TrcSwerveModule module;
@@ -190,7 +197,7 @@ public class Robot extends FrcRobotBase
         }
         else
         {
-            PidCoefficients coeff = new PidCoefficients(0.08);
+            PidCoefficients coeff = new PidCoefficients(RobotInfo.STEER_KP, RobotInfo.STEER_KI, RobotInfo.STEER_KD);
             TrcPidController ctrl = new TrcPidController(instanceName + ".ctrl", coeff, RobotInfo.STEER_TOLERANCE,
                 steerMotor::getPosition);
             TrcPidMotor pidMotor = new TrcPidMotor(instanceName + ".pid", steerMotor, ctrl, 0.0);
@@ -215,7 +222,6 @@ public class Robot extends FrcRobotBase
 
     public void setSteerZeroPosition()
     {
-        TrcDbgTrace.getGlobalTracer().tracePrintf("Resetting zeros!");
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
             out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
@@ -344,6 +350,9 @@ public class Robot extends FrcRobotBase
         encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
         encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
         gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
+
+        System.out.printf("Steer zeroes lf=%d, rf=%d, lr=%d, rr=%d\n", steerZeros[0], steerZeros[1], steerZeros[2], steerZeros[3]);
+        System.out.printf("Steering angles: lf=%.1f, rf=%.1f, lr=%.1f, rr=%.1f\n", leftFrontWheel.getSteerAngle(), rightFrontWheel.getSteerAngle(), leftRearWheel.getSteerAngle(), rightRearWheel.getSteerAngle());
 
         //
         // Create Robot Modes.
