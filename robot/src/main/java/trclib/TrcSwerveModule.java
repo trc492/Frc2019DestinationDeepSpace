@@ -239,7 +239,9 @@ public class TrcSwerveModule implements TrcMotorController
         }
         else if (steerServo != null)
         {
-            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
+            // TODO: Eventually, this needs to be coerced to within the range [0,1]. That's the logical range of a servo.
+            // The reason this is like this is because of the FrcTalonServo.
+            steerServo.setPosition(newAngle / 360.0);
         }
         prevSteerAngle = newAngle;
 
@@ -247,8 +249,8 @@ public class TrcSwerveModule implements TrcMotorController
         {
             if (optimize)
             {
-                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)",
-                    instanceName, angle, newAngle, optimizedWheelDir);
+                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)", instanceName, angle,
+                    newAngle, optimizedWheelDir);
             }
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (angle=%f)", angle);
         }
@@ -283,6 +285,7 @@ public class TrcSwerveModule implements TrcMotorController
     public double getSteerAngle()
     {
         final String funcName = "getSteerAngle";
+        // TODO: technically, the spec for servos says getPosition returns between 0 and 1, so eventually change FrcTalonServo and also change this
         double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getEncoderPosition();
 
         if (debugEnabled)

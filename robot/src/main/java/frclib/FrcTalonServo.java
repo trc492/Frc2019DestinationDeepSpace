@@ -84,7 +84,7 @@ public class FrcTalonServo extends TrcServo
         {
             angle = warpSpace.getOptimizedTarget(angle, getPosition());
         }
-        double ticks = angle / degreesPerTick;
+        int ticks = TrcUtil.round(angle / degreesPerTick);
         talon.motor.set(ControlMode.MotionMagic, ticks);
     }
 
