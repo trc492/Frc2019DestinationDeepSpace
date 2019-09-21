@@ -40,7 +40,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, AUTO_DIAGNOSTICS, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
     } // enum Test
 
     private enum State
@@ -60,6 +60,7 @@ public class FrcTest extends FrcTeleOp
 
     private CmdTimedDrive timedDriveCommand = null;
     private CmdPidDrive pidDriveCommand = null;
+    private AutoDiagnostics diagnostics;
 
     private int motorIndex = 0;
 
@@ -80,6 +81,7 @@ public class FrcTest extends FrcTeleOp
         testMenu = new FrcChoiceMenu<>("Test/Tests");
         testMenu.addChoice("Sensors Test", FrcTest.Test.SENSORS_TEST, true, false);
         testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST);
+        testMenu.addChoice("Auto Diagnostics", Test.AUTO_DIAGNOSTICS);
         testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST);
         testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE);
         testMenu.addChoice("Y Timed Drive", FrcTest.Test.Y_TIMED_DRIVE);
@@ -135,6 +137,11 @@ public class FrcTest extends FrcTeleOp
                 // So let it flow to the next case.
                 //
             case SUBSYSTEMS_TEST:
+                break;
+
+            case AUTO_DIAGNOSTICS:
+                diagnostics = new AutoDiagnostics(robot);
+                diagnostics.start();
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -201,6 +208,11 @@ public class FrcTest extends FrcTeleOp
         {
             case SENSORS_TEST:
                 doSensorsTest();
+                break;
+
+            case AUTO_DIAGNOSTICS:
+                doSensorsTest();
+                diagnostics.cmdPeriodic(elapsedTime);
                 break;
 
             case SUBSYSTEMS_TEST:
@@ -277,6 +289,10 @@ public class FrcTest extends FrcTeleOp
     {
         switch (test)
         {
+            case AUTO_DIAGNOSTICS:
+                diagnostics.cancel();
+                break;
+
             default:
                 break;
         }
@@ -454,10 +470,10 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(5, "Elevator: %b/%b, RawPos=%.0f,Pos=%.2f,Power=%.2f",
             robot.elevator.isLowerLimitSwitchActive(), robot.elevator.isUpperLimitSwitchActive(),
             robot.elevator.getRawPosition(), robot.elevator.getPosition(), robot.elevator.getPower());
-        robot.dashboard
-            .displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b,PIDOut=%.2f,Power=%.2f", robot.pickup.isLowerLimitSwitchActive(),
-                robot.pickup.isUpperLimitSwitchActive(), robot.pickup.getRawPickupAngle(),
-                robot.pickup.getPickupAngle(), robot.pickup.cargoDetected(), robot.pickup.getPitchPidController().getOutput(), robot.pickup.getPitchPower());
+        robot.dashboard.displayPrintf(6, "Pickup: %b/%b, RawPos=%.0f,Pos=%.2f,Cargo=%b,PIDOut=%.2f,Power=%.2f",
+            robot.pickup.isLowerLimitSwitchActive(), robot.pickup.isUpperLimitSwitchActive(),
+            robot.pickup.getRawPickupAngle(), robot.pickup.getPickupAngle(), robot.pickup.cargoDetected(),
+            robot.pickup.getPitchPidController().getOutput(), robot.pickup.getPitchPower());
 
         double pickupCurrent = robot.pickup.getPickupCurrent();
         HalDashboard.putNumber("Test/PickupCurrent", pickupCurrent);

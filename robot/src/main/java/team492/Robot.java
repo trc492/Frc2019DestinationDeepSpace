@@ -123,6 +123,7 @@ public class Robot extends FrcRobotBase
     public TrcRobotBattery battery = null;
     public FrcAHRSGyro gyro = null;
     public AnalogInput pressureSensor = null;
+    public UsbCamera camera;
     //
     // VisionTargetPipeline subsystem.
     //
@@ -314,7 +315,7 @@ public class Robot extends FrcRobotBase
 
         if (USE_STREAM_CAMERA)
         {
-            UsbCamera camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", 0);
+            camera = CameraServer.getInstance().startAutomaticCapture("DriverDisplay", 0);
             camera.setResolution(160, 120);
         }
 
