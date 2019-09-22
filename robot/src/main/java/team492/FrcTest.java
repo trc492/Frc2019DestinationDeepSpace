@@ -75,6 +75,8 @@ public class FrcTest extends FrcTeleOp
         timer = new TrcTimer(moduleName);
         sm = new TrcStateMachine<>(moduleName);
 
+        diagnostics = new AutoDiagnostics(robot);
+
         //
         // Create and populate Test Mode specific menus.
         //
@@ -140,7 +142,6 @@ public class FrcTest extends FrcTeleOp
                 break;
 
             case AUTO_DIAGNOSTICS:
-                diagnostics = new AutoDiagnostics(robot);
                 diagnostics.start();
                 break;
 

@@ -28,6 +28,8 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
     private static final String PITCH_MOTOR_CONN_KEY = "Diagnostics/PitchMotorConn";
     private static final String PITCH_ENCODER_KEY = "Diagnostics/PitchEncoder";
 
+    private static final String DIAGNOSTIC_STATE_KEY = "Diagnostics/CurrState";
+
     enum State
     {
         START, DRIVE_CONN, ELEVATOR_TEST, PICKUP_TEST, PITCH_TEST, USB_CAM_CONN, DONE
@@ -85,6 +87,8 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         HalDashboard.putBoolean(PITCH_TALON_CONN_KEY, false);
         HalDashboard.putBoolean(PITCH_MOTOR_CONN_KEY, false);
         HalDashboard.putBoolean(PITCH_ENCODER_KEY, false);
+
+        HalDashboard.putString(DIAGNOSTIC_STATE_KEY, "Not run");
     }
 
     private boolean sparkMotorConnected(FrcCANSparkMax spark)
@@ -99,6 +103,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         State state = sm.checkReadyAndGetState();
         if (state != null)
         {
+            HalDashboard.putString(DIAGNOSTIC_STATE_KEY, state.name());
             switch (state)
             {
                 case START:
