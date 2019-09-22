@@ -159,6 +159,16 @@ public class Pickup
         return -Math.sin(Math.toRadians(getPickupAngle())) * RobotInfo.PICKUP_PERCENT_TORQUE;
     }
 
+    public FrcCANTalon getPickupMotor()
+    {
+        return pickupMotor;
+    }
+
+    public FrcCANTalon getPitchMotor()
+    {
+        return pitchMotor;
+    }
+
     public double getPitchPower()
     {
         return pitchMotor.getPower();

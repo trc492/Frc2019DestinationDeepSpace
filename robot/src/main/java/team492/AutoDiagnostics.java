@@ -2,31 +2,35 @@ package team492;
 
 import com.revrobotics.CANSparkMax;
 import frclib.FrcCANSparkMax;
+import frclib.FrcCANTalon;
 import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
+import trclib.TrcTaskMgr;
 import trclib.TrcTimer;
-import trclib.TrcUtil;
-
-import java.util.Arrays;
 
 public class AutoDiagnostics implements TrcRobot.RobotCommand
 {
-    private static final double DRIVE_POWER = 0.3;
-    private static final double DRIVE_TIME = 0.3;
-    private static final double ENCODER_PERCENT_ERR = 0.08; // 8 percent
-    private static final double START_DELAY = 0.5;
+    private static final double START_DELAY = 1.0;
     private static final String DRIVE_SPARK_CONN_SUB = "Diagnostics/DrvSparkConn";
     private static final String DRIVE_MOTOR_CONN_SUB = "Diagnostics/DrvMotorConn";
     private static final String DRIVE_ENCODER_SUB = "Diagnostics/DrvEncoder";
     private static final String[] motorNames = new String[] { "LF", "RF", "LR", "RR" };
     private static final String[] subs = new String[] { DRIVE_SPARK_CONN_SUB, DRIVE_MOTOR_CONN_SUB, DRIVE_ENCODER_SUB };
     private static final String USB_CAM_CONN_KEY = "Diagnostics/UsbCamConn";
+    private static final String ELEVATOR_TALON_CONN_KEY = "Diagnostics/ElevatorTalonConn";
+    private static final String ELEVATOR_MOTOR_CONN_KEY = "Diagnostics/ElevatorMotorConn";
+    private static final String ELEVATOR_ENCODER_KEY = "Diagnostics/ElevatorEncoder";
+    private static final String PICKUP_TALON_CONN_KEY = "Diagnostics/PickupTalonConn";
+    private static final String PICKUP_MOTOR_CONN_KEY = "Diagnostics/PickupMotorConn";
+    private static final String PITCH_TALON_CONN_KEY = "Diagnostics/PitchTalonConn";
+    private static final String PITCH_MOTOR_CONN_KEY = "Diagnostics/PitchMotorConn";
+    private static final String PITCH_ENCODER_KEY = "Diagnostics/PitchEncoder";
 
     enum State
     {
-        START, DRIVE_SPARK_CONN, DRIVE_MOTOR_CONN, DRIVE_ENCODER_START, DRIVE_ENCODER_END, USB_CAM_CONN
+        START, DRIVE_CONN, ELEVATOR_TEST, PICKUP_TEST, PITCH_TEST, USB_CAM_CONN, DONE
     }
 
     private Robot robot;
@@ -34,6 +38,9 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
     private TrcEvent event;
     private TrcTimer timer;
     private FrcCANSparkMax[] motors;
+    private TalonTest elevatorTest;
+    private TalonTest pickupTest;
+    private TalonTest pitchTest;
 
     public AutoDiagnostics(Robot robot)
     {
@@ -43,6 +50,12 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         sm = new TrcStateMachine<>("AutoDiagnostics.sm");
         event = new TrcEvent("AutoDiagnostics.event");
         timer = new TrcTimer("AutoDiagnostics.timer");
+
+        elevatorTest = new TalonTest(robot.elevator.getMotor(), ELEVATOR_TALON_CONN_KEY, ELEVATOR_MOTOR_CONN_KEY,
+            ELEVATOR_ENCODER_KEY);
+        pickupTest = new TalonTest(robot.pickup.getPickupMotor(), PICKUP_TALON_CONN_KEY, PICKUP_MOTOR_CONN_KEY);
+        pitchTest = new TalonTest(robot.pickup.getPitchMotor(), PITCH_TALON_CONN_KEY, PITCH_MOTOR_CONN_KEY,
+            PITCH_ENCODER_KEY);
 
         reset();
     }
@@ -64,15 +77,23 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         }
 
         HalDashboard.putBoolean(USB_CAM_CONN_KEY, false);
+        HalDashboard.putBoolean(ELEVATOR_TALON_CONN_KEY, false);
+        HalDashboard.putBoolean(ELEVATOR_MOTOR_CONN_KEY, false);
+        HalDashboard.putBoolean(ELEVATOR_ENCODER_KEY, false);
+        HalDashboard.putBoolean(PICKUP_TALON_CONN_KEY, false);
+        HalDashboard.putBoolean(PICKUP_MOTOR_CONN_KEY, false);
+        HalDashboard.putBoolean(PITCH_TALON_CONN_KEY, false);
+        HalDashboard.putBoolean(PITCH_MOTOR_CONN_KEY, false);
+        HalDashboard.putBoolean(PITCH_ENCODER_KEY, false);
     }
 
-    private boolean isConn(FrcCANSparkMax spark)
+    private boolean sparkConnected(FrcCANSparkMax spark)
     {
         // slightly hacky but whatever
         return spark.motor.getFirmwareString() != null;
     }
 
-    private boolean motorConn(FrcCANSparkMax spark)
+    private boolean sparkMotorConnected(FrcCANSparkMax spark)
     {
         return !spark.motor.getFault(CANSparkMax.FaultID.kMotorFault);
     }
@@ -88,48 +109,42 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
                 case START:
                     reset();
                     timer.set(START_DELAY, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_SPARK_CONN);
+                    sm.waitForSingleEvent(event, State.DRIVE_CONN);
                     break;
 
-                case DRIVE_SPARK_CONN:
+                case DRIVE_CONN:
                     for (int i = 0; i < motorNames.length; i++)
                     {
-                        HalDashboard.putBoolean(DRIVE_SPARK_CONN_SUB + motorNames[i], isConn(motors[i]));
+                        HalDashboard.putBoolean(DRIVE_SPARK_CONN_SUB + motorNames[i], sparkConnected(motors[i]));
+                        HalDashboard.putBoolean(DRIVE_MOTOR_CONN_SUB + motorNames[i], sparkMotorConnected(motors[i]));
                     }
-                    sm.setState(State.DRIVE_MOTOR_CONN);
+                    sm.setState(State.ELEVATOR_TEST);
                     break;
 
-                case DRIVE_MOTOR_CONN:
-                    for (int i = 0; i < motorNames.length; i++)
-                    {
-                        HalDashboard.putBoolean(DRIVE_MOTOR_CONN_SUB + motorNames[i], motorConn(motors[i]));
-                    }
-                    sm.setState(State.DRIVE_ENCODER_START);
+                case ELEVATOR_TEST:
+                    elevatorTest.startTest(event);
+                    sm.waitForSingleEvent(event, State.PICKUP_TEST);
                     break;
 
-                case DRIVE_ENCODER_START:
-                    Arrays.stream(motors).forEach(m -> m.resetPosition(true));
-                    Arrays.stream(motors).forEach(m -> m.set(DRIVE_POWER));
-                    timer.set(DRIVE_TIME, event);
-                    sm.waitForSingleEvent(event, State.DRIVE_ENCODER_END);
+                case PICKUP_TEST:
+                    pickupTest.startTest(event);
+                    sm.waitForSingleEvent(event, State.PITCH_TEST);
                     break;
 
-                case DRIVE_ENCODER_END:
-                    Arrays.stream(motors).forEach(m -> m.set(0.0));
-                    double[] encoders = Arrays.stream(motors).mapToDouble(FrcCANSparkMax::getPosition).toArray();
-                    double mean = TrcUtil.average(encoders);
-                    double tolerance = mean * ENCODER_PERCENT_ERR;
-                    for (int i = 0; i < encoders.length; i++)
-                    {
-                        HalDashboard.putBoolean(DRIVE_ENCODER_SUB + motorNames[i],
-                            TrcUtil.inRange(encoders[i], mean - tolerance, mean + tolerance));
-                    }
-                    sm.setState(State.USB_CAM_CONN);
+                case PITCH_TEST:
+                    pitchTest.startTest(event);
+                    sm.waitForSingleEvent(event, State.USB_CAM_CONN);
                     break;
 
                 case USB_CAM_CONN:
                     HalDashboard.putBoolean(USB_CAM_CONN_KEY, robot.camera.isConnected());
+                    sm.setState(State.DONE);
+                    break;
+
+                case DONE:
                     cancel();
+                    robot.elevator.zeroCalibrate();
+                    robot.pickup.zeroCalibrate();
                     break;
             }
         }
@@ -146,5 +161,95 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
     public void cancel()
     {
         sm.stop();
+    }
+
+    private static class TalonTest
+    {
+        private static final double RUN_POWER = 0.5;
+        private static final double RUN_TIME = 1.5;
+
+        private final String talonConnKey;
+        private final String motorConnKey;
+        private final String encoderKey;
+        private TrcTaskMgr.TaskObject testTaskObj;
+        private FrcCANTalon talon;
+        private TrcEvent event;
+        private TrcEvent onFinishedEvent;
+        private TrcTimer timer;
+        private boolean started = false;
+        private boolean finished = false;
+        private double startEncVal;
+        private double runPower = RUN_POWER;
+        private double runTime = RUN_TIME;
+
+        public TalonTest(FrcCANTalon talon, String talonConnKey, String motorConnKey)
+        {
+            this(talon, talonConnKey, motorConnKey, null);
+        }
+
+        public TalonTest(FrcCANTalon talon, String talonConnKey, String motorConnKey, String encoderKey)
+        {
+            this.talonConnKey = talonConnKey;
+            this.motorConnKey = motorConnKey;
+            this.encoderKey = encoderKey;
+            this.talon = talon;
+            testTaskObj = TrcTaskMgr.getInstance().createTask(talon.toString() + ".testTask", this::testTask);
+            timer = new TrcTimer(talon.toString() + ".testTimer");
+            event = new TrcEvent(talon.toString() + ".testEvent");
+        }
+
+        public void startTest(TrcEvent onFinishedEvent)
+        {
+            if (onFinishedEvent != null)
+            {
+                onFinishedEvent.clear();
+            }
+            this.onFinishedEvent = onFinishedEvent;
+            testTaskObj.registerTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            started = false;
+            finished = false;
+            event.clear();
+        }
+
+        private void testTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode mode)
+        {
+            if (!started)
+            {
+                HalDashboard.putBoolean(talonConnKey, talon.motor.getBusVoltage() > 0.0);
+                if (encoderKey != null)
+                {
+                    startEncVal = talon.getMotorPosition();
+                }
+                started = true;
+                timer.set(runTime, event);
+            }
+            else if (event.isSignaled())
+            {
+                finished = true;
+                HalDashboard.putBoolean(motorConnKey, talon.motor.getOutputCurrent() > 0.0);
+                if (encoderKey != null)
+                {
+                    HalDashboard.putBoolean(encoderKey, talon.getMotorPosition() != startEncVal);
+                }
+                talon.set(0.0);
+                onFinishedEvent.set(true);
+                testTaskObj.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+            }
+
+            if (!finished)
+            {
+                talon.set(runPower);
+            }
+        }
+
+        public void setRunPower(double runPower)
+        {
+            this.runPower = runPower;
+        }
+
+        public void setRunTime(double runTime)
+        {
+            this.runTime = runTime;
+        }
     }
 }
