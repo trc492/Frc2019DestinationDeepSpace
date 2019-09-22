@@ -87,14 +87,9 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         HalDashboard.putBoolean(PITCH_ENCODER_KEY, false);
     }
 
-    private boolean sparkConnected(FrcCANSparkMax spark)
-    {
-        // slightly hacky but whatever
-        return spark.motor.getFirmwareString() != null;
-    }
-
     private boolean sparkMotorConnected(FrcCANSparkMax spark)
     {
+        // TODO: check if this actually works
         return !spark.motor.getFault(CANSparkMax.FaultID.kMotorFault);
     }
 
@@ -115,7 +110,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
                 case DRIVE_CONN:
                     for (int i = 0; i < motorNames.length; i++)
                     {
-                        HalDashboard.putBoolean(DRIVE_SPARK_CONN_SUB + motorNames[i], sparkConnected(motors[i]));
+                        HalDashboard.putBoolean(DRIVE_SPARK_CONN_SUB + motorNames[i], motors[i].isConnected());
                         HalDashboard.putBoolean(DRIVE_MOTOR_CONN_SUB + motorNames[i], sparkMotorConnected(motors[i]));
                     }
                     sm.setState(State.ELEVATOR_TEST);
@@ -215,7 +210,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         {
             if (!started)
             {
-                HalDashboard.putBoolean(talonConnKey, talon.motor.getBusVoltage() > 0.0);
+                HalDashboard.putBoolean(talonConnKey, talon.isConnected());
                 if (encoderKey != null)
                 {
                     startEncVal = talon.getMotorPosition();
