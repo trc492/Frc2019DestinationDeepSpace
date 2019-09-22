@@ -23,14 +23,13 @@
 package frclib;
 
 import com.revrobotics.CANDigitalInput;
+import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
 import com.revrobotics.CANEncoder;
 import com.revrobotics.CANError;
 import com.revrobotics.CANPIDController;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel;
-import com.revrobotics.CANDigitalInput.LimitSwitchPolarity;
 import com.revrobotics.CANSparkMax.IdleMode;
-
+import com.revrobotics.CANSparkMaxLowLevel;
 import trclib.TrcDbgTrace;
 import trclib.TrcMotor;
 import trclib.TrcPidController;
@@ -445,9 +444,11 @@ public class FrcCANSparkMax extends TrcMotor
 
         if (hardware)
         {
-            while (encoder.setPosition(0.0) != CANError.kOK)
+            CANError error = encoder.setPosition(0.0);
+            if (error != CANError.kOK)
             {
-                Thread.yield();
+                TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on SparkMax %d failed with error %s!", motor.getDeviceId(),
+                    error.name());
             }
             zeroPosition = 0.0;
         }
@@ -465,6 +466,19 @@ public class FrcCANSparkMax extends TrcMotor
     {
         resetPosition(false);
     }   //resetPosition
+
+    /**
+     * This method checks if the SparkMax is connected to the robot. This does NOT say anything about the connection
+     * status of the motor.
+     *
+     * @return True if the SparkMax is connected, false otherwise.
+     */
+    @Override
+    public boolean isConnected()
+    {
+        // hacky, but should work
+        return motor.getFirmwareString() != null;
+    }
 
     /**
      * This method sets the motor output value. The value can be power or velocity percentage depending on whether

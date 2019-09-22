@@ -569,19 +569,19 @@ public class FrcCANTalon extends TrcMotor
         }
         else if (hardware)
         {
+            ErrorCode error;
             if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
             {
-                while (recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 10)) != ErrorCode.OK)
-                {
-                    Thread.yield();
-                }
+                error = recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 10));
             }
             else
             {
-                while(recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10)) != ErrorCode.OK)
-                {
-                    Thread.yield();
-                }
+                error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
+            }
+            if (error != ErrorCode.OK)
+            {
+                TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on TalonSRX %d failed with error %s!", motor.getDeviceID(),
+                    error.name());
             }
             zeroPosition = 0.0;
         }
@@ -595,6 +595,18 @@ public class FrcCANTalon extends TrcMotor
     {
         resetPosition(false);
     }   //resetPosition
+
+    /**
+     * This method checks if the TalonSRX is connected to the robot.
+     *
+     * @return True if the talon is connected, false otherwise.
+     */
+    @Override
+    public boolean isConnected()
+    {
+        // hacky, but should work
+        return motor.getBusVoltage() > 0.0;
+    } //isConnected
 
     /**
      * This method sets the motor output value. The value can be power or velocity percentage depending on whether
