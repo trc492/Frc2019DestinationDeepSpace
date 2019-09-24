@@ -4,6 +4,8 @@ import com.revrobotics.CANSparkMax;
 import frclib.FrcCANSparkMax;
 import frclib.FrcCANTalon;
 import hallib.HalDashboard;
+import trclib.TrcAnalogSensor;
+import trclib.TrcAnalogTrigger;
 import trclib.TrcEvent;
 import trclib.TrcRobot;
 import trclib.TrcStateMachine;
@@ -15,9 +17,8 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
     private static final double START_DELAY = 1.0;
     private static final String DRIVE_SPARK_CONN_SUB = "Diagnostics/DrvSparkConn";
     private static final String DRIVE_MOTOR_CONN_SUB = "Diagnostics/DrvMotorConn";
-    private static final String DRIVE_ENCODER_SUB = "Diagnostics/DrvEncoder";
     private static final String[] motorNames = new String[] { "LF", "RF", "LR", "RR" };
-    private static final String[] subs = new String[] { DRIVE_SPARK_CONN_SUB, DRIVE_MOTOR_CONN_SUB, DRIVE_ENCODER_SUB };
+    private static final String[] subs = new String[] { DRIVE_SPARK_CONN_SUB, DRIVE_MOTOR_CONN_SUB };
     private static final String USB_CAM_CONN_KEY = "Diagnostics/UsbCamConn";
     private static final String ELEVATOR_TALON_CONN_KEY = "Diagnostics/ElevatorTalonConn";
     private static final String ELEVATOR_MOTOR_CONN_KEY = "Diagnostics/ElevatorMotorConn";
@@ -93,7 +94,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
 
     private boolean sparkMotorConnected(FrcCANSparkMax spark)
     {
-        // TODO: check if this actually works
+        // TODO: this doesn't work, figure it out.
         return !spark.motor.getFault(CANSparkMax.FaultID.kMotorFault);
     }
 
@@ -181,6 +182,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
         private double startEncVal;
         private double runPower = RUN_POWER;
         private double runTime = RUN_TIME;
+        private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
 
         public TalonTest(FrcCANTalon talon, String talonConnKey, String motorConnKey)
         {
@@ -196,6 +198,18 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
             testTaskObj = TrcTaskMgr.getInstance().createTask(talon.toString() + ".testTask", this::testTask);
             timer = new TrcTimer(talon.toString() + ".testTimer");
             event = new TrcEvent(talon.toString() + ".testEvent");
+            TrcAnalogSensor currentSensor = new TrcAnalogSensor(talon.toString() + ".currentSensor",
+                () -> talon.motor.getOutputCurrent());
+            currentTrigger = new TrcAnalogTrigger<>(talon.toString() + ".currentTrigger", currentSensor, 0,
+                TrcAnalogSensor.DataType.RAW_DATA, new double[] { 1 }, this::currentTriggerEvent, false);
+        }
+
+        private void currentTriggerEvent(int currZone, int prevZone, double value)
+        {
+            if (currZone == 1 && currZone > prevZone)
+            {
+                HalDashboard.putBoolean(motorConnKey, true);
+            }
         }
 
         public void startTest(TrcEvent onFinishedEvent)
@@ -216,17 +230,18 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
             if (!started)
             {
                 HalDashboard.putBoolean(talonConnKey, talon.isConnected());
+                HalDashboard.putBoolean(motorConnKey, false);
                 if (encoderKey != null)
                 {
                     startEncVal = talon.getMotorPosition();
                 }
                 started = true;
+                currentTrigger.setEnabled(true);
                 timer.set(runTime, event);
             }
             else if (event.isSignaled())
             {
                 finished = true;
-                HalDashboard.putBoolean(motorConnKey, talon.motor.getOutputCurrent() > 0.0);
                 if (encoderKey != null)
                 {
                     HalDashboard.putBoolean(encoderKey, talon.getMotorPosition() != startEncVal);
@@ -234,6 +249,7 @@ public class AutoDiagnostics implements TrcRobot.RobotCommand
                 talon.set(0.0);
                 onFinishedEvent.set(true);
                 testTaskObj.unregisterTask(TrcTaskMgr.TaskType.POSTCONTINUOUS_TASK);
+                currentTrigger.setEnabled(false);
             }
 
             if (!finished)
