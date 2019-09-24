@@ -100,6 +100,7 @@ public class FrcAuto extends FrcTeleOp
         robot.elevator.zeroCalibrate(); // zero calibrate the elevator
         robot.pickup.zeroCalibrate(); // zero calibrate the pickup
         robot.climber.zeroCalibrateActuator();
+        robot.pickup.extendHatchGrabber();
 
         final String funcName = moduleName + ".startMode";
 
