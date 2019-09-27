@@ -148,6 +148,6 @@ public interface TrcMotorController
     default boolean isConnected()
     {
         return true;
-    }
+    }   //isConnected
 
 }   //interface TrcMotorController
