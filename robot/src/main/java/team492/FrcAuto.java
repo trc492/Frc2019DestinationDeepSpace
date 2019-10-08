@@ -26,7 +26,6 @@ import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
 import hallib.HalDashboard;
-import trclib.TrcHolonomicPurePursuitController;
 import trclib.TrcPath;
 import trclib.TrcPidController;
 import trclib.TrcPose2D;

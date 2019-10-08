@@ -1,7 +1,7 @@
 package team492;
 
 import trclib.TrcEvent;
-import trclib.TrcHolonomicPurePursuitController;
+import trclib.TrcHolonomicPurePursuitDrive;
 import trclib.TrcPath;
 import trclib.TrcPidController;
 import trclib.TrcPose2D;
@@ -14,7 +14,7 @@ public class PurePursuitTestAuto implements TrcRobot.RobotCommand
 {
     private static final String instanceName = "PPTest";
 
-    private TrcHolonomicPurePursuitController purePursuit;
+    private TrcHolonomicPurePursuitDrive purePursuit;
     private TrcEvent event;
     private Robot robot;
     public PurePursuitTestAuto(Robot robot)
@@ -23,7 +23,7 @@ public class PurePursuitTestAuto implements TrcRobot.RobotCommand
         TrcPidController.PidCoefficients distPid = new TrcPidController.PidCoefficients(0.011, 0, 0.001);
         TrcPidController.PidCoefficients turnPid = new TrcPidController.PidCoefficients(RobotInfo.GYRO_TURN_KP);
         TrcPidController.PidCoefficients velPid = new TrcPidController.PidCoefficients(0, 0, 0, 1.0 / 223);
-        purePursuit = new TrcHolonomicPurePursuitController("pp", robot.driveBase, 10, 3.0, 2, distPid, turnPid,
+        purePursuit = new TrcHolonomicPurePursuitDrive("pp", robot.driveBase, 10, 3.0, 2, distPid, turnPid,
             velPid);
         event = new TrcEvent("event");
     }
