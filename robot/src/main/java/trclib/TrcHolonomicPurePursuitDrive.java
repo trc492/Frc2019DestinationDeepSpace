@@ -89,6 +89,7 @@ public class TrcHolonomicPurePursuitDrive
     private InterpolationType interpolationType = InterpolationType.LINEAR;
     private volatile boolean maintainHeading = false;
     private double startHeading;
+    private TrcPose2D referencePose;
 
     public TrcHolonomicPurePursuitDrive(
             String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
@@ -291,7 +292,7 @@ public class TrcHolonomicPurePursuitDrive
         posPidCtrl.setTarget(0.0);
         turnPidCtrl.setTarget(startHeading); // Maintain heading to start
 
-        driveBase.resetOdometry(true, false);
+        referencePose = driveBase.getAbsolutePose();
         driveTaskObj.registerTask(TrcTaskMgr.TaskType.OUTPUT_TASK);
     }   //start
 
@@ -339,8 +340,9 @@ public class TrcHolonomicPurePursuitDrive
 
     private synchronized void driveTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        double robotX = driveBase.getXPosition();
-        double robotY = driveBase.getYPosition();
+        TrcPose2D pose = driveBase.getPoseRelativeTo(referencePose);
+        double robotX = pose.x;
+        double robotY = pose.y;
         TrcWaypoint point = getFollowingPoint(robotX, robotY);
 
         double dist = TrcUtil.magnitude(robotX - point.x, robotY - point.y);
@@ -363,7 +365,7 @@ public class TrcHolonomicPurePursuitDrive
 
         TrcDbgTrace.getGlobalTracer().traceInfo("TrcHolonomicPurePursuitDrive.driveTask",
             "Robot: (%.2f,%.2f), RobotVel: %.2f, RobotHeading: %.2f, Target: (%.2f,%.2f), TargetVel: %.2f, TargetHeading: %.2f, pathIndex=%d, r,theta=(%.2f,%.1f)\n",
-            robotX, robotY, velocity, driveBase.getHeading(), point.x, point.y, point.velocity, point.heading,
+            robotX, robotY, velocity, pose.heading, point.x, point.y, point.velocity, point.heading,
             pathIndex, r, theta);
 
         // If we have timed out or finished, stop the operation.
@@ -380,7 +382,7 @@ public class TrcHolonomicPurePursuitDrive
         }
         else
         {
-            driveBase.holonomicDrive_Polar(r, theta, turnPower, driveBase.getHeading() - startHeading);
+            driveBase.holonomicDrive_Polar(r, theta, turnPower, pose.heading - startHeading);
         }
     }   //driveTask
 
