@@ -33,7 +33,7 @@ import trclib.TrcRevBlinkin;
 public class FrcRevBlinkin extends TrcRevBlinkin
 {
     private Spark device;
-    private double currValue = 0.0;
+    private LEDPattern currPattern = LEDPattern.SolidBlack;
 
     /**
      * Constructor: Create an instance of the object.
@@ -45,45 +45,54 @@ public class FrcRevBlinkin extends TrcRevBlinkin
     {
         super(instanceName);
         device = new Spark(channel);
-        set(currValue);
+        setPattern(currPattern);
     }   //FrcRevBlinkin
 
-    /**
-     * This method is provided by the platform dependent subclass that extends this class. It gets the current set
-     * LED pattern value.
-     *
-     * @return currently set LED pattern value.
-     */
-    @Override
-    public double get()
-    {
-        return currValue;
-    }   //get
+    //
+    // Implements TrcRevBlinkin abstract methods.
+    //
 
     /**
-     * This method sets the LED pattern value to the physical REV Blinkin device in a platform dependent way.
-     * This method is intended to be called by the super class, not by the client of this class. The client
-     * should call the setPattern method instead.
+     * This method gets the current set LED pattern.
      *
-     * @param value specifies the color pattern value.
+     * @return currently set LED pattern.
      */
     @Override
-    public void set(double value)
+    public LEDPattern getPattern()
     {
-        final String funcName = "set";
+        final String funcName = "getPattern";
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "value=%.2f", value);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API);
+            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, "=%s", currPattern);
         }
 
-        currValue = value;
-        device.set(value);
+        return currPattern;
+    }   //getPattern
+
+    /**
+     * This method sets the LED pattern to the physical REV Blinkin device.
+     *
+     * @param pattern specifies the color pattern.
+     */
+    @Override
+    public void setPattern(LEDPattern pattern)
+    {
+        final String funcName = "setPattern";
+
+        if (debugEnabled)
+        {
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "pattern=%s", pattern);
+        }
+
+        currPattern = pattern;
+        device.set(pattern.value);
 
         if (debugEnabled)
         {
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API);
         }
-    }   //set
+    }   //setPattern
 
 }   //class FrcRevBlinkin

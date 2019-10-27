@@ -29,9 +29,9 @@ import java.util.Arrays;
  * values. If the sensor reading crosses any of the thresholds in the array, it will call a notification handler so
  * that an action could be performed.
  */
-public class TrcAnalogTrigger<D>
+public class TrcAnalogSensorTrigger<D>
 {
-    private static final String moduleName = "TrcAnalogTrigger";
+    private static final String moduleName = "TrcAnalogSensorTrigger";
     private static final boolean debugEnabled = false;
     private static final boolean tracingEnabled = false;
     private static final boolean useGlobalTracer = false;
@@ -79,7 +79,7 @@ public class TrcAnalogTrigger<D>
      * @param dataIsTrigger specifies true if dataPoints specifies an array of trigger points, false if it is an
      *                      array of thresholds.
      */
-    public TrcAnalogTrigger(
+    public TrcAnalogSensorTrigger(
         final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
         final double[] dataPoints, final TriggerHandler triggerHandler, boolean dataIsTrigger)
     {
@@ -109,7 +109,7 @@ public class TrcAnalogTrigger<D>
         this.dataType = dataType;
         this.triggerHandler = triggerHandler;
         triggerTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".triggerTask", this::triggerTask);
-    }   //TrcAnalogTrigger
+    }   //TrcAnalogSensorTrigger
 
     /**
      * Constructor: Create an instance of the object.
@@ -121,12 +121,12 @@ public class TrcAnalogTrigger<D>
      * @param dataPoints specifies an array of trigger points.
      * @param triggerHandler specifies the object to handle the trigger event.
      */
-    public TrcAnalogTrigger(
+    public TrcAnalogSensorTrigger(
             final String instanceName, final TrcSensor<D> sensor, final int index, final D dataType,
             final double[] dataPoints, final TriggerHandler triggerHandler)
     {
         this(instanceName, sensor, index, dataType, dataPoints, triggerHandler, true);
-    }   //TrcAnalogTrigger
+    }   //TrcAnalogSensorTrigger
 
     /**
      * This method returns the instance name.
@@ -343,4 +343,4 @@ public class TrcAnalogTrigger<D>
         }
     }   //triggerTask
 
-}   //class TrcAnalogTrigger
+}   //class TrcAnalogSensorTrigger

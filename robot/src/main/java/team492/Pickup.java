@@ -28,8 +28,8 @@ import frclib.FrcDigitalInput;
 import frclib.FrcPdp;
 import frclib.FrcPneumatic;
 import trclib.TrcAnalogSensor;
-import trclib.TrcAnalogTrigger;
-import trclib.TrcDigitalTrigger;
+import trclib.TrcAnalogSensorTrigger;
+import trclib.TrcDigitalInputTrigger;
 import trclib.TrcEvent;
 import trclib.TrcExclusiveSubsystem;
 import trclib.TrcPidActuator;
@@ -50,8 +50,8 @@ public class Pickup implements TrcExclusiveSubsystem
     private FrcPneumatic hatchDeployer;
     private FrcPneumatic hatchGrabber;
     private FrcDigitalInput cargoSensor;
-    private TrcDigitalTrigger cargoTrigger;
-    private TrcAnalogTrigger<TrcAnalogSensor.DataType> currentTrigger;
+    private TrcDigitalInputTrigger cargoTrigger;
+    private TrcAnalogSensorTrigger<TrcAnalogSensor.DataType> currentTrigger;
     private TrcPidController pitchPidController;
     private TrcEvent onFinishedEvent;
     private TrcTimer timer;
@@ -92,7 +92,7 @@ public class Pickup implements TrcExclusiveSubsystem
         cargoSensor = new FrcDigitalInput(instanceName + ".cargoSensor", RobotInfo.DIO_CARGO_PROXIMITY_SENSOR);
         cargoSensor.setInverted(false);
 
-        cargoTrigger = new TrcDigitalTrigger(instanceName + ".cargoTrigger", cargoSensor, this::cargoDetectedEvent);
+        cargoTrigger = new TrcDigitalInputTrigger(instanceName + ".cargoTrigger", cargoSensor, this::cargoDetectedEvent);
         cargoTrigger.setEnabled(false);
 
         hatchGrabber = new FrcPneumatic(instanceName + ".hatchGrabber", RobotInfo.CANID_PCM1,
@@ -102,7 +102,7 @@ public class Pickup implements TrcExclusiveSubsystem
             RobotInfo.SOL_HATCH_DEPLOYER_EXTEND, RobotInfo.SOL_HATCH_DEPLOYER_RETRACT);
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor(instanceName + ".pickupCurrent", this::getPickupCurrent);
-        currentTrigger = new TrcAnalogTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
+        currentTrigger = new TrcAnalogSensorTrigger<>(instanceName + ".currentTrigger", currentSensor, 0,
             TrcAnalogSensor.DataType.RAW_DATA, currentThresholds, this::currentTriggerEvent, false);
 
         timer = new TrcTimer(instanceName + ".timer");

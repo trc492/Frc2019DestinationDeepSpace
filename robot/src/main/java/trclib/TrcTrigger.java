@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Titan Robotics Club (http://www.titanrobotics.com)
+ * Copyright (c) 2019 Titan Robotics Club (http://www.titanrobotics.com)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,49 +23,59 @@
 package trclib;
 
 /**
- * This class implements a digital trigger. A digital trigger consists of a digital input device. It monitors the
- * device state and calls the notification handler if the state changes.
+ * This class implements a generic trigger mechanism. A generic trigger consists of an input method that will be
+ * called periodically to check if the trigger condition is met. If so, the trigger event notifier is called.
  */
-public class TrcDigitalTrigger
+public class TrcTrigger
 {
-    private static final String moduleName = "TrcDigitalTrigger";
-    private static final boolean debugEnabled = false;
+    private static final String moduleName = "TrcTrigger";
+    protected static final boolean debugEnabled = false;
     private static final boolean tracingEnabled = false;
     private static final boolean useGlobalTracer = false;
     private static final TrcDbgTrace.TraceLevel traceLevel = TrcDbgTrace.TraceLevel.API;
     private static final TrcDbgTrace.MsgLevel msgLevel = TrcDbgTrace.MsgLevel.INFO;
-    private TrcDbgTrace dbgTrace = null;
+    protected TrcDbgTrace dbgTrace = null;
 
     /**
-     * This interface contains the method for the trigger event handler.
+     * This interface contains a method for checking if the trigger condition is met.
      */
-    public interface TriggerHandler
+    public interface Input
     {
         /**
-         * This method is called when the digital input device has changed state.
+         * This method is called periodically to check if the trigger condition is met.
          *
-         * @param active specifies true if the digital device state is active, false otherwise.
+         * @return true if the trigger condition is met, false otherwise.
          */
-        void triggerEvent(boolean active);
+        boolean isTriggered();
 
-    }   //interface TriggerHandler
+    }   //interface Input
 
-    private final String instanceName;
-    private final TrcDigitalInput digitalInput;
-    private final TriggerHandler eventHandler;
+    /**
+     * This interface contains the method for the notifying a trigger event.
+     */
+    public interface Notifier
+    {
+        /**
+         * This method is called when input has met the trigger condition.
+         */
+        void notifyEvent();
+
+    }   //interface Notifier
+
+    protected final String instanceName;
+    private Input input;
+    private Notifier notifier;
     private final TrcTaskMgr.TaskObject triggerTaskObj;
-    private Boolean prevState = null;
     private boolean enabled = false;
 
     /**
      * Constructor: Create an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param digitalInput specifies the digital input device.
-     * @param eventHandler specifies the object that will be called to handle the digital input device state change.
+     * @param input specifies the object to call for checking the trigger condition.
+     * @param notifier specifies the object to call to notify a trigger event.
      */
-    public TrcDigitalTrigger(
-        final String instanceName, final TrcDigitalInput digitalInput, final TriggerHandler eventHandler)
+    public TrcTrigger(String instanceName, Input input, Notifier notifier)
     {
         if (debugEnabled)
         {
@@ -74,16 +84,11 @@ public class TrcDigitalTrigger
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
-        if (digitalInput == null || eventHandler == null)
-        {
-            throw new NullPointerException("DigitalInput/EventHandler must be provided");
-        }
-
         this.instanceName = instanceName;
-        this.digitalInput = digitalInput;
-        this.eventHandler = eventHandler;
+        this.input = input;
+        this.notifier = notifier;
         triggerTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".triggerTask", this::triggerTask);
-    }   //TrcDigitalTrigger
+    }   //TrcDigitalInputTrigger
 
     /**
      * This method returns the instance name.
@@ -95,6 +100,19 @@ public class TrcDigitalTrigger
     {
         return instanceName;
     }   //toString
+
+    /**
+     * This method is called by the subclasses to set the input and notifier because they cannot set it in their
+     * constructor.
+     *
+     * @param input specifies the input object.
+     * @param notifier specifies the notifier object.
+     */
+    protected void setInputAndNotifier(Input input, Notifier notifier)
+    {
+        this.input = input;
+        this.notifier = notifier;
+    }   //setInputAndNotifier
 
     /**
      * This method enables/disables the task that monitors the device state.
@@ -112,7 +130,11 @@ public class TrcDigitalTrigger
 
         if (enabled)
         {
-            prevState = null;
+            if (input == null || notifier == null)
+            {
+                throw new NullPointerException("Input/Notifier must be set before enabling trigger.");
+            }
+
             triggerTaskObj.registerTask(TrcTaskMgr.TaskType.PRECONTINUOUS_TASK);    //TODO: should use INPUT_TASK
         }
         else
@@ -153,32 +175,10 @@ public class TrcDigitalTrigger
      */
     private synchronized void triggerTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        final String funcName = "triggerTask";
-        boolean currState = digitalInput.isActive();
-
-        if (debugEnabled)
+        if (input.isTriggered())
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK, "taskType=%s,runMode=%s", taskType, runMode);
-        }
-
-        if (prevState == null || currState != prevState)
-        {
-            if (eventHandler != null)
-            {
-                eventHandler.triggerEvent(currState);
-            }
-            prevState = currState;
-
-            if (debugEnabled)
-            {
-                dbgTrace.traceInfo(funcName, "%s triggered (state=%s)", instanceName, Boolean.toString(currState));
-            }
-        }
-
-        if (debugEnabled)
-        {
-            dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
+            notifier.notifyEvent();
         }
     }   //triggerTask
 
-}   //class TrcDigitalTrigger
+}   //class TrcTrigger

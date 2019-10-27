@@ -105,7 +105,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param continuousServo  specifies true if servos are continuous servo.
@@ -121,7 +120,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param continuousServo  specifies true if servos are continuous servo.
@@ -136,7 +134,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param servo1           specifies the first physical servo object.
@@ -152,7 +149,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param servo1           specifies the first physical servo object.
@@ -166,7 +162,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName specifies the instance name.
      * @param servo1       specifies the first physical servo object.
@@ -179,7 +174,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param servo            specifies the physical servo object.
@@ -194,7 +188,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName     specifies the instance name.
      * @param servo            specifies the physical servo object.
@@ -207,7 +200,6 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
      * @param instanceName specifies the instance name.
      * @param servo        specifies the physical servo object.
@@ -222,6 +214,7 @@ public class TrcEnhancedServo
      *
      * @return instance name.
      */
+    @Override
     public String toString()
     {
         return instanceName;
@@ -279,6 +272,7 @@ public class TrcEnhancedServo
         return taskEnabled;
     }   //isTaskEnabled
 
+    // CodeReview: What is this for???
     /**
      * This method performs range calibration on a regular servo.
      *
@@ -295,6 +289,7 @@ public class TrcEnhancedServo
             dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "stepRate=%f", stepRate);
         }
 
+        // CodeReview: Why??? limit switches are for continuous servo, so this will always be false.
         if (!continuousServo && lowerLimitSwitch != null & upperLimitSwitch != null)
         {
             this.physicalRangeMax = physicalRangeMax;

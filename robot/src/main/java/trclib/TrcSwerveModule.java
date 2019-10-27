@@ -112,7 +112,7 @@ public class TrcSwerveModule implements TrcMotorController
 
     /**
      * This method sets the hard steer limits, used for noncontinuous swerve modules. The angles must be in range
-     * (-180,180]. The limits must also be more than 180 degrees apart.
+     * (-180,180]. The limits must also be at least 180 degrees apart.
      *
      * @param steerLowLimit  The low steer limit.
      * @param steerHighLimit The high steer limit.
@@ -135,10 +135,11 @@ public class TrcSwerveModule implements TrcMotorController
     public void disableSteeringLimits()
     {
         this.steerLimitsEnabled = false;
+        this.steerLowLimit = this.steerHighLimit = 0.0;
     }   //disableSteeringLimits
 
     /**
-     * This method performs a zero calibration on the steering motor.
+     * This method performs a zero calibration on the steering motor. This is not applicable for servo steering.
      */
     public void zeroCalibrateSteering()
     {
@@ -156,7 +157,7 @@ public class TrcSwerveModule implements TrcMotorController
         }
         else
         {
-            throw new RuntimeException("zeroCalibrateSteering can only be done on a motor.");
+            throw new RuntimeException("Zero calibration is not applicable for servo steering.");
         }
 
         if (debugEnabled)
@@ -165,6 +166,11 @@ public class TrcSwerveModule implements TrcMotorController
         }
     }   //zeroCalibrateSteering
 
+    /**
+     * This method calibrates the steering range of the steering servo.
+     *
+     * @param stepRate specifies the step rate of the servo.
+     */
     public void rangeCalibrateSteering(double stepRate)
     {
         final String funcName = "rangeCalibrateSteering";
@@ -178,6 +184,10 @@ public class TrcSwerveModule implements TrcMotorController
         {
             steerServo.rangeCalibrate(-180.0, 180.0, stepRate);
             setSteerAngle(0.0, false, true);
+        }
+        else
+        {
+            throw new RuntimeException("Steering range calibration is only applicable for servo steering.");
         }
 
         if (debugEnabled)
@@ -218,17 +228,19 @@ public class TrcSwerveModule implements TrcMotorController
 
         if (steerLimitsEnabled)
         {
-            double boundedAngle = TrcUtil.modulo(newAngle, 360.0); // Bound angle within [0,360).
-            // Convert angle to range (-180,180].
-            boundedAngle = boundedAngle > 180 ? boundedAngle - 360.0 : boundedAngle;
-            if (boundedAngle < steerLowLimit)
+            double boundAngle = TrcUtil.modulo(newAngle, 360.0); // Bound angle within [0,360).
+            // Convert bound angle to range (-180,180].
+            boundAngle = boundAngle > 180 ? boundAngle - 360.0 : boundAngle;
+            // CodeReview: do limits fall between -359 and 359, centered at zero? If so, boundAngle should never
+            // fall outside the limits.
+            if (boundAngle < steerLowLimit)
             {
-                newAngle = boundedAngle + 180;
+                newAngle = boundAngle + 180;
                 optimizedWheelDir *= -1;
             }
-            else if (boundedAngle > steerHighLimit)
+            else if (boundAngle > steerHighLimit)
             {
-                newAngle = boundedAngle - 180;
+                newAngle = boundAngle - 180;
                 optimizedWheelDir *= -1;
             }
         }
@@ -239,9 +251,11 @@ public class TrcSwerveModule implements TrcMotorController
         }
         else if (steerServo != null)
         {
-            // TODO: Eventually, this needs to be coerced to within the range [0,1]. That's the logical range of a servo.
+            // TODO: Eventually, this needs to be coerced to within the range [0,1]. That's the logical range of a
+            // servo.
             // The reason this is like this is because of the FrcTalonServo.
             steerServo.setPosition(newAngle / 360.0);
+//            steerServo.setPosition(TrcUtil.modulo(newAngle, 360.0) / 360.0);
         }
         prevSteerAngle = newAngle;
 
@@ -249,8 +263,8 @@ public class TrcSwerveModule implements TrcMotorController
         {
             if (optimize)
             {
-                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)", instanceName, angle,
-                    newAngle, optimizedWheelDir);
+                dbgTrace.traceInfo(funcName, "Optimizing steer angle for %s: %.1f -> %.1f (%.0f)",
+                    instanceName, angle, newAngle, optimizedWheelDir);
             }
             dbgTrace.traceExit(funcName, TrcDbgTrace.TraceLevel.API, " (angle=%f)", angle);
         }
@@ -285,7 +299,8 @@ public class TrcSwerveModule implements TrcMotorController
     public double getSteerAngle()
     {
         final String funcName = "getSteerAngle";
-        // TODO: technically, the spec for servos says getPosition returns between 0 and 1, so eventually change FrcTalonServo and also change this
+        // TODO: technically, the spec for servos says getPosition returns between 0 and 1, so eventually change
+        // FrcTalonServo and also change this.
         double angle = steerMotor != null ? steerMotor.getPosition() : steerServo.getEncoderPosition();
 
         if (debugEnabled)
