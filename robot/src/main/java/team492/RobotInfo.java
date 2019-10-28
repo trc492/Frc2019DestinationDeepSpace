@@ -22,21 +22,19 @@
 
 package team492;
 
-import frclib.FrcJoystick;
-import frclib.FrcPixyCam1;
-import trclib.TrcUtil;
+import trclib.TrcPidController;
 
 public class RobotInfo
 {
     //
     // Field dimensions in inches.
     //
-    public static final double FIELD_LENGTH                     = 54*12.0;
-    public static final double FIELD_WIDTH                      = 27*12.0;
+    public static final double FIELD_LENGTH = 54 * 12.0;
+    public static final double FIELD_WIDTH = 27 * 12.0;
 
-    public static final double BATTERY_CAPACITY_WATT_HOUR       = 18.0*12.0;
+    public static final double BATTERY_CAPACITY_WATT_HOUR = 18.0 * 12.0;
 
-    public static final double BATTERY_NOMINAL_VOLTAGE          = 12.0;
+    public static final double BATTERY_NOMINAL_VOLTAGE = 12.0;
 
     //
     // Robot dimensions.
@@ -47,94 +45,92 @@ public class RobotInfo
     //
     // Joystick ports.
     //
-    public static final int JSPORT_LEFT_DRIVESTICK              = 0;
-    public static final int JSPORT_RIGHT_DRIVESTICK             = 1;
-    public static final int JSPORT_OPERATORSTICK                = 2;
-    public static final int JSPORT_BUTTON_PANEL                 = 3;
-    public static final int JSPORT_SWITCH_PANEL                 = 4;
+    public static final int JSPORT_LEFT_DRIVESTICK = 0;
+    public static final int JSPORT_RIGHT_DRIVESTICK = 1;
+    public static final int JSPORT_OPERATORSTICK = 2;
+    public static final int JSPORT_BUTTON_PANEL = 3;
+    public static final int JSPORT_SWITCH_PANEL = 4;
 
     //
     // CAN IDs.
     //
-    public static final int CANID_LEFTFRONTWHEEL                = 3;    // 40A: Orange
-    public static final int CANID_RIGHTFRONTWHEEL               = 4;    // 40A: Yellow
-    public static final int CANID_LEFTREARWHEEL                 = 5;    // 40A: Green
-    public static final int CANID_RIGHTREARWHEEL                = 6;    // 40A: Blue
+    public static final int CANID_LEFTFRONT_STEER = 3;    // 40A: Orange
+    public static final int CANID_RIGHTFRONT_STEER = 4;    // 40A: Yellow
+    public static final int CANID_LEFTREAR_STEER = 5;    // 40A: Green
+    public static final int CANID_RIGHTREAR_STEER = 6;    // 40A: Blue
 
-    public static final int CANID_PDP                           = 16;
-    public static final int CANID_PCM1                          = 17;
-    public static final int CANID_PCM2                          = 18;
+    public static final int CANID_LEFTFRONT_DRIVE = 13;    // 40A: Orange
+    public static final int CANID_RIGHTFRONT_DRIVE = 14;    // 40A: Yellow
+    public static final int CANID_LEFTREAR_DRIVE = 15;    // 40A: Green
+    public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
+
+    public static final int CANID_PDP = 16;
+    public static final int CANID_PCM1 = 17;
+    public static final int CANID_PCM2 = 18;
 
     //
     // PDP Channels.
     //
-    public static final int PDP_CHANNEL_RIGHT_REAR_WHEEL        = 0;
-    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL       = 3;
-    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL        = 12;
-    public static final int PDP_CHANNEL_LEFT_REAR_WHEEL         = 15;
+    public static final int PDP_CHANNEL_RIGHT_REAR_WHEEL = 0;
+    public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL = 3;
+    public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL = 12;
+    public static final int PDP_CHANNEL_LEFT_REAR_WHEEL = 15;
 
     //
     // DriveBase subsystem.
     //
-    public static final double DRIVE_STALL_TIMEOUT              = 0.5;
+    public static final double DRIVE_STALL_TIMEOUT = 0.5;
 
-    public static final double DRIVE_SLOW_XSCALE                = 0.5;
-    public static final double DRIVE_SLOW_YSCALE                = 0.5;
-    public static final double DRIVE_SLOW_TURNSCALE             = 0.4;
+    public static final double DRIVE_SLOW_XSCALE = 0.5;
+    public static final double DRIVE_SLOW_YSCALE = 0.5;
+    public static final double DRIVE_SLOW_TURNSCALE = 0.4;
 
-    public static final double DRIVE_MEDIUM_XSCALE              = 0.75;
-    public static final double DRIVE_MEDIUM_YSCALE              = 0.75;
-    public static final double DRIVE_MEDIUM_TURNSCALE           = 0.6;
+    public static final double DRIVE_MEDIUM_XSCALE = 0.75;
+    public static final double DRIVE_MEDIUM_YSCALE = 0.75;
+    public static final double DRIVE_MEDIUM_TURNSCALE = 0.6;
 
-    public static final double DRIVE_FAST_XSCALE                = 1.0;
-    public static final double DRIVE_FAST_YSCALE                = 1.0;
-    public static final double DRIVE_FAST_TURNSCALE             = 0.8;
+    public static final double DRIVE_FAST_XSCALE = 1.0;
+    public static final double DRIVE_FAST_YSCALE = 1.0;
+    public static final double DRIVE_FAST_TURNSCALE = 0.8;
 
-    public static final double DRIVE_MAX_XPID_POWER             = 0.5;
-    public static final double DRIVE_MAX_YPID_POWER             = 0.6;
-    public static final double DRIVE_MAX_TURNPID_POWER          = 1.0;
+    public static final double DRIVE_MAX_XPID_POWER = 0.5;
+    public static final double DRIVE_MAX_YPID_POWER = 0.6;
+    public static final double DRIVE_MAX_TURNPID_POWER = 1.0;
 
-    public static final double DRIVE_MAX_XPID_RAMP_RATE         = 0.5;
-    public static final double DRIVE_MAX_YPID_RAMP_RATE         = 0.6;
-    public static final double DRIVE_MAX_TURNPID_RAMP_RATE      = 1.0;
+    public static final double DRIVE_MAX_XPID_RAMP_RATE = 0.5;
+    public static final double DRIVE_MAX_YPID_RAMP_RATE = 0.6;
+    public static final double DRIVE_MAX_TURNPID_RAMP_RATE = 1.0;
 
-    // practice robot: 0.012/0.0/0.0
-    public static final double ENCODER_X_INCHES_PER_COUNT       = 1.6577438;
-    public static final double ENCODER_X_KP                     = 0.017;
-    public static final double ENCODER_X_KI                     = 0.0;
-    public static final double ENCODER_X_KD                     = 0.0;
-    public static final double ENCODER_X_KF                     = 0.0;
-    public static final double ENCODER_X_TOLERANCE              = 2.0;
+    public static final double STEER_DEGREES_PER_TICK = 360.0 / 4096.0;
+    public static final double STEER_MAX_VEL = 360.0;
+    public static final double STEER_MAX_ACCEL = 1000;
+    public static final double STEER_TOLERANCE = 2.0; // only used for pid, not magic
 
-    // practice robot: 0.024/0.0/0.0
-    public static final double ENCODER_X_KP_SMALL               = 0.022;
-    public static final double ENCODER_X_KI_SMALL               = 0.0;
-    public static final double ENCODER_X_KD_SMALL               = 0.0;
-    public static final double ENCODER_X_KF_SMALL               = 0.0;
-    public static final double ENCODER_X_TOLERANCE_SMALL        = 1.5;
+    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
+        0);
+    public static final TrcPidController.PidCoefficients pidSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
+        0);
 
-    // comp robot: 0.02/0.0/0.0016
-    // practice robot: 0.01/0.0/0.001
-    public static final double ENCODER_Y_INCHES_PER_COUNT       = 2.355935875;
-    public static final double ENCODER_Y_KP                     = 0.011;
-    public static final double ENCODER_Y_KI                     = 0.0;
-    public static final double ENCODER_Y_KD                     = 0.001;
-    public static final double ENCODER_Y_KF                     = 0.0;
-    public static final double ENCODER_Y_TOLERANCE              = 2.0;
+    public static final double ENCODER_INCHES_PER_COUNT = 2.355935875;
+    public static final double ENCODER_KP = 0.011;
+    public static final double ENCODER_KI = 0.0;
+    public static final double ENCODER_KD = 0.001;
+    public static final double ENCODER_KF = 0.0;
+    public static final double ENCODER_TOLERANCE = 2.0;
 
     // Comp robot: 0.015/0.0/0.001
     // practice robot: 0.008/0.0/0.0007
     // 3/24 comp robot: 0.0055/0.0/0.00008
-    public static final double GYRO_TURN_KP                     = 0.0055;
-    public static final double GYRO_TURN_KI                     = 0.0;
-    public static final double GYRO_TURN_KD                     = 0.00008;
-    public static final double GYRO_TURN_KF                     = 0.0;
-    public static final double GYRO_TURN_TOLERANCE              = 2.0;
+    public static final double GYRO_TURN_KP = 0.0055;
+    public static final double GYRO_TURN_KI = 0.0;
+    public static final double GYRO_TURN_KD = 0.00008;
+    public static final double GYRO_TURN_KF = 0.0;
+    public static final double GYRO_TURN_TOLERANCE = 2.0;
 
     // 3/24 compr robot: 0.0085/0.0/0.0
-    public static final double GYRO_TURN_KP_SMALL               = 0.0085;
-    public static final double GYRO_TURN_KI_SMALL               = 0.0;
-    public static final double GYRO_TURN_KD_SMALL               = 0.0;
-    public static final double GYRO_TURN_KF_SMALL               = 0.0;
-    public static final double GYRO_TURN_TOLERANCE_SMALL        = 1.5;
+    public static final double GYRO_TURN_KP_SMALL = 0.0085;
+    public static final double GYRO_TURN_KI_SMALL = 0.0;
+    public static final double GYRO_TURN_KD_SMALL = 0.0;
+    public static final double GYRO_TURN_KF_SMALL = 0.0;
+    public static final double GYRO_TURN_TOLERANCE_SMALL = 1.5;
 }   // class RobotInfo

@@ -23,8 +23,6 @@
 package team492;
 
 import frclib.FrcJoystick;
-import frclib.FrcRemoteVisionProcessor;
-import hallib.HalDashboard;
 import trclib.TrcLoopPerformanceMonitor;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
@@ -94,7 +92,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
 
-        robot.driveBase.holonomicDrive(leftDriveX, rightDriveY, rightTwist, robot.rightDriveStick.getRawButton(1) ? robot.driveBase.getHeading() : 0.0);
+        robot.driveBase.holonomicDrive(leftDriveX, rightDriveY, rightTwist,
+            robot.rightDriveStick.getRawButton(1) ? robot.driveBase.getHeading() : 0.0);
     } // runPeriodic
 
     @Override

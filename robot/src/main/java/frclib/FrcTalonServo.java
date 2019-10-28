@@ -37,12 +37,12 @@ public class FrcTalonServo extends TrcServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName specifies the instance name of the servo.
-     * @param talon the physical talon motor controller object.
-     * @param pidCoefficients the pid coefficients used for motion magic. Don't forget kF!
-     * @param degreesPerTick degrees per native sensor unit measured by the talon.
-     * @param maxSpeed desired max speed of the motor, in degrees per second.
-     * @param maxAccel desired max acceleration of the motor, in degrees per second per second.
+     * @param instanceName       specifies the instance name of the servo.
+     * @param talon              the physical talon motor controller object.
+     * @param pidCoefficients    the pid coefficients used for motion magic. Don't forget kF!
+     * @param degreesPerTick     degrees per native sensor unit measured by the talon.
+     * @param maxSpeed           desired max speed of the motor, in degrees per second.
+     * @param maxAccel           desired max acceleration of the motor, in degrees per second per second.
      * @param continuousRotation if true, servo can rotate indefinitely. If false, there is a physical hard limit.
      */
     public FrcTalonServo(String instanceName, FrcCANTalon talon, TrcPidController.PidCoefficients pidCoefficients,

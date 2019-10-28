@@ -24,13 +24,13 @@ package team492;
 
 import common.CmdPidDrive;
 import common.CmdTimedDrive;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.EntryNotification;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
-import frclib.FrcRemoteVisionProcessor;
-import hallib.HalDashboard;
 import trclib.TrcEvent;
-import trclib.TrcPixyCam2.Vector;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
 import trclib.TrcTimer;
@@ -38,6 +38,8 @@ import trclib.TrcTimer;
 public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = "FrcTest";
+    private static final String setAngleButtonName = "SetAngleButton";
+    private static final String targetAngleName = "TargetAngle";
 
     public enum Test
     {
@@ -63,6 +65,7 @@ public class FrcTest extends FrcTeleOp
     private CmdPidDrive pidDriveCommand = null;
 
     private int motorIndex = 0;
+    private int listenerHandle = -1;
 
     public FrcTest(Robot robot)
     {
@@ -91,7 +94,20 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
         testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
+
+        SmartDashboard.putBoolean(setAngleButtonName, false);
+        SmartDashboard.putNumber(targetAngleName, 0.0);
     } // FrcTest
+
+    private void setAngleButtonListener(EntryNotification e)
+    {
+        double angle = SmartDashboard.getNumber(targetAngleName, 0.0);
+        robot.leftFrontWheel.setSteerAngle(angle);
+        robot.rightFrontWheel.setSteerAngle(angle);
+        robot.leftRearWheel.setSteerAngle(angle);
+        robot.rightRearWheel.setSteerAngle(angle);
+        e.getEntry().setBoolean(false);
+    }
 
     //
     // Overriding TrcRobot.RobotMode.
@@ -120,6 +136,14 @@ public class FrcTest extends FrcTeleOp
         boolean liveWindowEnabled = false;
         switch (test)
         {
+            case SUBSYSTEMS_TEST:
+                listenerHandle = SmartDashboard.getEntry(setAngleButtonName)
+                    .addListener(this::setAngleButtonListener, EntryListenerFlags.kUpdate);
+                //
+                // Sensors Test is the same as Subsystems Test without motor
+                // control.
+                // So let it flow to the next case.
+                //
             case SENSORS_TEST:
                 //
                 // Make sure no joystick controls on sensors test.
@@ -129,12 +153,6 @@ public class FrcTest extends FrcTeleOp
                 robot.operatorStick.setButtonHandler(null);
                 robot.buttonPanel.setButtonHandler(null);
                 robot.switchPanel.setButtonHandler(null);
-                //
-                // Sensors Test is the same as Subsystems Test without joystick
-                // control.
-                // So let it flow to the next case.
-                //
-            case SUBSYSTEMS_TEST:
                 break;
 
             case DRIVE_MOTORS_TEST:
@@ -275,10 +293,11 @@ public class FrcTest extends FrcTeleOp
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        switch (test)
+        SmartDashboard.putBoolean(setAngleButtonName, false);
+        if (listenerHandle != -1)
         {
-            default:
-                break;
+            SmartDashboard.getEntry(setAngleButtonName).removeListener(listenerHandle);
+            listenerHandle = -1;
         }
     }
 
@@ -451,6 +470,12 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard
             .displayPrintf(3, "DriveBase: X=%.1f,Y=%.1f,Heading=%.1f,GyroRate=%.3f", robot.driveBase.getXPosition(),
                 robot.driveBase.getYPosition(), robot.driveBase.getHeading(), robot.gyro.getZRotationRate().value);
+        robot.dashboard
+            .displayPrintf(4, "Angles (Deg): lf=%.1f, rf=%.1f, lr=%.1f, rr=%.1f", robot.leftFrontWheel.getSteerAngle(),
+                robot.rightFrontWheel.getSteerAngle(), robot.leftRearWheel.getSteerAngle(),
+                robot.rightRearWheel.getSteerAngle());
+        robot.dashboard.displayPrintf(5, "Angles (Tick): lf=%d, rf=%d, lr=%d, rr=%d", robot.lfSteerMotor.getPosition(),
+            robot.rfSteerMotor.getPosition(), robot.lrSteerMotor.getPosition(), robot.rrSteerMotor.getPosition());
     } // doSensorsTest
 
     /**

@@ -22,39 +22,46 @@
 
 package team492;
 
-import edu.wpi.cscore.UsbCamera;
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.wpilibj.AnalogInput;
+import com.ctre.phoenix.motorcontrol.FeedbackDevice;
+import edu.wpi.first.networktables.EntryListenerFlags;
+import edu.wpi.first.networktables.EntryNotification;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
-import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Sendable;
-import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.FrcAHRSGyro;
 import frclib.FrcCANSparkMax;
-import frclib.FrcEmic2TextToSpeech;
-import frclib.FrcI2cLEDPanel;
+import frclib.FrcCANTalon;
 import frclib.FrcJoystick;
 import frclib.FrcPdp;
-import frclib.FrcRemoteVisionProcessor;
 import frclib.FrcRobotBase;
 import frclib.FrcRobotBattery;
+import frclib.FrcTalonServo;
 import hallib.HalDashboard;
-import trclib.TrcEmic2TextToSpeech.Voice;
-import trclib.TrcMecanumDriveBase;
+import trclib.TrcEnhancedServo;
 import trclib.TrcPidController;
 import trclib.TrcPidController.PidCoefficients;
 import trclib.TrcPidDrive;
-import trclib.TrcPixyCam2.Vector;
+import trclib.TrcPidMotor;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcRobotBattery;
 import trclib.TrcSwerveDriveBase;
+import trclib.TrcSwerveModule;
 import trclib.TrcUtil;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.PrintStream;
 import java.util.Date;
+import java.util.Scanner;
+import java.util.stream.IntStream;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -74,6 +81,7 @@ public class Robot extends FrcRobotBase
 
     public static final boolean USE_TRACELOG = true;
     public static final boolean USE_NAV_X = true;
+    public static final boolean USE_MAGIC_STEER = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -88,8 +96,6 @@ public class Robot extends FrcRobotBase
     public HalDashboard dashboard = HalDashboard.getInstance();
 
     public double targetHeading = 0.0;
-
-    public boolean driveInverted = false;
 
     private double nextUpdateTime = TrcUtil.getCurrentTime();
 
@@ -125,11 +131,13 @@ public class Robot extends FrcRobotBase
     //
     // DriveBase subsystem.
     //
-    public FrcCANSparkMax leftFrontWheel;
-    public FrcCANSparkMax leftRearWheel;
-    public FrcCANSparkMax rightFrontWheel;
-    public FrcCANSparkMax rightRearWheel;
-    public TrcMecanumDriveBase driveBase;
+    public FrcCANSparkMax lfDriveMotor, rfDriveMotor, lrDriveMotor, rrDriveMotor;
+    public FrcCANTalon lfSteerMotor, rfSteerMotor, lrSteerMotor, rrSteerMotor;
+    public TrcSwerveModule leftFrontWheel;
+    public TrcSwerveModule leftRearWheel;
+    public TrcSwerveModule rightFrontWheel;
+    public TrcSwerveModule rightRearWheel;
+    public TrcSwerveDriveBase driveBase;
 
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
@@ -155,6 +163,82 @@ public class Robot extends FrcRobotBase
     {
         super(programName);
     }   //Robot
+
+    private FrcCANSparkMax createSparkMax(String name, int id)
+    {
+        FrcCANSparkMax spark = new FrcCANSparkMax(name, id, true);
+        spark.setInverted(false);
+        spark.setPositionSensorInverted(false);
+        spark.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        return spark;
+    }
+
+    private FrcCANTalon createTalon(String name, int id)
+    {
+        FrcCANTalon talon = new FrcCANTalon(name, id);
+        talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
+        talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        talon.motor.enableVoltageCompensation(true);
+        talon.motor.overrideLimitSwitchesEnable(false);
+        return talon;
+    }
+
+    private TrcSwerveModule createModule(String name, FrcCANSparkMax drive, FrcCANTalon steer, int steerZero)
+    {
+        steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // only resets the index
+        int pwmPosTicks = steer.motor.getSensorCollection().getPulseWidthPosition();
+        int absPosTicks = pwmPosTicks - steerZero;
+        steer.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
+
+        TrcSwerveModule module;
+        if (USE_MAGIC_STEER)
+        {
+            FrcTalonServo servo = new FrcTalonServo(name + ".servo", steer, RobotInfo.magicSteerCoeff,
+                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_VEL, RobotInfo.STEER_MAX_ACCEL, true);
+            module = new TrcSwerveModule(name, drive, new TrcEnhancedServo(name + ".enhancedServo", servo));
+        }
+        else
+        {
+            TrcPidController ctrl = new TrcPidController(name + ".ctrl", RobotInfo.pidSteerCoeff,
+                RobotInfo.STEER_TOLERANCE, steer::getPosition);
+            TrcPidMotor pidMotor = new TrcPidMotor(name + ".pid", steer, ctrl, 0.0);
+            pidMotor.setPositionScale(RobotInfo.STEER_DEGREES_PER_TICK);
+            module = new TrcSwerveModule(name, drive, pidMotor);
+        }
+        module.disableSteeringLimits();
+        return module;
+    }
+
+    private int[] getSteerZeroPositions()
+    {
+        try (Scanner in = new Scanner(new FileReader("/home/lvuser/steerzeros.txt")))
+        {
+            return IntStream.range(0, 4).map(e -> in.nextInt()).toArray();
+        }
+        catch (Exception e)
+        {
+            return new int[4];
+        }
+    }
+
+    public void saveSteerZeroPositions()
+    {
+        try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
+        {
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+        }
+        catch (FileNotFoundException e)
+        {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * This function is run when the robot is first started up and should be used for any initialization code.
@@ -187,53 +271,45 @@ public class Robot extends FrcRobotBase
             gyro = new FrcAHRSGyro("NavX", SPI.Port.kMXP);
         }
 
-        //
-        // DriveBase subsystem.
-        //
-        driveInverted = false;
-        leftFrontWheel = new FrcCANSparkMax("LeftFrontWheel", RobotInfo.CANID_LEFTFRONTWHEEL, true);
-        leftRearWheel = new FrcCANSparkMax("LeftRearWheel", RobotInfo.CANID_LEFTREARWHEEL, true);
-        rightFrontWheel = new FrcCANSparkMax("RightFrontWheel", RobotInfo.CANID_RIGHTFRONTWHEEL, true);
-        rightRearWheel = new FrcCANSparkMax("RightRearWheel", RobotInfo.CANID_RIGHTREARWHEEL, true);
-
         pdp.registerEnergyUsed(new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_FRONT_WHEEL, "LeftFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_LEFT_REAR_WHEEL, "LeftRearWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_FRONT_WHEEL, "RightFrontWheel"),
             new FrcPdp.Channel(RobotInfo.PDP_CHANNEL_RIGHT_REAR_WHEEL, "RightRearWheel"));
 
         //
-        // Initialize each drive motor controller.
+        // DriveBase subsystem.
         //
-        leftFrontWheel.setInverted(false);
-        leftRearWheel.setInverted(false);
-        rightFrontWheel.setInverted(true);
-        rightRearWheel.setInverted(true);
+        lfDriveMotor = createSparkMax("LFDrive", RobotInfo.CANID_LEFTFRONT_DRIVE);
+        rfDriveMotor = createSparkMax("RFDrive", RobotInfo.CANID_RIGHTFRONT_DRIVE);
+        lrDriveMotor = createSparkMax("LRDrive", RobotInfo.CANID_LEFTREAR_DRIVE);
+        rrDriveMotor = createSparkMax("RRDrive", RobotInfo.CANID_RIGHTREAR_DRIVE);
 
-        leftFrontWheel.setPositionSensorInverted(false);
-        leftRearWheel.setPositionSensorInverted(false);
-        rightFrontWheel.setPositionSensorInverted(false);
-        rightRearWheel.setPositionSensorInverted(false);
+        lfSteerMotor = createTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER);
+        rfSteerMotor = createTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER);
+        lrSteerMotor = createTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER);
+        rrSteerMotor = createTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER);
 
-        leftFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rightFrontWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        leftRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
-        rightRearWheel.motor.enableVoltageCompensation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
+        int[] zeros = getSteerZeroPositions();
+        leftFrontWheel = createModule("LeftFrontWheel", lfDriveMotor, lfSteerMotor, zeros[0]);
+        rightFrontWheel = createModule("RightFrontWheel", rfDriveMotor, rfSteerMotor, zeros[1]);
+        leftRearWheel = createModule("LeftRearWheel", lrDriveMotor, lrSteerMotor, zeros[2]);
+        rightRearWheel = createModule("RightRearWheel", rrDriveMotor, rrSteerMotor, zeros[3]);
 
         //
         // Initialize DriveBase subsystem.
         //
-        driveBase = new TrcMecanumDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro);
-        driveBase.setPositionScales(RobotInfo.ENCODER_X_INCHES_PER_COUNT, RobotInfo.ENCODER_Y_INCHES_PER_COUNT);
+        driveBase = new TrcSwerveDriveBase(leftFrontWheel, leftRearWheel, rightFrontWheel, rightRearWheel, gyro,
+            RobotInfo.ROBOT_WIDTH, RobotInfo.ROBOT_LENGTH);
+        driveBase.setPositionScales(RobotInfo.ENCODER_INCHES_PER_COUNT);
         //
         // Create PID controllers for DriveBase PID drive.
         //
         encoderXPidCtrl = new TrcPidController("encoderXPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL,
-                RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL), RobotInfo.ENCODER_X_TOLERANCE_SMALL,
-            driveBase::getXPosition);
+            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getXPosition);
         encoderYPidCtrl = new TrcPidController("encoderYPidCtrl",
-            new PidCoefficients(RobotInfo.ENCODER_Y_KP, RobotInfo.ENCODER_Y_KI, RobotInfo.ENCODER_Y_KD,
-                RobotInfo.ENCODER_Y_KF), RobotInfo.ENCODER_Y_TOLERANCE, driveBase::getYPosition);
+            new PidCoefficients(RobotInfo.ENCODER_KP, RobotInfo.ENCODER_KI, RobotInfo.ENCODER_KD, RobotInfo.ENCODER_KF),
+            RobotInfo.ENCODER_TOLERANCE, driveBase::getYPosition);
         gyroTurnPidCtrl = new TrcPidController("gyroTurnPidCtrl",
             new PidCoefficients(RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD,
                 RobotInfo.GYRO_TURN_KF), RobotInfo.GYRO_TURN_TOLERANCE, driveBase::getHeading);
@@ -246,9 +322,9 @@ public class Robot extends FrcRobotBase
         encoderYPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_YPID_POWER);
         gyroTurnPidCtrl.setOutputLimit(RobotInfo.DRIVE_MAX_TURNPID_POWER);
 
-        encoderXPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_XPID_RAMP_RATE);
-        encoderYPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_YPID_RAMP_RATE);
-        gyroTurnPidCtrl.setRampRate(RobotInfo.DRIVE_MAX_TURNPID_RAMP_RATE);
+        NetworkTableEntry zerosButton = SmartDashboard.getEntry("SaveZeros");
+        zerosButton.setBoolean(false);
+        zerosButton.addListener(this::zeroButtonPress, EntryListenerFlags.kUpdate);
 
         //
         // Create Robot Modes.
@@ -258,6 +334,11 @@ public class Robot extends FrcRobotBase
 
         pdp.registerEnergyUsedForAllUnregisteredChannels();
     }   //robotInit
+
+    private void zeroButtonPress(EntryNotification e) {
+        saveSteerZeroPositions();
+        e.getEntry().setBoolean(false);
+    }
 
     public void robotStartMode(RunMode runMode, RunMode prevMode)
     {
@@ -272,8 +353,6 @@ public class Robot extends FrcRobotBase
             Date now = new Date();
             globalTracer
                 .traceInfo(funcName, "[%.3f] %s: ***** %s *****", Robot.getModeElapsedTime(), now.toString(), runMode);
-
-            driveInverted = false;
 
             pdp.setTaskEnabled(true);
             battery.setEnabled(true);
@@ -385,29 +464,6 @@ public class Robot extends FrcRobotBase
         {
             globalTracer.setTraceLogEnabled(enabled);
         }
-    }
-
-    public void enableSmallGains()
-    {
-        encoderXPidCtrl.setPidCoefficients(
-            new PidCoefficients(RobotInfo.ENCODER_X_KP_SMALL, RobotInfo.ENCODER_X_KI_SMALL,
-                RobotInfo.ENCODER_X_KD_SMALL, RobotInfo.ENCODER_X_KF_SMALL));
-        encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE_SMALL);
-        gyroTurnPidCtrl.setPidCoefficients(
-            new PidCoefficients(RobotInfo.GYRO_TURN_KP_SMALL, RobotInfo.GYRO_TURN_KI_SMALL,
-                RobotInfo.GYRO_TURN_KD_SMALL));
-        gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE_SMALL);
-    }
-
-    public void enableBigGains()
-    {
-        encoderXPidCtrl.setPidCoefficients(
-            new PidCoefficients(RobotInfo.ENCODER_X_KP, RobotInfo.ENCODER_X_KI, RobotInfo.ENCODER_X_KD,
-                RobotInfo.ENCODER_X_KF));
-        encoderXPidCtrl.setTargetTolerance(RobotInfo.ENCODER_X_TOLERANCE);
-        gyroTurnPidCtrl.setPidCoefficients(
-            new PidCoefficients(RobotInfo.GYRO_TURN_KP, RobotInfo.GYRO_TURN_KI, RobotInfo.GYRO_TURN_KD));
-        gyroTurnPidCtrl.setTargetTolerance(RobotInfo.GYRO_TURN_TOLERANCE);
     }
 
     /**

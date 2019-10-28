@@ -26,15 +26,9 @@ import common.CmdPidDrive;
 import common.CmdTimedDrive;
 import frclib.FrcChoiceMenu;
 import hallib.HalDashboard;
-import trclib.TrcPath;
-import trclib.TrcPidController;
-import trclib.TrcPose2D;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcTaskMgr;
-import trclib.TrcWaypoint;
-
-import java.util.Arrays;
 
 public class FrcAuto extends FrcTeleOp
 {
