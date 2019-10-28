@@ -43,7 +43,7 @@ public class FrcAuto extends FrcTeleOp
 
     public enum AutoStrategy
     {
-        VIDEO_DRIVE, PP_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     } // enum AutoStrategy
 
     private Robot robot;
@@ -69,14 +69,12 @@ public class FrcAuto extends FrcTeleOp
         //
         // Populate Autonomous Mode menus.
         //
-        autoStrategyMenu.addChoice("Video Stream Drive", AutoStrategy.VIDEO_DRIVE, true, false);
-        autoStrategyMenu.addChoice("PP Test", AutoStrategy.PP_TEST);
+        autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, false);
         autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
         autoStrategyMenu.addChoice("Y Distance Drive", AutoStrategy.Y_DISTANCE_DRIVE);
-        autoStrategyMenu.addChoice("Turn Degrees", AutoStrategy.TURN_DEGREES);
-        autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, false, true);
+        autoStrategyMenu.addChoice("Turn Degrees", AutoStrategy.TURN_DEGREES, false, true);
     } // FrcAuto
 
     // CodeReview: Where is the auto tie-in???
@@ -105,9 +103,6 @@ public class FrcAuto extends FrcTeleOp
         // Init teleop since we're in sandstorm mode
         super.startMode(prevMode, nextMode);
         robot.driveBase.resetOdometry(true, true);
-        robot.elevator.zeroCalibrate(); // zero calibrate the elevator
-        robot.pickup.zeroCalibrate(); // zero calibrate the pickup
-        robot.climber.zeroCalibrateActuator();
 
         final String funcName = moduleName + ".startMode";
 
@@ -124,11 +119,6 @@ public class FrcAuto extends FrcTeleOp
         delay = HalDashboard.getNumber("Auto/Delay", 0.0);
         switch (autoStrategy)
         {
-            case PP_TEST:
-                PurePursuitTestAuto auto = new PurePursuitTestAuto(robot);
-                auto.start();
-                autoCommand = auto;
-                break;
             case X_TIMED_DRIVE:
                 autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
                 break;
@@ -153,7 +143,6 @@ public class FrcAuto extends FrcTeleOp
                 break;
 
             default:
-            case VIDEO_DRIVE:
             case DO_NOTHING:
                 autoCommand = null;
                 break;
@@ -176,23 +165,12 @@ public class FrcAuto extends FrcTeleOp
         if (DO_UPDATES)
         {
             robot.updateDashboard(RunMode.AUTO_MODE);
-            robot.announceSafety();
-        }
-
-        if (autoStrategy == AutoStrategy.VIDEO_DRIVE || !robot.isAutoActive())
-        {
-            super.runPeriodic(elapsedTime);
         }
     } // runPeriodic
 
     @Override
     public void runContinuous(double elapsedTime)
     {
-        if (autoCommand instanceof PurePursuitTestAuto)
-        {
-            robot.dashboard.displayPrintf(5, "x=%.2f,y=%.2f,heading=%.2f", robot.driveBase.getXPosition(),
-                robot.driveBase.getYPosition(), robot.driveBase.getHeading());
-        }
         if (autoCommand != null)
         {
             autoCommand.cmdPeriodic(elapsedTime);
