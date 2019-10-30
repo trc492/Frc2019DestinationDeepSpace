@@ -102,12 +102,15 @@ public class RobotInfo
     public static final double DRIVE_MAX_TURNPID_RAMP_RATE = 1.0;
 
     public static final double STEER_DEGREES_PER_TICK = 360.0 / 4096.0;
-    public static final double STEER_MAX_VEL = 360.0;
-    public static final double STEER_MAX_ACCEL = 1000;
+    public static final double STEER_MAX_REQ_VEL = 1000.0; // deg/sec. max commanded velocity, not necessarily max vel
+    public static final double STEER_MAX_ACCEL = 5000; // deg/sec^2
+    // ((theoretical max rpm * speed loss constant / gear ratio) / 60 sec/min) * 360 deg/rev
+    public static final double STEER_MAX_VEL = ((18700 * 0.81 / 56.67) / 60.0) * 360.0; // deg/sec
+    public static final double STEER_MAX_VEL_TICKS_PER_100MS = (STEER_MAX_VEL / STEER_DEGREES_PER_TICK) / 10.0; // ticks/100ms
     public static final double STEER_TOLERANCE = 2.0; // only used for pid, not magic
 
-    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
-        0);
+    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0, 0, 0,
+        1023.0 / STEER_MAX_VEL_TICKS_PER_100MS);
     public static final TrcPidController.PidCoefficients pidSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
         0);
 

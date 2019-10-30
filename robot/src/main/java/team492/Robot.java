@@ -25,9 +25,7 @@ package team492;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
-import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
@@ -194,7 +192,7 @@ public class Robot extends FrcRobotBase
         if (USE_MAGIC_STEER)
         {
             FrcTalonServo servo = new FrcTalonServo(name + ".servo", steer, RobotInfo.magicSteerCoeff,
-                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_VEL, RobotInfo.STEER_MAX_ACCEL, true);
+                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_REQ_VEL, RobotInfo.STEER_MAX_ACCEL, true);
             module = new TrcSwerveModule(name, drive, new TrcEnhancedServo(name + ".enhancedServo", servo));
         }
         else
