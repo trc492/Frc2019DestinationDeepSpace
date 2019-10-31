@@ -178,6 +178,7 @@ public class Robot extends FrcRobotBase
         talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         talon.motor.enableVoltageCompensation(true);
         talon.motor.overrideLimitSwitchesEnable(false);
+        talon.setPositionSensorInverted(true);
         return talon;
     }
 

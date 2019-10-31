@@ -89,6 +89,11 @@ public class FrcTalonServo extends TrcServo
     }
 
     @Override
+    public double getEncoderPosition() {
+        return getPosition();
+    }
+
+    @Override
     public double getPosition()
     {
         return talon.getPosition() * degreesPerTick;

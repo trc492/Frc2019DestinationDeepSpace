@@ -64,7 +64,7 @@ public class RobotInfo
     public static final int CANID_LEFTREAR_DRIVE = 15;    // 40A: Green
     public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
 
-    public static final int CANID_PDP = 16;
+    public static final int CANID_PDP = 26;
     public static final int CANID_PCM1 = 17;
     public static final int CANID_PCM2 = 18;
 

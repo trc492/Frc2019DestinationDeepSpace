@@ -95,6 +95,7 @@ public class FrcAuto extends FrcTeleOp
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         // Init teleop since we're in sandstorm mode
+        robot.driveBase.stop();
         super.startMode(prevMode, nextMode);
         robot.driveBase.resetOdometry(true, true);
 
