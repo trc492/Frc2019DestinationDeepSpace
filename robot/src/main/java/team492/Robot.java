@@ -171,14 +171,19 @@ public class Robot extends FrcRobotBase
         return spark;
     }
 
-    private FrcCANTalon createTalon(String name, int id)
+    private FrcCANTalon createSteerTalon(String name, int id, boolean inverted)
     {
         FrcCANTalon talon = new FrcCANTalon(name, id);
         talon.setFeedbackDevice(FeedbackDevice.QuadEncoder);
         talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         talon.motor.enableVoltageCompensation(true);
         talon.motor.overrideLimitSwitchesEnable(false);
-        talon.setPositionSensorInverted(true);
+        talon.setBrakeModeEnabled(true);
+        talon.setPositionSensorInverted(inverted);
+        talon.setInverted(!inverted);
+        // TODO: Fix sensor reading. currently, increasing target angle turns CW, which is correct.
+        // however, this reads as more negative, which is weird honestly. (90 deg reads -90 deg) Something seems out of phase?
+        // The sensors are confirmed to be in phase with motor, so figure out some polarity garbage?
         return talon;
     }
 
@@ -283,10 +288,10 @@ public class Robot extends FrcRobotBase
         lrDriveMotor = createSparkMax("LRDrive", RobotInfo.CANID_LEFTREAR_DRIVE);
         rrDriveMotor = createSparkMax("RRDrive", RobotInfo.CANID_RIGHTREAR_DRIVE);
 
-        lfSteerMotor = createTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER);
-        rfSteerMotor = createTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER);
-        lrSteerMotor = createTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER);
-        rrSteerMotor = createTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER);
+        lfSteerMotor = createSteerTalon("LFSteer", RobotInfo.CANID_LEFTFRONT_STEER, false);
+        rfSteerMotor = createSteerTalon("RFSteer", RobotInfo.CANID_RIGHTFRONT_STEER, true);
+        lrSteerMotor = createSteerTalon("LRSteer", RobotInfo.CANID_LEFTREAR_STEER, true);
+        rrSteerMotor = createSteerTalon("RRSteer", RobotInfo.CANID_RIGHTREAR_STEER, false);
 
         int[] zeros = getSteerZeroPositions();
         leftFrontWheel = createModule("LeftFrontWheel", lfDriveMotor, lfSteerMotor, zeros[0]);
