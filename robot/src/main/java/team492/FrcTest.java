@@ -38,8 +38,9 @@ import trclib.TrcTimer;
 public class FrcTest extends FrcTeleOp
 {
     private static final String moduleName = "FrcTest";
-    private static final String setAngleButtonName = "SetAngleButton";
+    private static final String buttonName = "SetAngleAndPower";
     private static final String targetAngleName = "TargetAngle";
+    private static final String drivePowerName = "DrivePower";
 
     public enum Test
     {
@@ -96,18 +97,24 @@ public class FrcTest extends FrcTeleOp
         testMenu.addChoice("Tune Turn PID", Test.TUNE_TURN_PID);
         testMenu.addChoice("Live Window", Test.LIVE_WINDOW, false, true);
 
-        SmartDashboard.putBoolean(setAngleButtonName, false);
+        SmartDashboard.putBoolean(buttonName, false);
         SmartDashboard.putNumber(targetAngleName, 0.0);
+        SmartDashboard.putNumber(drivePowerName, 0.0);
     } // FrcTest
 
-    private void setAngleButtonListener(EntryNotification e)
+    private void buttonListener(EntryNotification e)
     {
         double angle = SmartDashboard.getNumber(targetAngleName, 0.0);
         robot.leftFrontWheel.setSteerAngle(angle, false);
         robot.rightFrontWheel.setSteerAngle(angle, false);
         robot.leftRearWheel.setSteerAngle(angle, false);
         robot.rightRearWheel.setSteerAngle(angle, false);
-        System.out.println("Setting angle: " + angle);
+        double power = SmartDashboard.getNumber(drivePowerName, 0.0);
+        robot.leftFrontWheel.set(power);
+        robot.rightFrontWheel.set(power);
+        robot.leftRearWheel.set(power);
+        robot.rightRearWheel.set(power);
+        System.out.printf("Setting power=%.2f,angle=%.1f\n", power, angle);
         e.getEntry().setBoolean(false);
     }
 
@@ -139,8 +146,8 @@ public class FrcTest extends FrcTeleOp
         switch (test)
         {
             case SWERVE_SYSTEM_TEST:
-                listenerHandle = SmartDashboard.getEntry(setAngleButtonName)
-                    .addListener(this::setAngleButtonListener, EntryListenerFlags.kUpdate);
+                listenerHandle = SmartDashboard.getEntry(buttonName)
+                    .addListener(this::buttonListener, EntryListenerFlags.kUpdate);
             case SUBSYSTEMS_TEST:
                 //
                 // Sensors Test is the same as Subsystems Test without motor
@@ -297,10 +304,10 @@ public class FrcTest extends FrcTeleOp
     @Override
     public void stopMode(RunMode prevMode, RunMode nextMode)
     {
-        SmartDashboard.putBoolean(setAngleButtonName, false);
+        SmartDashboard.putBoolean(buttonName, false);
         if (listenerHandle != -1)
         {
-            SmartDashboard.getEntry(setAngleButtonName).removeListener(listenerHandle);
+            SmartDashboard.getEntry(buttonName).removeListener(listenerHandle);
             listenerHandle = -1;
         }
     }
