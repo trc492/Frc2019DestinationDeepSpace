@@ -43,7 +43,7 @@ public class FrcTest extends FrcTeleOp
 
     public enum Test
     {
-        SENSORS_TEST, SUBSYSTEMS_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
+        SENSORS_TEST, SUBSYSTEMS_TEST, SWERVE_SYSTEM_TEST, DRIVE_MOTORS_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, TUNE_X_PID, TUNE_Y_PID, TUNE_TURN_PID, LIVE_WINDOW
     } // enum Test
 
     private enum State
@@ -82,18 +82,19 @@ public class FrcTest extends FrcTeleOp
         // Create and populate Test Mode specific menus.
         //
         testMenu = new FrcChoiceMenu<>("Test/Tests");
-        testMenu.addChoice("Sensors Test", FrcTest.Test.SENSORS_TEST, true, false);
-        testMenu.addChoice("Subsystems Test", FrcTest.Test.SUBSYSTEMS_TEST);
-        testMenu.addChoice("Drive Motors Test", FrcTest.Test.DRIVE_MOTORS_TEST);
-        testMenu.addChoice("X Timed Drive", FrcTest.Test.X_TIMED_DRIVE);
-        testMenu.addChoice("Y Timed Drive", FrcTest.Test.Y_TIMED_DRIVE);
-        testMenu.addChoice("X Distance Drive", FrcTest.Test.X_DISTANCE_DRIVE);
-        testMenu.addChoice("Y Distance Drive", FrcTest.Test.Y_DISTANCE_DRIVE);
-        testMenu.addChoice("Turn Degrees", FrcTest.Test.TURN_DEGREES);
-        testMenu.addChoice("Tune X PID", FrcTest.Test.TUNE_X_PID);
-        testMenu.addChoice("Tune Y PID", FrcTest.Test.TUNE_Y_PID);
-        testMenu.addChoice("Tune Turn PID", FrcTest.Test.TUNE_TURN_PID);
-        testMenu.addChoice("Live Window", FrcTest.Test.LIVE_WINDOW, false, true);
+        testMenu.addChoice("Sensors Test", Test.SENSORS_TEST, true, false);
+        testMenu.addChoice("Subsystems Test", Test.SUBSYSTEMS_TEST);
+        testMenu.addChoice("Swerve Test", Test.SWERVE_SYSTEM_TEST);
+        testMenu.addChoice("Drive Motors Test", Test.DRIVE_MOTORS_TEST);
+        testMenu.addChoice("X Timed Drive", Test.X_TIMED_DRIVE);
+        testMenu.addChoice("Y Timed Drive", Test.Y_TIMED_DRIVE);
+        testMenu.addChoice("X Distance Drive", Test.X_DISTANCE_DRIVE);
+        testMenu.addChoice("Y Distance Drive", Test.Y_DISTANCE_DRIVE);
+        testMenu.addChoice("Turn Degrees", Test.TURN_DEGREES);
+        testMenu.addChoice("Tune X PID", Test.TUNE_X_PID);
+        testMenu.addChoice("Tune Y PID", Test.TUNE_Y_PID);
+        testMenu.addChoice("Tune Turn PID", Test.TUNE_TURN_PID);
+        testMenu.addChoice("Live Window", Test.LIVE_WINDOW, false, true);
 
         SmartDashboard.putBoolean(setAngleButtonName, false);
         SmartDashboard.putNumber(targetAngleName, 0.0);
@@ -102,10 +103,10 @@ public class FrcTest extends FrcTeleOp
     private void setAngleButtonListener(EntryNotification e)
     {
         double angle = SmartDashboard.getNumber(targetAngleName, 0.0);
-        robot.leftFrontWheel.setSteerAngle(angle);
-        robot.rightFrontWheel.setSteerAngle(angle);
-        robot.leftRearWheel.setSteerAngle(angle);
-        robot.rightRearWheel.setSteerAngle(angle);
+        robot.leftFrontWheel.setSteerAngle(angle, false);
+        robot.rightFrontWheel.setSteerAngle(angle, false);
+        robot.leftRearWheel.setSteerAngle(angle, false);
+        robot.rightRearWheel.setSteerAngle(angle, false);
         System.out.println("Setting angle: " + angle);
         e.getEntry().setBoolean(false);
     }
@@ -137,6 +138,9 @@ public class FrcTest extends FrcTeleOp
         boolean liveWindowEnabled = false;
         switch (test)
         {
+            case SWERVE_SYSTEM_TEST:
+                listenerHandle = SmartDashboard.getEntry(setAngleButtonName)
+                    .addListener(this::setAngleButtonListener, EntryListenerFlags.kUpdate);
             case SUBSYSTEMS_TEST:
                 //
                 // Sensors Test is the same as Subsystems Test without motor
@@ -144,8 +148,6 @@ public class FrcTest extends FrcTeleOp
                 // So let it flow to the next case.
                 //
             case SENSORS_TEST:
-                listenerHandle = SmartDashboard.getEntry(setAngleButtonName)
-                    .addListener(this::setAngleButtonListener, EntryListenerFlags.kUpdate);
                 //
                 // Make sure no joystick controls on sensors test.
                 //
@@ -218,6 +220,7 @@ public class FrcTest extends FrcTeleOp
     {
         switch (test)
         {
+            case SWERVE_SYSTEM_TEST:
             case SENSORS_TEST:
                 doSensorsTest();
                 break;
@@ -475,8 +478,9 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(4, "Angles (Deg): lf=%.1f, rf=%.1f, lr=%.1f, rr=%.1f", robot.leftFrontWheel.getSteerAngle(),
                 robot.rightFrontWheel.getSteerAngle(), robot.leftRearWheel.getSteerAngle(),
                 robot.rightRearWheel.getSteerAngle());
-        robot.dashboard.displayPrintf(5, "Angles (Tick): lf=%.0f, rf=%.0f, lr=%.0f, rr=%.0f", robot.lfSteerMotor.getPosition(),
-            robot.rfSteerMotor.getPosition(), robot.lrSteerMotor.getPosition(), robot.rrSteerMotor.getPosition());
+        robot.dashboard
+            .displayPrintf(5, "Angles (Tick): lf=%.0f, rf=%.0f, lr=%.0f, rr=%.0f", robot.lfSteerMotor.getPosition(),
+                robot.rfSteerMotor.getPosition(), robot.lrSteerMotor.getPosition(), robot.rrSteerMotor.getPosition());
     } // doSensorsTest
 
     /**
