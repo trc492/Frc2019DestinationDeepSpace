@@ -198,7 +198,7 @@ public class Robot extends FrcRobotBase
         if (USE_MAGIC_STEER)
         {
             FrcTalonServo servo = new FrcTalonServo(name + ".servo", steer, RobotInfo.magicSteerCoeff,
-                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_REQ_VEL, RobotInfo.STEER_MAX_ACCEL, true);
+                RobotInfo.STEER_DEGREES_PER_TICK, RobotInfo.STEER_MAX_REQ_VEL, RobotInfo.STEER_MAX_ACCEL);
             module = new TrcSwerveModule(name, drive, new TrcEnhancedServo(name + ".enhancedServo", servo));
         }
         else
@@ -229,14 +229,10 @@ public class Robot extends FrcRobotBase
     {
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
-            out.printf("%.0f\n",
-                TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n",
-                TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n",
-                TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n",
-                TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.getPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rfSteerMotor.getPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(lrSteerMotor.getPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rrSteerMotor.getPosition(), 4096));
         }
         catch (FileNotFoundException e)
         {
@@ -339,7 +335,8 @@ public class Robot extends FrcRobotBase
         pdp.registerEnergyUsedForAllUnregisteredChannels();
     }   //robotInit
 
-    private void zeroButtonPress(EntryNotification e) {
+    private void zeroButtonPress(EntryNotification e)
+    {
         saveSteerZeroPositions();
         e.getEntry().setBoolean(false);
     }

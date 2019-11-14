@@ -26,12 +26,10 @@ import com.ctre.phoenix.motorcontrol.ControlMode;
 import trclib.TrcPidController;
 import trclib.TrcServo;
 import trclib.TrcUtil;
-import trclib.TrcWarpSpace;
 
 public class FrcTalonServo extends TrcServo
 {
     private FrcCANTalon talon;
-    private TrcWarpSpace warpSpace;
     private double degreesPerTick;
 
     /**
@@ -43,17 +41,12 @@ public class FrcTalonServo extends TrcServo
      * @param degreesPerTick     degrees per native sensor unit measured by the talon.
      * @param maxSpeed           desired max speed of the motor, in degrees per second.
      * @param maxAccel           desired max acceleration of the motor, in degrees per second per second.
-     * @param continuousRotation if true, servo can rotate indefinitely. If false, there is a physical hard limit.
      */
     public FrcTalonServo(String instanceName, FrcCANTalon talon, TrcPidController.PidCoefficients pidCoefficients,
-        double degreesPerTick, double maxSpeed, double maxAccel, boolean continuousRotation)
+        double degreesPerTick, double maxSpeed, double maxAccel)
     {
         super(instanceName);
         this.talon = talon;
-        if (continuousRotation)
-        {
-            warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
-        }
         this.degreesPerTick = degreesPerTick;
 
         talon.motor.config_kP(0, pidCoefficients.kP);
@@ -80,16 +73,13 @@ public class FrcTalonServo extends TrcServo
     public void setPosition(double position)
     {
         double angle = position * 360.0;
-        if (warpSpace != null)
-        {
-            angle = warpSpace.getOptimizedTarget(angle, getPosition());
-        }
         int ticks = TrcUtil.round(angle / degreesPerTick);
         talon.motor.set(ControlMode.MotionMagic, ticks);
     }
 
     @Override
-    public double getEncoderPosition() {
+    public double getEncoderPosition()
+    {
         return getPosition();
     }
 

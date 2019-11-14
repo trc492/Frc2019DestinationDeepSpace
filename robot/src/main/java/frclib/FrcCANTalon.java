@@ -420,15 +420,7 @@ public class FrcCANTalon extends TrcMotor
     public double getPosition()
     {
         final String funcName = "getPosition";
-        double pos;
-        if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-        {
-            pos = motor.getSensorCollection().getQuadraturePosition();
-        }
-        else
-        {
-            pos = motor.getSelectedSensorPosition(0);
-        }
+        double pos = motor.getSelectedSensorPosition(0);
         recordResponseCode(motor.getLastError());
 
         pos -= zeroPosition;

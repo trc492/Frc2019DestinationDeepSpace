@@ -485,9 +485,9 @@ public class FrcTest extends FrcTeleOp
             .displayPrintf(4, "Angles (Deg): lf=%.1f, rf=%.1f, lr=%.1f, rr=%.1f", robot.leftFrontWheel.getSteerAngle(),
                 robot.rightFrontWheel.getSteerAngle(), robot.leftRearWheel.getSteerAngle(),
                 robot.rightRearWheel.getSteerAngle());
-        robot.dashboard
-            .displayPrintf(5, "Angles (Tick): lf=%.0f, rf=%.0f, lr=%.0f, rr=%.0f", robot.lfSteerMotor.getPosition(),
-                robot.rfSteerMotor.getPosition(), robot.lrSteerMotor.getPosition(), robot.rrSteerMotor.getPosition());
+        robot.dashboard.displayPrintf(5, "Angles (Tick): lf=%d, rf=%d, lr=%d, rr=%d",
+            robot.lfSteerMotor.motor.getSelectedSensorPosition(), robot.rfSteerMotor.motor.getSelectedSensorPosition(),
+            robot.lrSteerMotor.motor.getSelectedSensorPosition(), robot.rrSteerMotor.motor.getSelectedSensorPosition());
     } // doSensorsTest
 
     /**
