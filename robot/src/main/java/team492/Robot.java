@@ -181,9 +181,6 @@ public class Robot extends FrcRobotBase
         talon.setBrakeModeEnabled(true);
         talon.setPositionSensorInverted(inverted);
         talon.setInverted(!inverted);
-        // TODO: Fix sensor reading. currently, increasing target angle turns CW, which is correct.
-        // however, this reads as more negative, which is weird honestly. (90 deg reads -90 deg) Something seems out of phase?
-        // The sensors are confirmed to be in phase with motor, so figure out some polarity garbage?
         return talon;
     }
 
@@ -192,7 +189,10 @@ public class Robot extends FrcRobotBase
         steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // only resets the index
         int pwmPosTicks = steer.motor.getSensorCollection().getPulseWidthPosition();
         int absPosTicks = pwmPosTicks - steerZero;
-        steer.motor.getSensorCollection().setQuadraturePosition(absPosTicks, 10);
+        steer.motor.setSelectedSensorPosition(absPosTicks, 0, 10);
+        System.out
+            .printf("Module=%s, zero=%d, pwmPos=%d, absPos=%d, newPos=%d\n", name, steerZero, pwmPosTicks, absPosTicks,
+                (int)steer.getPosition());
 
         TrcSwerveModule module;
         if (USE_MAGIC_STEER)
@@ -229,10 +229,10 @@ public class Robot extends FrcRobotBase
     {
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
-            out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.getPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(rfSteerMotor.getPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(lrSteerMotor.getPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(rrSteerMotor.getPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n", TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
         }
         catch (FileNotFoundException e)
         {
