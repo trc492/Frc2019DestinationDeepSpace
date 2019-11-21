@@ -52,6 +52,25 @@ public class TrcPidController
         public double kI;
         public double kD;
         public double kF;
+        public double iZone;
+
+        /**
+         * Constructor: Create an instance of the object.
+         *
+         * @param kP    specifies the Proportional constant.
+         * @param kI    specifies the Integral constant.
+         * @param kD    specifies the Differential constant.
+         * @param kF    specifies the Feed forward constant.
+         * @param iZone specifies the integral zone.
+         */
+        public PidCoefficients(double kP, double kI, double kD, double kF, double iZone)
+        {
+            this.kP = Math.abs(kP);
+            this.kI = Math.abs(kI);
+            this.kD = Math.abs(kD);
+            this.kF = Math.abs(kF);
+            this.iZone = Math.abs(iZone);
+        }
 
         /**
          * Constructor: Create an instance of the object.
@@ -63,10 +82,7 @@ public class TrcPidController
          */
         public PidCoefficients(double kP, double kI, double kD, double kF)
         {
-            this.kP = Math.abs(kP);
-            this.kI = Math.abs(kI);
-            this.kD = Math.abs(kD);
-            this.kF = Math.abs(kF);
+            this(kP, kI, kD, kF, 0.0);
         }   //PidCoefficients
 
         /**
@@ -227,10 +243,9 @@ public class TrcPidController
      */
     public void displayPidInfo(int lineNum)
     {
-        dashboard.displayPrintf(
-                lineNum, "%s:Target=%.1f,Input=%.1f,Error=%.1f", instanceName, setPoint, input, currError);
-        dashboard.displayPrintf(
-                lineNum + 1, "minOutput=%.1f,Output=%.1f,maxOutput=%.1f", minOutput, output, maxOutput);
+        dashboard
+            .displayPrintf(lineNum, "%s:Target=%.1f,Input=%.1f,Error=%.1f", instanceName, setPoint, input, currError);
+        dashboard.displayPrintf(lineNum + 1, "minOutput=%.1f,Output=%.1f,maxOutput=%.1f", minOutput, output, maxOutput);
     }   //displayPidInfo
 
     /**
@@ -260,8 +275,7 @@ public class TrcPidController
 
             if (battery != null)
             {
-                msg += String.format(Locale.US, ", Volt=%.1f(%.1f)",
-                        battery.getVoltage(), battery.getLowestVoltage());
+                msg += String.format(Locale.US, ", Volt=%.1f(%.1f)", battery.getVoltage(), battery.getLowestVoltage());
             }
 
             tracer.traceInfo(funcName, msg);

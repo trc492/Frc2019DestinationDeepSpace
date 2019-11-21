@@ -109,8 +109,8 @@ public class RobotInfo
     public static final double STEER_MAX_VEL_TICKS_PER_100MS = (STEER_MAX_VEL / STEER_DEGREES_PER_TICK) / 10.0; // ticks/100ms
     public static final double STEER_TOLERANCE = 2.0; // only used for pid, not magic
 
-    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0, 0, 0,
-        1023.0 / STEER_MAX_VEL_TICKS_PER_100MS);
+    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0, 0.01, 0,
+        1023.0 / STEER_MAX_VEL_TICKS_PER_100MS, 5.0 / STEER_DEGREES_PER_TICK);
     public static final TrcPidController.PidCoefficients pidSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
         0);
 

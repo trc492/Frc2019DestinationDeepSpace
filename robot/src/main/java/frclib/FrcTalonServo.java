@@ -53,6 +53,7 @@ public class FrcTalonServo extends TrcServo
         talon.motor.config_kI(0, pidCoefficients.kI);
         talon.motor.config_kD(0, pidCoefficients.kD);
         talon.motor.config_kF(0, pidCoefficients.kF);
+        talon.motor.config_IntegralZone(0, TrcUtil.round(pidCoefficients.iZone));
         talon.motor.configMotionCruiseVelocity(TrcUtil.round((maxSpeed / degreesPerTick) / 10));
         talon.motor.configMotionAcceleration(TrcUtil.round((maxAccel / degreesPerTick) / 10));
     }
