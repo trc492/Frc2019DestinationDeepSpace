@@ -189,15 +189,20 @@ public class Robot extends FrcRobotBase
 
     private TrcSwerveModule createModule(String name, FrcCANSparkMax drive, FrcCANTalon steer, int steerZero)
     {
-        int pwmPosTicks = (int) TrcUtil.modulo(steer.motor.getSensorCollection().getPulseWidthPosition(), 4096);
-        int absPosTicks = pwmPosTicks - steerZero;
+        steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // reset index
+        TrcUtil.sleep(50); // guarantee reset
+        int pwmPosTicks = steer.motor.getSensorCollection().getPulseWidthPosition(); // TODO: account for sensor phase??
+        int modPosTicks = (int) TrcUtil.modulo(pwmPosTicks, 4096);
+        int absPosTicks = modPosTicks - steerZero;
         ErrorCode error = steer.motor.setSelectedSensorPosition(absPosTicks, 0, 10);
-        if (error != ErrorCode.OK) {
-            System.err.printf("Encoder error! - Module=%s, error=%s\n", name, error.name());
+        if (error != ErrorCode.OK)
+        {
+            System.out.printf("Encoder error! - Module=%s, error=%s\n", name, error.name());
         }
+        TrcUtil.sleep(50); // guarantee reset
         System.out
-            .printf("Module=%s, zero=%d, pwmPos=%d, absPos=%d, newPos=%d\n", name, steerZero, pwmPosTicks, absPosTicks,
-                (int)steer.motor.getSelectedSensorPosition(0));
+            .printf("Module=%s, zero=%d, pwmPos=%d, modPos=%d, absPos=%d, newPos=%d\n", name, steerZero, pwmPosTicks,
+                modPosTicks, absPosTicks, (int) steer.motor.getSelectedSensorPosition(0));
 
         TrcSwerveModule module;
         if (USE_MAGIC_STEER)
@@ -234,10 +239,14 @@ public class Robot extends FrcRobotBase
     {
         try (PrintStream out = new PrintStream(new FileOutputStream("/home/lvuser/steerzeros.txt")))
         {
-            out.printf("%.0f\n", TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
-            out.printf("%.0f\n", TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
+            out.printf("%.0f\n",
+                TrcUtil.modulo(rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), 4096));
         }
         catch (FileNotFoundException e)
         {

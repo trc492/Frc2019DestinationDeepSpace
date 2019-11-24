@@ -317,7 +317,7 @@ public class FrcCANTalon extends TrcMotor
         }
 
         this.feedbackDeviceType = devType;
-        recordResponseCode(motor.configSelectedFeedbackSensor(devType, 0, 0));
+        recordResponseCode(motor.configSelectedFeedbackSensor(devType, 0, 10));
         feedbackDeviceIsPot = devType == FeedbackDevice.Analog;
     }   //setFeedbackDevice
 
