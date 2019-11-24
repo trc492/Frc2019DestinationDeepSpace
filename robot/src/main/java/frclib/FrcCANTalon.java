@@ -561,15 +561,7 @@ public class FrcCANTalon extends TrcMotor
         }
         else if (hardware)
         {
-            ErrorCode error;
-            if (feedbackDeviceType == FeedbackDevice.QuadEncoder)
-            {
-                error = recordResponseCode(motor.getSensorCollection().setQuadraturePosition(0, 10));
-            }
-            else
-            {
-                error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
-            }
+            ErrorCode error = recordResponseCode(motor.setSelectedSensorPosition(0, 0, 10));
             if (error != ErrorCode.OK)
             {
                 TrcDbgTrace.getGlobalTracer().traceErr(funcName, "resetPosition() on TalonSRX %d failed with error %s!", motor.getDeviceID(),
