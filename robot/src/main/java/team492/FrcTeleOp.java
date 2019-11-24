@@ -85,15 +85,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runPeriodic(double elapsedTime)
     {
+        double driveScale = 0.6;
+
         double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
         double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
+        double leftTwist = 0;//robot.leftDriveStick.getTwistWithDeadband(true);
         double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
         double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
 
-        robot.driveBase.holonomicDrive(leftDriveX, rightDriveY, rightTwist,
-            robot.rightDriveStick.getRawButton(1) ? robot.driveBase.getHeading() : 0.0);
+        robot.driveBase.holonomicDrive(leftDriveX * driveScale, leftDriveY * driveScale, leftTwist * driveScale);
     } // runPeriodic
 
     @Override

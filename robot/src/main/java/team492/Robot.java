@@ -22,6 +22,7 @@
 
 package team492;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import edu.wpi.first.networktables.EntryListenerFlags;
 import edu.wpi.first.networktables.EntryNotification;
@@ -178,6 +179,8 @@ public class Robot extends FrcRobotBase
         talon.motor.configVoltageCompSaturation(RobotInfo.BATTERY_NOMINAL_VOLTAGE);
         talon.motor.enableVoltageCompensation(true);
         talon.motor.overrideLimitSwitchesEnable(false);
+        talon.configFwdLimitSwitchNormallyOpen(true);
+        talon.configRevLimitSwitchNormallyOpen(true);
         talon.setBrakeModeEnabled(true);
         talon.setPositionSensorInverted(inverted);
         talon.setInverted(!inverted);
@@ -186,13 +189,15 @@ public class Robot extends FrcRobotBase
 
     private TrcSwerveModule createModule(String name, FrcCANSparkMax drive, FrcCANTalon steer, int steerZero)
     {
-        steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // only resets the index
-        int pwmPosTicks = steer.motor.getSensorCollection().getPulseWidthPosition();
+        int pwmPosTicks = (int) TrcUtil.modulo(steer.motor.getSensorCollection().getPulseWidthPosition(), 4096);
         int absPosTicks = pwmPosTicks - steerZero;
-        steer.motor.setSelectedSensorPosition(absPosTicks, 0, 10);
+        ErrorCode error = steer.motor.setSelectedSensorPosition(absPosTicks, 0, 10);
+        if (error != ErrorCode.OK) {
+            System.err.printf("Encoder error! - Module=%s, error=%s\n", name, error.name());
+        }
         System.out
             .printf("Module=%s, zero=%d, pwmPos=%d, absPos=%d, newPos=%d\n", name, steerZero, pwmPosTicks, absPosTicks,
-                (int)steer.getPosition());
+                (int)steer.motor.getSelectedSensorPosition(0));
 
         TrcSwerveModule module;
         if (USE_MAGIC_STEER)
