@@ -89,6 +89,7 @@ public abstract class TrcMotor implements TrcMotorController
 
     private static final ArrayList<TrcMotor> odometryMotors = new ArrayList<>();
     private static TrcTaskMgr.TaskObject odometryTaskObj = null;
+    private static TrcTaskMgr.TaskObject cleanupTaskObj = null;
     private final Odometry odometry = new Odometry();
 
     private final String instanceName;
@@ -126,6 +127,8 @@ public abstract class TrcMotor implements TrcMotorController
             // many threads.
             //
             odometryTaskObj = taskMgr.createTask(moduleName + ".odometryTask", TrcMotor::odometryTask);
+            cleanupTaskObj = taskMgr.createTask(instanceName + ".cleanupTask", this::cleanupTask);
+            cleanupTaskObj.registerTask(TaskType.STOP_TASK);
         }
         velocityCtrlTaskObj = taskMgr.createTask(instanceName + ".velCtrlTask", this::velocityCtrlTask);
     }   //TrcMotor
@@ -171,6 +174,11 @@ public abstract class TrcMotor implements TrcMotorController
                 odometryMotors.clear();
                 odometryTaskObj.unregisterTask(TaskType.INPUT_TASK);
             }
+            //
+            // We must clear the task object because FTC opmode stuck around even after it has ended. So the task
+            // object would have a stale odometryTask if we run the opmode again.
+            //
+            odometryTaskObj = null;
         }
     }   //clearOdometryMotorsList
 
@@ -306,6 +314,30 @@ public abstract class TrcMotor implements TrcMotorController
             globalTracer.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
         }
     }   //odometryTask
+
+    /**
+     * This method is called before the runMode is about to stop so we can disable odometry.
+     *
+     * @param taskType specifies the type of task being run.
+     * @param runMode  specifies the competition mode that is running.
+     */
+    public void cleanupTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
+    {
+        final String funcName = "cleanupTask";
+
+        if (debugEnabled)
+        {
+            globalTracer.traceEnter(funcName, TrcDbgTrace.TraceLevel.TASK,
+                    "taskType=%s,runMode=%s", taskType, runMode);
+        }
+
+        clearOdometryMotorsList();
+
+        if (debugEnabled)
+        {
+            globalTracer.traceExit(funcName, TrcDbgTrace.TraceLevel.TASK);
+        }
+    }   //cleanupTask
 
     /**
      * This method sets the motor controller to velocity mode with the specified maximum velocity.
@@ -559,7 +591,14 @@ public abstract class TrcMotor implements TrcMotorController
 
         synchronized (odometry)
         {
-            currPos = odometry.currPos;
+            if (odometryEnabled)
+            {
+                currPos = odometry.currPos;
+            }
+            else
+            {
+                throw new IllegalStateException("You must first enable motor odometry.");
+            }
         }
 
         if (debugEnabled)
