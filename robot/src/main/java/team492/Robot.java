@@ -191,18 +191,16 @@ public class Robot extends FrcRobotBase
     {
         steer.motor.getSensorCollection().setPulseWidthPosition(0, 10); // reset index
         TrcUtil.sleep(50); // guarantee reset
-        int pwmPosTicks = steer.motor.getSensorCollection().getPulseWidthPosition(); // TODO: account for sensor phase??
-        int modPosTicks = (int) TrcUtil.modulo(pwmPosTicks, 4096);
-        int absPosTicks = modPosTicks - steerZero;
-        ErrorCode error = steer.motor.setSelectedSensorPosition(absPosTicks, 0, 10);
+        ErrorCode error = steer.motor.getSensorCollection().syncQuadratureWithPulseWidth(0, 0, true, -steerZero, 10);
         if (error != ErrorCode.OK)
         {
             System.out.printf("Encoder error! - Module=%s, error=%s\n", name, error.name());
         }
         TrcUtil.sleep(50); // guarantee reset
-        System.out
-            .printf("Module=%s, zero=%d, pwmPos=%d, modPos=%d, absPos=%d, newPos=%d\n", name, steerZero, pwmPosTicks,
-                modPosTicks, absPosTicks, (int) steer.motor.getSelectedSensorPosition(0));
+        int modPos = (int) TrcUtil.modulo(steer.motor.getSelectedSensorPosition(), 4096);
+        int pos = modPos > 2048 ? modPos - 4096 : modPos;
+        steer.motor.setSelectedSensorPosition(pos, 0, 10);
+        TrcUtil.sleep(50);
 
         TrcSwerveModule module;
         if (USE_MAGIC_STEER)
