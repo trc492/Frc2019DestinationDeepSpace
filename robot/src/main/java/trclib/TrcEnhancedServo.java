@@ -277,7 +277,7 @@ public class TrcEnhancedServo
      * This method performs range calibration on a regular servo.
      *
      * @param physicalRangeMin specifies the desired physical range minimum (typically 0.0).
-     * @param physicalRangeMax specifies the desired physical range maximum (typically 180.0).
+     * @param physicalRangeMax specifies the desired physical range maximum (maximum angle).
      * @param stepRate         specifies the step rate to use for the calibration.
      */
     public void rangeCalibrate(double physicalRangeMin, double physicalRangeMax, double stepRate)
@@ -340,9 +340,10 @@ public class TrcEnhancedServo
     }   //stop
 
     /**
-     * Uses the getPosition of the servo1, in case there's an encoder.
+     * Uses <code>getEncoderPosition()</code> of the servo1, in case there's an encoder.
      *
-     * @return The position of servo1. This is different from <code>getPosition</code> in the case of servo1 having an encoder.
+     * @return The physical (not logical) position of servo1.
+     * This is different from <code>getPosition</code> in the case of servo1 having an encoder.
      * @throws UnsupportedOperationException if servo1 doesn't support encoders.
      */
     public double getEncoderPosition()
@@ -351,7 +352,7 @@ public class TrcEnhancedServo
     }
 
     /**
-     * This method returns the target position set by setPosition.
+     * This method returns the target logical position set by setPosition.
      *
      * @return target position.
      */
@@ -369,7 +370,7 @@ public class TrcEnhancedServo
     }   //getPosition
 
     /**
-     * This method sets the servo position.
+     * This method sets the servo logical position. [0,1] => [min,max]
      *
      * @param position specifies the position to set.
      */
@@ -404,7 +405,7 @@ public class TrcEnhancedServo
     }   //setPosition
 
     /**
-     * This method sets the servo to the specifies position but with the specified step rate in effect controlling
+     * This method sets the servo to the specified logical position but with the specified step rate in effect controlling
      * the speed to get there.
      *
      * @param position specifies the target position.

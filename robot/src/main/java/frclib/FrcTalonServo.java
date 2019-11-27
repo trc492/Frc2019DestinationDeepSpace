@@ -31,16 +31,17 @@ public class FrcTalonServo extends TrcServo
 {
     private FrcCANTalon talon;
     private double degreesPerTick;
+    private double lastSetPos = 0;
 
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName       specifies the instance name of the servo.
-     * @param talon              the physical talon motor controller object.
-     * @param pidCoefficients    the pid coefficients used for motion magic. Don't forget kF!
-     * @param degreesPerTick     degrees per native sensor unit measured by the talon.
-     * @param maxSpeed           desired max speed of the motor, in degrees per second.
-     * @param maxAccel           desired max acceleration of the motor, in degrees per second per second.
+     * @param instanceName    specifies the instance name of the servo.
+     * @param talon           the physical talon motor controller object.
+     * @param pidCoefficients the pid coefficients used for motion magic. Don't forget kF!
+     * @param degreesPerTick  degrees per native sensor unit measured by the talon.
+     * @param maxSpeed        desired max speed of the motor, in degrees per second.
+     * @param maxAccel        desired max acceleration of the motor, in degrees per second per second.
      */
     public FrcTalonServo(String instanceName, FrcCANTalon talon, TrcPidController.PidCoefficients pidCoefficients,
         double degreesPerTick, double maxSpeed, double maxAccel)
@@ -73,20 +74,32 @@ public class FrcTalonServo extends TrcServo
     @Override
     public void setPosition(double position)
     {
+        lastSetPos = position;
         double angle = position * 360.0;
         int ticks = TrcUtil.round(angle / degreesPerTick);
         talon.motor.set(ControlMode.MotionMagic, ticks);
     }
 
+    /**
+     * Get the physical position of the motor, in degrees.
+     *
+     * @return Position in degrees.
+     */
     @Override
     public double getEncoderPosition()
     {
-        return getPosition();
+        return talon.getPosition() * degreesPerTick;
     }
 
+    /**
+     * Get the last set logical position of the motor. [0,1] => [0,360].
+     * The position returned may not necessarily be in the range [0,1].
+     *
+     * @return The last set logical position.
+     */
     @Override
     public double getPosition()
     {
-        return talon.getPosition() * degreesPerTick;
+        return lastSetPos;
     }
 }
