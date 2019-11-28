@@ -114,12 +114,21 @@ public class RobotInfo
     public static final TrcPidController.PidCoefficients pidSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
         0);
 
-    public static final double ENCODER_INCHES_PER_COUNT = 2.355935875;
+    public static final double ENCODER_INCHES_PER_COUNT = 2.5133;
     public static final double ENCODER_KP = 0.011;
     public static final double ENCODER_KI = 0.0;
     public static final double ENCODER_KD = 0.001;
     public static final double ENCODER_KF = 0.0;
     public static final double ENCODER_TOLERANCE = 2.0;
+
+    public static final double ROBOT_TOP_SPEED = 192.6; // in/sec
+
+    public static final double PURE_PURSUIT_KP = 0.02;
+    public static final double PURE_PURSUIT_KI = 0.0;
+    public static final double PURE_PURSUIT_KD = 0.002;
+    public static final double PURE_PURSUIT_KF = 1.0 / ROBOT_TOP_SPEED;
+    public static final double PURE_PURSUIT_MAX_VEL = 0.8 * ROBOT_TOP_SPEED;
+    public static final double PURE_PURSUIT_MAX_ACCEL = 240; // in/sec^2
 
     // Comp robot: 0.015/0.0/0.001
     // practice robot: 0.008/0.0/0.0007
