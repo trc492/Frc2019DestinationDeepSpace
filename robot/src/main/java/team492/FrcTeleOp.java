@@ -22,6 +22,7 @@
 
 package team492;
 
+import edu.wpi.first.wpilibj.GenericHID;
 import frclib.FrcJoystick;
 import trclib.TrcLoopPerformanceMonitor;
 import trclib.TrcRobot;
@@ -30,6 +31,7 @@ import trclib.TrcRobot.RunMode;
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     public static final boolean DEBUG_LOOP_TIME = true;
+    public static final boolean USE_CONTROLLER = false;
 
     protected Robot robot;
 
@@ -87,18 +89,42 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     {
         double driveScale = 0.8;
 
-        double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
-        double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
-        double leftTwist = robot.leftDriveStick.getTwistWithDeadband(true);
-        double rightDriveX = robot.rightDriveStick.getXWithDeadband(true);
-        double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
-        double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
+        double x, y, rot;
+        boolean fieldOriented;
+
+        if (USE_CONTROLLER)
+        {
+            x = deadband(robot.xboxController.getX(GenericHID.Hand.kLeft));
+            y = deadband(-robot.xboxController.getY(GenericHID.Hand.kLeft));
+            double rightTrigger = deadband(robot.xboxController.getTriggerAxis(GenericHID.Hand.kRight));
+            double leftTrigger = deadband(robot.xboxController.getTriggerAxis(GenericHID.Hand.kLeft));
+            rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+            fieldOriented = robot.xboxController.getXButton();
+        }
+        else
+        {
+            double leftDriveX = robot.leftDriveStick.getXWithDeadband(true);
+            double leftDriveY = robot.leftDriveStick.getYWithDeadband(true);
+            double leftTwist = robot.leftDriveStick.getTwistWithDeadband(true);
+            double rightDriveX = robot.rightDriveStick.getXWithDeadband(true);
+            double rightDriveY = robot.rightDriveStick.getYWithDeadband(true);
+            double rightTwist = robot.rightDriveStick.getTwistWithDeadband(true);
+            x = rightDriveX;
+            y = rightDriveY;
+            rot = rightTwist;
+            fieldOriented = robot.rightDriveStick.getRawButton(FrcJoystick.SIDEWINDER_TRIGGER);
+        }
 
         robot.updateDashboard(RunMode.TELEOP_MODE);
 
-        robot.driveBase.holonomicDrive(rightDriveX * driveScale, rightDriveY * driveScale, rightTwist * driveScale,
-            robot.rightDriveStick.getRawButton(FrcJoystick.SIDEWINDER_TRIGGER) ? robot.driveBase.getHeading() : 0.0);
+        robot.driveBase.holonomicDrive(x * driveScale, y * driveScale, rot * driveScale,
+            fieldOriented ? robot.driveBase.getHeading() : 0.0);
     } // runPeriodic
+
+    private double deadband(double d)
+    {
+        return Math.abs(d) >= 0.15 ? d : 0;
+    }
 
     @Override
     public void runContinuous(double elapsedTime)

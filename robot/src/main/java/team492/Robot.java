@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.DriverStation.MatchType;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Sendable;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.FrcAHRSGyro;
@@ -116,6 +117,7 @@ public class Robot extends FrcRobotBase
     //
     // Inputs.
     //
+    public XboxController xboxController = null;
     public FrcJoystick leftDriveStick = null;
     public FrcJoystick rightDriveStick = null;
     public FrcJoystick operatorStick = null;
@@ -266,6 +268,7 @@ public class Robot extends FrcRobotBase
         operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
         buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
         switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
+        xboxController = new XboxController(2);
 
         leftDriveStick.setButtonEventTracer(globalTracer);
         rightDriveStick.setButtonEventTracer(globalTracer);
