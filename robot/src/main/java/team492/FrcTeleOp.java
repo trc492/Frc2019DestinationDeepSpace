@@ -99,6 +99,10 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             double rightTrigger = deadband(robot.xboxController.getTriggerAxis(GenericHID.Hand.kRight));
             double leftTrigger = deadband(robot.xboxController.getTriggerAxis(GenericHID.Hand.kLeft));
             rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
+            x = Math.copySign(x*x, x);
+            y = Math.copySign(y*y, y);
+            rot = Math.copySign(rot*rot, rot);
+
             fieldOriented = robot.xboxController.getXButton();
         }
         else
