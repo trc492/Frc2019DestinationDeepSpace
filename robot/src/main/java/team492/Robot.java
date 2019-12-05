@@ -204,6 +204,8 @@ public class Robot extends FrcRobotBase
         steer.motor.setSelectedSensorPosition(pos, 0, 10);
         TrcUtil.sleep(50);
 
+        System.out.printf("Module=%s, PwmPos=%d, quadPos=%d, selectedPos=%d\n", name, steer.motor.getSensorCollection().getPulseWidthPosition(), steer.motor.getSensorCollection().getQuadraturePosition(), steer.motor.getSelectedSensorPosition());
+
         TrcSwerveModule module;
         if (USE_MAGIC_STEER)
         {

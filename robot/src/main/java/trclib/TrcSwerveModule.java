@@ -73,6 +73,7 @@ public class TrcSwerveModule implements TrcMotorController
         this.steerMotor = steerMotor;
         this.steerServo = steerServo;
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
+        this.prevSteerAngle = getSteerAngle();
     }   //TrcSwerveModule
 
     /**
