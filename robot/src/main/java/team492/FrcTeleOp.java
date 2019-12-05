@@ -101,7 +101,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             rot = rightTrigger > 0 ? rightTrigger : -leftTrigger;
             x = Math.copySign(Math.pow(x, 3), x);
             y = Math.copySign(Math.pow(y, 3), y);
-            rot = Math.copySign(Math.pow(rot, 3), rot);
+            rot = Math.copySign(Math.pow(rot, 2), rot);
 
             fieldOriented = robot.xboxController.getXButton();
         }

@@ -39,8 +39,8 @@ public class RobotInfo
     //
     // Robot dimensions.
     //
-    public static final double ROBOT_WIDTH = 30;
-    public static final double ROBOT_LENGTH = 30;
+    public static final double ROBOT_WIDTH = 18.125;
+    public static final double ROBOT_LENGTH = 18.5;
 
     //
     // Joystick ports.
@@ -115,9 +115,9 @@ public class RobotInfo
         0);
 
     public static final double ENCODER_INCHES_PER_COUNT = 2.5133;
-    public static final double ENCODER_KP = 0.011;
+    public static final double ENCODER_KP = 0.015;
     public static final double ENCODER_KI = 0.0;
-    public static final double ENCODER_KD = 0.001;
+    public static final double ENCODER_KD = 0.00;
     public static final double ENCODER_KF = 0.0;
     public static final double ENCODER_TOLERANCE = 2.0;
 
@@ -133,7 +133,7 @@ public class RobotInfo
     // Comp robot: 0.015/0.0/0.001
     // practice robot: 0.008/0.0/0.0007
     // 3/24 comp robot: 0.0055/0.0/0.00008
-    public static final double GYRO_TURN_KP = 0.0055;
+    public static final double GYRO_TURN_KP = 0.002;
     public static final double GYRO_TURN_KI = 0.0;
     public static final double GYRO_TURN_KD = 0.00008;
     public static final double GYRO_TURN_KF = 0.0;
