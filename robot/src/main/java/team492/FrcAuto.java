@@ -37,7 +37,7 @@ public class FrcAuto extends FrcTeleOp
 
     public enum AutoStrategy
     {
-        X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
+        PP_TEST, X_TIMED_DRIVE, Y_TIMED_DRIVE, X_DISTANCE_DRIVE, Y_DISTANCE_DRIVE, TURN_DEGREES, DO_NOTHING
     } // enum AutoStrategy
 
     private Robot robot;
@@ -64,6 +64,7 @@ public class FrcAuto extends FrcTeleOp
         // Populate Autonomous Mode menus.
         //
         autoStrategyMenu.addChoice("Do Nothing", AutoStrategy.DO_NOTHING, true, false);
+        autoStrategyMenu.addChoice("PP Test", AutoStrategy.PP_TEST);
         autoStrategyMenu.addChoice("X Timed Drive", AutoStrategy.X_TIMED_DRIVE);
         autoStrategyMenu.addChoice("Y Timed Drive", AutoStrategy.Y_TIMED_DRIVE);
         autoStrategyMenu.addChoice("X Distance Drive", AutoStrategy.X_DISTANCE_DRIVE);
@@ -95,7 +96,6 @@ public class FrcAuto extends FrcTeleOp
     public void startMode(RunMode prevMode, RunMode nextMode)
     {
         // Init teleop since we're in sandstorm mode
-        robot.driveBase.stop();
         super.startMode(prevMode, nextMode);
         robot.driveBase.resetOdometry(true, true);
 
@@ -114,6 +114,11 @@ public class FrcAuto extends FrcTeleOp
         delay = HalDashboard.getNumber("Auto/Delay", 0.0);
         switch (autoStrategy)
         {
+            case PP_TEST:
+                PurePursuitTestAuto auto = new PurePursuitTestAuto(robot);
+                auto.start();
+                autoCommand = auto;
+                break;
             case X_TIMED_DRIVE:
                 autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
                 break;
@@ -166,6 +171,11 @@ public class FrcAuto extends FrcTeleOp
     @Override
     public void runContinuous(double elapsedTime)
     {
+        if (autoCommand instanceof PurePursuitTestAuto)
+        {
+            robot.dashboard.displayPrintf(5, "x=%.2f,y=%.2f,heading=%.2f", robot.driveBase.getXPosition(),
+                robot.driveBase.getYPosition(), robot.driveBase.getHeading());
+        }
         if (autoCommand != null)
         {
             autoCommand.cmdPeriodic(elapsedTime);
