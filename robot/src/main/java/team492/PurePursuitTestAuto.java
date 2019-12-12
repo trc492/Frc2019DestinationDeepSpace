@@ -32,13 +32,19 @@ public class PurePursuitTestAuto implements TrcRobot.RobotCommand
 
     public void start()
     {
-        //        TrcPose2D[] poses = new TrcPose2D[] { new TrcPose2D(0, 0), new TrcPose2D(0, 24, 0, 0, 60, 0),
-        //            new TrcPose2D(-24, 84, 0, 0, 60, 0), new TrcPose2D(-24, 108) };
+//        TrcPose2D[] poses = new TrcPose2D[] {
+//            new TrcPose2D(0, 0),
+//            new TrcPose2D(0, 12, 0, 0, 60, 0),
+//            new TrcPose2D(0, 48, 0, 0, 60, 0),
+//            new TrcPose2D(0, 60, 0, 0, 0, 0),
+//            new TrcPose2D(-12, 60, 0, -60, 0, 0),
+//            new TrcPose2D(-24, 60)
+//        };
         TrcPose2D[] poses = new TrcPose2D[] {
             new TrcPose2D(0, 0),
-            new TrcPose2D(0, 24, 0, 0, 50, 0),
-            new TrcPose2D(0, 96, 180, 0, 50, 0),
-            new TrcPose2D(0, 120, 180)
+            new TrcPose2D(0, 12, 0, 0, 50, 0),
+            new TrcPose2D(0, 48, 180, 0, 50, 0),
+            new TrcPose2D(0, 60, 180)
         };
         purePursuit
             .start(new TrcPath(true, Arrays.stream(poses).map(TrcWaypoint::new).toArray(TrcWaypoint[]::new)), event, 0);

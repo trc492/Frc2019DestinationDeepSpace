@@ -60,6 +60,8 @@ public class FrcAuto extends FrcTeleOp
         // Create Autonomous Mode specific menus.
         //
         autoStrategyMenu = new FrcChoiceMenu<>("Auto/AutoStrategies");
+        autoCommand = new PurePursuitTestAuto(robot);
+
         //
         // Populate Autonomous Mode menus.
         //
@@ -115,9 +117,7 @@ public class FrcAuto extends FrcTeleOp
         switch (autoStrategy)
         {
             case PP_TEST:
-                PurePursuitTestAuto auto = new PurePursuitTestAuto(robot);
-                auto.start();
-                autoCommand = auto;
+                ((PurePursuitTestAuto) autoCommand).start();
                 break;
             case X_TIMED_DRIVE:
                 autoCommand = new CmdTimedDrive(robot, delay, robot.driveTime, robot.drivePower, 0.0, 0.0);
