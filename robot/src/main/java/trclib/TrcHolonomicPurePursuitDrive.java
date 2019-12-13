@@ -52,13 +52,7 @@ public class TrcHolonomicPurePursuitDrive
 {
     public enum InterpolationType
     {
-        LINEAR(1),
-        QUADRATIC(2),
-        CUBIC(3),
-        QUARTIC(4),
-        QUADRATIC_INV(2),
-        CUBIC_INV(3),
-        QUARTIC_INV(4);
+        LINEAR(1), QUADRATIC(2), CUBIC(3), QUARTIC(4), QUADRATIC_INV(2), CUBIC_INV(3), QUARTIC_INV(4);
 
         private int value;
 
@@ -90,11 +84,11 @@ public class TrcHolonomicPurePursuitDrive
     private volatile boolean maintainHeading = false;
     private double startHeading;
     private TrcPose2D referencePose;
+    private double moveOutputLimit = Double.POSITIVE_INFINITY;
+    private double rotOutputLimit = Double.POSITIVE_INFINITY;
 
-    public TrcHolonomicPurePursuitDrive(
-            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-            double turnTolerance, TrcPidController.PidCoefficients posPidCoeff,
-            TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
+        double turnTolerance, TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
     {
         if (driveBase.supportsHolonomicDrive())
         {
@@ -110,12 +104,9 @@ public class TrcHolonomicPurePursuitDrive
         warpSpace = new TrcWarpSpace(instanceName + ".warpSpace", 0.0, 360.0);
         setPositionToleranceAndFollowingDistance(posTolerance, followingDistance);
 
-        this.posPidCtrl = new TrcPidController(
-                instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
-        this.turnPidCtrl = new TrcPidController(
-                instanceName + ".turnPid", turnPidCoeff, turnTolerance, driveBase::getHeading);
-        this.velPidCtrl = new TrcPidController(
-                instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
+        this.posPidCtrl = new TrcPidController(instanceName + ".posPid", posPidCoeff, 0.0, this::getPositionInput);
+        this.turnPidCtrl = new TrcPidController(instanceName + ".turnPid", turnPidCoeff, turnTolerance, driveBase::getHeading);
+        this.velPidCtrl = new TrcPidController(instanceName + ".velPid", velPidCoeff, 0.0, this::getVelocityInput);
 
         posPidCtrl.setAbsoluteSetPoint(true);
         turnPidCtrl.setAbsoluteSetPoint(true);
@@ -126,13 +117,10 @@ public class TrcHolonomicPurePursuitDrive
         this.driveTaskObj = TrcTaskMgr.getInstance().createTask(instanceName + ".driveTask", this::driveTask);
     }   //TrcHolonomicPurePursuitDrive
 
-    public TrcHolonomicPurePursuitDrive(
-            String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
-            TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff,
-            TrcPidController.PidCoefficients velPidCoeff)
+    public TrcHolonomicPurePursuitDrive(String instanceName, TrcDriveBase driveBase, double followingDistance, double posTolerance,
+        TrcPidController.PidCoefficients posPidCoeff, TrcPidController.PidCoefficients turnPidCoeff, TrcPidController.PidCoefficients velPidCoeff)
     {
-        this(instanceName, driveBase, followingDistance, posTolerance, 5.0,
-                posPidCoeff, turnPidCoeff, velPidCoeff);
+        this(instanceName, driveBase, followingDistance, posTolerance, 5.0, posPidCoeff, turnPidCoeff, velPidCoeff);
         setMaintainHeading(true);
     }   //TrcHolonomicPurePursuitDrive
 
@@ -181,7 +169,7 @@ public class TrcHolonomicPurePursuitDrive
     /**
      * Set both the position tolerance and following distance.
      *
-     * @param posTolerance         The distance at which the controller will stop itself.
+     * @param posTolerance      The distance at which the controller will stop itself.
      * @param followingDistance The distance between the robot and following point.
      */
     public void setPositionToleranceAndFollowingDistance(double posTolerance, double followingDistance)
@@ -245,6 +233,16 @@ public class TrcHolonomicPurePursuitDrive
     {
         velPidCtrl.setPidCoefficients(pidCoefficients);
     }   //setVelocityPidCoefficients
+
+    public void setMoveOutputLimit(double limit)
+    {
+        moveOutputLimit = Math.abs(limit);
+    }
+
+    public void setRotOutputLimit(double limit)
+    {
+        rotOutputLimit = Math.abs(limit);
+    }
 
     /**
      * Start following the supplied path using a pure pursuit controller.
@@ -357,8 +355,10 @@ public class TrcHolonomicPurePursuitDrive
         double posPower = posPidCtrl.getOutput();
         double turnPower = turnPidCtrl.getOutput();
         double velPower = velPidCtrl.getOutput();
+        turnPower = TrcUtil.clipRange(turnPower, -rotOutputLimit, rotOutputLimit);
 
         double r = posPower + velPower;
+        r = TrcUtil.clipRange(r, -moveOutputLimit, moveOutputLimit);
         double theta = Math.toDegrees(Math.atan2(point.x - robotX, point.y - robotY));
 
         double velocity = TrcUtil.magnitude(driveBase.getXVelocity(), driveBase.getYVelocity());
