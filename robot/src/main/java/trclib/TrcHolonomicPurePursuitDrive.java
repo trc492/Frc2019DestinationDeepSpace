@@ -340,7 +340,7 @@ public class TrcHolonomicPurePursuitDrive
 
     private synchronized void driveTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
-        TrcPose2D pose = driveBase.getPoseRelativeTo(referencePose);
+        TrcPose2D pose = driveBase.getAbsolutePose().relativeTo(referencePose, false);
         double robotX = pose.x;
         double robotY = pose.y;
         TrcWaypoint point = getFollowingPoint(robotX, robotY);

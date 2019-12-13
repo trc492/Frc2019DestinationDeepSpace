@@ -50,20 +50,20 @@ public class TrcPose2D
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param x specifies the x component of the position.
-     * @param y specifies the y component of the position.
-     * @param heading specifies the heading.
-     * @param xVel specifies the x component of the velocity.
-     * @param yVel specifies the y component of the velocity.
+     * @param x        specifies the x component of the position.
+     * @param y        specifies the y component of the position.
+     * @param heading  specifies the heading.
+     * @param xVel     specifies the x component of the velocity.
+     * @param yVel     specifies the y component of the velocity.
      * @param turnRate specifies the turn velocity.
      */
     public TrcPose2D(double x, double y, double heading, double xVel, double yVel, double turnRate)
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer?
-                    TrcDbgTrace.getGlobalTracer():
-                    new TrcDbgTrace(moduleName, tracingEnabled, traceLevel, msgLevel);
+            dbgTrace = useGlobalTracer ?
+                TrcDbgTrace.getGlobalTracer() :
+                new TrcDbgTrace(moduleName, tracingEnabled, traceLevel, msgLevel);
         }
 
         this.x = x;
@@ -77,8 +77,8 @@ public class TrcPose2D
     /**
      * Constructor: Create an instance of the object.
      *
-     * @param x specifies the x coordinate of the position.
-     * @param y specifies the y coordinate of the position.
+     * @param x       specifies the x coordinate of the position.
+     * @param y       specifies the y coordinate of the position.
      * @param heading specifies the heading.
      */
     public TrcPose2D(double x, double y, double heading)
@@ -113,8 +113,9 @@ public class TrcPose2D
     @Override
     public String toString()
     {
-        return String.format(Locale.US, "(x=%.1f,y=%.1f,angle=%.1f,xVel=%.1f,yVel=%.1f,turnRate=%.1f)",
-                x, y, heading, xVel, yVel, turnRate);
+        return String
+            .format(Locale.US, "(x=%.1f,y=%.1f,angle=%.1f,xVel=%.1f,yVel=%.1f,turnRate=%.1f)", x, y, heading, xVel,
+                yVel, turnRate);
     }   //toString
 
     /**
@@ -191,13 +192,29 @@ public class TrcPose2D
      */
     public TrcPose2D relativeTo(TrcPose2D pose)
     {
+        return relativeTo(pose, true);
+    }
+
+    /**
+     * This method returns a transformed pose relative to the given pose.
+     *
+     * @param pose             specifies the reference pose.
+     * @param transformHeading if true, transform the heading as well to be relative to the supplied reference pose.
+     *                         If false, keep heading as absolute.
+     * @return pose relative to the given pose.
+     */
+    public TrcPose2D relativeTo(TrcPose2D pose, boolean transformHeading)
+    {
         TrcPose2D transformed = poseDistance(pose);
         RealVector newPos = TrcUtil.rotateCCW(transformed.getPositionVector(), pose.heading);
         RealVector newVel = TrcUtil.rotateCCW(transformed.getVelocityVector(), pose.heading);
 
         transformed.x = newPos.getEntry(0);
         transformed.y = newPos.getEntry(1);
-        transformed.heading = heading - pose.heading;
+        if (transformHeading)
+        {
+            transformed.heading = heading - pose.heading;
+        }
 
         transformed.xVel = newVel.getEntry(0);
         transformed.yVel = newVel.getEntry(1);
@@ -220,13 +237,13 @@ public class TrcPose2D
         double cosHeading = Math.cos(headingRadians);
         double sinHeading = Math.sin(headingRadians);
 
-        newPose.x += xOffset*cosHeading + yOffset*sinHeading;
-        newPose.y += -xOffset*sinHeading + yOffset*cosHeading;
+        newPose.x += xOffset * cosHeading + yOffset * sinHeading;
+        newPose.y += -xOffset * sinHeading + yOffset * cosHeading;
 
         if (debugEnabled)
         {
-            dbgTrace.traceInfo(funcName, "xOffset=%.1f, yOffset=%.1f, Pose:%s, newPose:%s",
-                    xOffset, yOffset, this, newPose);
+            dbgTrace.traceInfo(funcName, "xOffset=%.1f, yOffset=%.1f, Pose:%s, newPose:%s", xOffset, yOffset, this,
+                newPose);
         }
 
         return newPose;
