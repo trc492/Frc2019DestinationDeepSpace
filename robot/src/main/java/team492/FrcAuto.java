@@ -129,17 +129,17 @@ public class FrcAuto extends FrcTeleOp
 
             case X_DISTANCE_DRIVE:
                 autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, robot.driveDistance, 0.0, 0.0,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
                 autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, robot.driveDistance, 0.0,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case TURN_DEGREES:
                 autoCommand = new CmdPidDrive(robot, robot.pidDrive, delay, 0.0, 0.0, robot.turnDegrees,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             default:
@@ -182,9 +182,9 @@ public class FrcAuto extends FrcTeleOp
 
             if (robot.pidDrive.isActive())
             {
-                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
+                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
+                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
+                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
             }
         }
     } // runContinuous

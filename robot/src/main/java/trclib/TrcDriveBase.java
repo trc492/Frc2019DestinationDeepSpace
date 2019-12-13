@@ -57,9 +57,9 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
     {
         public double prevTimestamp;
         public double currTimestamp;
+        public double[] prevPositions;
         public double[] currPositions;
         public double[] currVelocities;
-        public double[] prevPositions;
         public double[] stallStartTimes;
         public double[] motorPosDiffs;
     }   //class MotorsState
@@ -188,7 +188,7 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
         if (enabled)
         {
             resetOdometry(false, false);
-            odometryTaskObj.registerTask(TrcTaskMgr.TaskType.STANDALONE_TASK, 20);
+            odometryTaskObj.registerTask(TrcTaskMgr.TaskType.STANDALONE_TASK, TrcTaskMgr.INPUT_THREAD_INTERVAL);
         }
         else
         {
@@ -214,6 +214,20 @@ public abstract class TrcDriveBase implements TrcExclusiveSubsystem
             return TrcPose2D.copyOf(odometry);
         }
     }   //getAbsolutePose
+
+    /**
+     * This method sets the robot's current absolute pose to the given pose. This can be used to set the robot's
+     * absolute starting position relative to the origin of the coordinate system.
+     *
+     * @param pose specifies the absolute pose of the robot relative to the origin of the coordinate system.
+     */
+    public void setAbsolutePose(TrcPose2D pose)
+    {
+        synchronized (odometry)
+        {
+            odometry.setAs(pose);
+        }
+    }   //setAbsolutePose
 
     /**
      * This method returns the robot pose relative to <code>pose</code>.

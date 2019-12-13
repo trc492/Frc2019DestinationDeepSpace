@@ -179,32 +179,32 @@ public class FrcTest extends FrcTeleOp
 
             case X_DISTANCE_DRIVE:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, robot.driveDistance, 0.0, 0.0,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case Y_DISTANCE_DRIVE:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, 0.0, robot.driveDistance, 0.0,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case TURN_DEGREES:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, 0.0, 0.0, robot.turnDegrees,
-                    robot.drivePowerLimit, false);
+                    robot.drivePowerLimit, false, false);
                 break;
 
             case TUNE_X_PID:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, robot.driveDistance, 0.0, 0.0,
-                    robot.drivePowerLimit, true);
+                    robot.drivePowerLimit, false, true);
                 break;
 
             case TUNE_Y_PID:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, 0.0, robot.driveDistance, 0.0,
-                    robot.drivePowerLimit, true);
+                    robot.drivePowerLimit, false, true);
                 break;
 
             case TUNE_TURN_PID:
                 pidDriveCommand = new CmdPidDrive(robot, robot.pidDrive, 0.0, 0.0, 0.0, robot.turnDegrees,
-                    robot.drivePowerLimit, true);
+                    robot.drivePowerLimit, false, true);
                 break;
 
             case LIVE_WINDOW:
@@ -295,9 +295,9 @@ public class FrcTest extends FrcTeleOp
 
         if (robot.pidDrive.isActive())
         {
-            robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-            robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
-            robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, robot.battery);
+            robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
+            robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
+            robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
         }
     } // runContinuous
 

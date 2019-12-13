@@ -41,9 +41,9 @@ import trclib.TrcTimer;
  */
 public class CmdPidDrive implements TrcRobot.RobotCommand
 {
-    private static final boolean debugXPid = false;
-    private static final boolean debugYPid = false;
-    private static final boolean debugTurnPid = false;
+    private static final boolean debugXPid = true;
+    private static final boolean debugYPid = true;
+    private static final boolean debugTurnPid = true;
 
     private enum State
     {
@@ -61,20 +61,18 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
     private final double yDistance;
     private final double heading;
     private final double drivePowerLimit;
+    private final boolean useSensorOdometry;
     private final boolean tuneMode;
-    private final TrcPidController xPidCtrl;
-    private final TrcPidController yPidCtrl;
-    private final TrcPidController turnPidCtrl;
     private final TrcEvent event;
     private final TrcTimer timer;
     private final TrcStateMachine<State> sm;
+    private final TrcPidController xPidCtrl;
+    private final TrcPidController yPidCtrl;
+    private final TrcPidController turnPidCtrl;
 
     private TrcPidController tunePidCtrl = null;
     private PidCoefficients savedPidCoeff = null;
     private Boolean savedWarpSpaceEnabled = null;
-    private Double savedXOutputLimit = null;
-    private Double savedYOutputLimit = null;
-    private Double savedTurnOutputLimit = null;
 
     /**
      * Constructor: Create an instance of the object.
@@ -86,16 +84,19 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
      * @param yDistance specifies the target distance for the Y direction.
      * @param heading specifies the target heading.
      * @param drivePowerLimit specifies the power limit to be applied for the PID controlled drive.
+     * @param useSensorOdometry specifies true to use the sensor odometry, false to use drive base odometry.
      * @param tuneMode specifies true if in tune mode which allows getting PID constants from the robot object
      *        for PID tuning, false otherwise.
      */
     public CmdPidDrive(
-        Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading,
-        double drivePowerLimit, boolean tuneMode)
+            Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading,
+            double drivePowerLimit, boolean useSensorOdometry, boolean tuneMode)
     {
         robot.globalTracer.traceInfo(
-            moduleName, "pidDrive=%s, delay=%.3f, xDist=%.1f, yDist=%.1f, heading=%.1f, powerLimit=%.1f, testMode=%s",
-            pidDrive, delay, xDistance, yDistance, heading, drivePowerLimit, tuneMode);
+                moduleName,
+                "pidDrive=%s, delay=%.3f, xDist=%.1f, yDist=%.1f, heading=%.1f, powerLimit=%.1f, " +
+                       "useSensorOdometry=%s, tuneMode=%s",
+                pidDrive, delay, xDistance, yDistance, heading, drivePowerLimit, useSensorOdometry, tuneMode);
 
         this.robot = robot;
         this.pidDrive = pidDrive;
@@ -104,15 +105,17 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
         this.yDistance = yDistance;
         this.heading = heading;
         this.drivePowerLimit = drivePowerLimit;
+        this.useSensorOdometry = useSensorOdometry;
         this.tuneMode = tuneMode;
+
+        event = new TrcEvent(moduleName);
+        timer = new TrcTimer(moduleName);
+        sm = new TrcStateMachine<>(moduleName);
 
         xPidCtrl = pidDrive.getXPidCtrl();
         yPidCtrl = pidDrive.getYPidCtrl();
         turnPidCtrl = pidDrive.getTurnPidCtrl();
 
-        event = new TrcEvent(moduleName);
-        timer = new TrcTimer(moduleName);
-        sm = new TrcStateMachine<>(moduleName);
         sm.start(State.DO_DELAY);
     }   //CmdPidDrive
 
@@ -125,29 +128,71 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
      * @param xDistance specifies the target distance for the X direction.
      * @param yDistance specifies the target distance for the Y direction.
      * @param heading specifies the target heading.
-    */
+     * @param useSensorOdometry specifies true to use the sensor odometry, false to use drive base odometry.
+     */
+    public CmdPidDrive(
+            Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading,
+            boolean useSensorOdometry)
+    {
+        this(robot, pidDrive, delay, xDistance, yDistance, heading, 1.0,
+             useSensorOdometry, false);
+    }   //CmdPidDrive
+
+    /**
+     * Constructor: Create an instance of the object.
+     *
+     * @param robot specifies the robot object for providing access to various global objects.
+     * @param pidDrive specifies the PID drive object to be used for PID controlled drive.
+     * @param delay specifies delay in seconds before PID drive starts. 0 means no delay.
+     * @param xDistance specifies the target distance for the X direction.
+     * @param yDistance specifies the target distance for the Y direction.
+     * @param heading specifies the target heading.
+     */
     public CmdPidDrive(
             Robot robot, TrcPidDrive pidDrive, double delay, double xDistance, double yDistance, double heading)
     {
-        this(robot, pidDrive, delay, xDistance, yDistance, heading, 1.0, false);
+        this(robot, pidDrive, delay, xDistance, yDistance, heading, 1.0,
+             false, false);
     }   //CmdPidDrive
 
     //
     // Implements the TrcRobot.RobotCommand interface.
     //
-    @Override
+
+    /**
+     * This method checks if the current RobotCommand  is running.
+     *
+     * @return true if the command is running, false otherwise.
+     */
     public boolean isActive()
     {
         return sm.isEnabled();
-    }
+    }   //isActive
 
+    /**
+     * This method cancels the command if it is active.
+     */
     @Override
     public void cancel()
     {
-        if (robot.pidDrive.isActive())
+        if (pidDrive.isActive()) pidDrive.cancel();
+
+        if (xPidCtrl != null) xPidCtrl.restoreOutputLimit();
+        if (yPidCtrl != null) yPidCtrl.restoreOutputLimit();
+        if (turnPidCtrl != null) turnPidCtrl.restoreOutputLimit();
+
+        if (savedPidCoeff != null)
         {
-            robot.pidDrive.cancel();
+            tunePidCtrl.setPidCoefficients(savedPidCoeff);
+            savedPidCoeff = null;
         }
+
+        if (savedWarpSpaceEnabled != null)
+        {
+            pidDrive.setWarpSpaceEnabled(savedWarpSpaceEnabled);
+            savedWarpSpaceEnabled = null;
+        }
+
         sm.stop();
     }   //cancel
 
@@ -165,7 +210,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
 
         if (state == null)
         {
-            robot.dashboard.displayPrintf(1, "State: Disabled");
+            robot.dashboard.displayPrintf(1, "State: disabled or waiting...");
         }
         else
         {
@@ -180,6 +225,9 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     if (delay == 0.0)
                     {
                         sm.setState(State.DO_PID_DRIVE);
+                        //
+                        // Intentionally falling through to DO_PID_DRIVE.
+                        //
                     }
                     else
                     {
@@ -187,9 +235,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                         sm.waitForSingleEvent(event, State.DO_PID_DRIVE);
                         break;
                     }
-                    //
-                    // Intentionally falling through.
-                    //
+
                 case DO_PID_DRIVE:
                     //
                     // Drive the set distance and heading.
@@ -200,13 +246,20 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                         // We are in tune mode, we are tuning PID. We tune PID one direction at a time.
                         // Read PID constants from the robot and change the corresponding PID controller with them.
                         //
-                        if (xDistance != 0.0 && (tunePidCtrl = pidDrive.getXPidCtrl()) != null ||
-                            yDistance != 0.0 && (tunePidCtrl = pidDrive.getYPidCtrl()) != null ||
-                            heading != 0.0 && (tunePidCtrl = pidDrive.getTurnPidCtrl()) != null)
+                        if (xDistance != 0.0 && (tunePidCtrl = xPidCtrl) != null ||
+                            yDistance != 0.0 && (tunePidCtrl = yPidCtrl) != null ||
+                            heading != 0.0 && (tunePidCtrl = turnPidCtrl) != null)
                         {
                             savedPidCoeff = tunePidCtrl.getPidCoefficients();
                             tunePidCtrl.setPidCoefficients(robot.tunePidCoeff);
+
+                            robot.globalTracer.traceInfo("PidTuning", "%s: Kp=%f, Ki=%f, Kd=%f, Kf=%f",
+                                    tunePidCtrl, robot.tunePidCoeff.kP, robot.tunePidCoeff.kI, robot.tunePidCoeff.kD,
+                                    robot.tunePidCoeff.kF);
                         }
+                        //
+                        // Do not optimize turning if we are tuning PID.
+                        //
                         savedWarpSpaceEnabled = pidDrive.isWarpSpaceEnabled();
                         pidDrive.setWarpSpaceEnabled(false);
                     }
@@ -215,23 +268,28 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     //
                     if (xDistance != 0.0 && xPidCtrl != null)
                     {
-                        savedXOutputLimit = xPidCtrl.getOutputLimit();
-                        xPidCtrl.setOutputLimit(drivePowerLimit);
+                        xPidCtrl.saveAndSetOutputLimit(drivePowerLimit);
                     }
 
                     if (yDistance != 0.0 && yPidCtrl != null)
                     {
-                        savedYOutputLimit = yPidCtrl.getOutputLimit();
-                        yPidCtrl.setOutputLimit(drivePowerLimit);
+                        yPidCtrl.saveAndSetOutputLimit(drivePowerLimit);
                     }
 
                     if (heading != 0.0 && turnPidCtrl != null)
                     {
-                        savedTurnOutputLimit = turnPidCtrl.getOutputLimit();
-                        turnPidCtrl.setOutputLimit(drivePowerLimit);
+                        turnPidCtrl.saveAndSetOutputLimit(drivePowerLimit);
                     }
 
-                    pidDrive.setTarget(xDistance, yDistance, heading, false, event);
+                    if (useSensorOdometry)
+                    {
+                        pidDrive.setSensorTarget(xDistance, yDistance, heading, event);
+                    }
+                    else
+                    {
+                        pidDrive.setRelativeTarget(xDistance, yDistance, heading, event);
+                    }
+
                     sm.waitForSingleEvent(event, State.DONE);
                     break;
 
@@ -240,12 +298,7 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                     //
                     // We are done, restore everything.
                     //
-                    if (savedXOutputLimit != null) xPidCtrl.setOutputLimit(savedXOutputLimit);
-                    if (savedYOutputLimit != null) yPidCtrl.setOutputLimit(savedYOutputLimit);
-                    if (savedTurnOutputLimit != null) turnPidCtrl.setOutputLimit(savedTurnOutputLimit);
-                    if (savedPidCoeff != null) tunePidCtrl.setPidCoefficients(savedPidCoeff);
-                    if (savedWarpSpaceEnabled != null) pidDrive.setWarpSpaceEnabled(savedWarpSpaceEnabled);
-                    sm.stop();
+                    cancel();
                     break;
             }
 
@@ -260,19 +313,21 @@ public class CmdPidDrive implements TrcRobot.RobotCommand
                         robot.battery.getVoltage(), robot.battery.getLowestVoltage());
             }
 
-            if (debugXPid && robot.encoderXPidCtrl != null)
+            robot.globalTracer.traceInfo(moduleName, "RobotPose: %s", robot.driveBase.getAbsolutePose());
+
+            if (debugXPid && xPidCtrl != null)
             {
-                pidDrive.getXPidCtrl().printPidInfo(robot.globalTracer, elapsedTime);
+                xPidCtrl.printPidInfo(robot.globalTracer, elapsedTime);
             }
 
-            if (debugYPid)
+            if (debugYPid && yPidCtrl != null)
             {
-                pidDrive.getYPidCtrl().printPidInfo(robot.globalTracer, elapsedTime);
+                yPidCtrl.printPidInfo(robot.globalTracer, elapsedTime);
             }
 
-            if (debugTurnPid)
+            if (debugTurnPid && turnPidCtrl != null)
             {
-                pidDrive.getTurnPidCtrl().printPidInfo(robot.globalTracer, elapsedTime);
+                turnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime);
             }
         }
 
