@@ -64,6 +64,8 @@ public class RobotInfo
     public static final int CANID_LEFTREAR_DRIVE = 15;    // 40A: Green
     public static final int CANID_RIGHTREAR_DRIVE = 16;    // 40A: Blue
 
+    public static final int CANID_PICKUP = 7;
+
     public static final int CANID_PDP = 26;
     public static final int CANID_PCM1 = 17;
     public static final int CANID_PCM2 = 18;
@@ -75,6 +77,16 @@ public class RobotInfo
     public static final int PDP_CHANNEL_RIGHT_FRONT_WHEEL = 3;
     public static final int PDP_CHANNEL_LEFT_FRONT_WHEEL = 12;
     public static final int PDP_CHANNEL_LEFT_REAR_WHEEL = 15;
+
+    //
+    // Pickup
+    //
+    // TODO: tune this garbage
+    public static final double PICKUP_BLIND_PERIOD = 0.1; //seconds
+    public static final double PICKUP_POWER = 0.7;
+    public static final double DEPLOY_POWER = -0.7;
+    public static final double[] PICKUP_CURR_THRESH = new double[] { 2.0 };
+    public static final double[] DEPLOY_CURR_THRESH = new double[] { 0.7 };
 
     //
     // DriveBase subsystem.
@@ -106,11 +118,12 @@ public class RobotInfo
     public static final double STEER_MAX_ACCEL = 5000; // deg/sec^2
     // ((theoretical max rpm * speed loss constant / gear ratio) / 60 sec/min) * 360 deg/rev
     public static final double STEER_MAX_VEL = ((18700 * 0.81 / 56.67) / 60.0) * 360.0; // deg/sec
-    public static final double STEER_MAX_VEL_TICKS_PER_100MS = (STEER_MAX_VEL / STEER_DEGREES_PER_TICK) / 10.0; // ticks/100ms
+    public static final double STEER_MAX_VEL_TICKS_PER_100MS =
+        (STEER_MAX_VEL / STEER_DEGREES_PER_TICK) / 10.0; // ticks/100ms
     public static final double STEER_TOLERANCE = 2.0; // only used for pid, not magic
 
-    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0, 0.01, 0,
-        1023.0 / STEER_MAX_VEL_TICKS_PER_100MS, 5.0 / STEER_DEGREES_PER_TICK);
+    public static final TrcPidController.PidCoefficients magicSteerCoeff = new TrcPidController.PidCoefficients(2.0,
+        0.01, 0, 1023.0 / STEER_MAX_VEL_TICKS_PER_100MS, 5.0 / STEER_DEGREES_PER_TICK);
     public static final TrcPidController.PidCoefficients pidSteerCoeff = new TrcPidController.PidCoefficients(0, 0, 0,
         0);
 
