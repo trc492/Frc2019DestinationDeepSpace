@@ -31,7 +31,6 @@ import trclib.TrcRobot.RunMode;
 public class FrcTeleOp implements TrcRobot.RobotMode
 {
     public static final boolean DEBUG_LOOP_TIME = true;
-    public static final boolean USE_CONTROLLER = true;
 
     protected Robot robot;
 
@@ -58,18 +57,17 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         //
         // Configure joysticks.
         //
-        robot.leftDriveStick.setButtonHandler(this::leftDriveStickButtonEvent);
-        robot.leftDriveStick.setYInverted(true);
+        if (!Robot.USE_CONTROLLER)
+        {
+            robot.leftDriveStick.setButtonHandler(this::leftDriveStickButtonEvent);
+            robot.leftDriveStick.setYInverted(true);
 
-        robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
-        robot.rightDriveStick.setYInverted(true);
+            robot.rightDriveStick.setButtonHandler(this::rightDriveStickButtonEvent);
+            robot.rightDriveStick.setYInverted(true);
+        }
 
         robot.operatorStick.setButtonHandler(this::operatorStickButtonEvent);
         robot.operatorStick.setYInverted(false);
-
-        robot.buttonPanel.setButtonHandler(this::buttonPanelButtonEvent);
-
-        robot.switchPanel.setButtonHandler(this::switchPanelButtonEvent);
 
         driveSpeed = DriveSpeed.MEDIUM;
 
@@ -92,7 +90,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         double x, y, rot;
         boolean fieldOriented;
 
-        if (USE_CONTROLLER)
+        if (Robot.USE_CONTROLLER)
         {
             x = deadband(robot.xboxController.getX(GenericHID.Hand.kLeft));
             y = deadband(-robot.xboxController.getY(GenericHID.Hand.kLeft));
@@ -237,12 +235,20 @@ public class FrcTeleOp implements TrcRobot.RobotMode
         switch (button)
         {
             case FrcJoystick.LOGITECH_TRIGGER:
+                if (pressed)
+                {
+                    robot.pickup.pickup();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON2:
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON3:
+                if (pressed)
+                {
+                    robot.pickup.deploy();
+                }
                 break;
 
             case FrcJoystick.LOGITECH_BUTTON4:

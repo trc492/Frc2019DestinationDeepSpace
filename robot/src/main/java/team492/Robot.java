@@ -82,6 +82,7 @@ public class Robot extends FrcRobotBase
     public static final boolean USE_TRACELOG = true;
     public static final boolean USE_NAV_X = true;
     public static final boolean USE_MAGIC_STEER = true;
+    public static final boolean USE_CONTROLLER = true;
 
     private static final boolean DEBUG_POWER_CONSUMPTION = false;
     private static final boolean DEBUG_DRIVE_BASE = false;
@@ -121,8 +122,6 @@ public class Robot extends FrcRobotBase
     public FrcJoystick leftDriveStick = null;
     public FrcJoystick rightDriveStick = null;
     public FrcJoystick operatorStick = null;
-    public FrcJoystick buttonPanel = null;
-    public FrcJoystick switchPanel = null;
     //
     // Sensors.
     //
@@ -139,6 +138,8 @@ public class Robot extends FrcRobotBase
     public TrcSwerveModule rightFrontWheel;
     public TrcSwerveModule rightRearWheel;
     public TrcSwerveDriveBase driveBase;
+
+    public Pickup pickup;
 
     public TrcPidController encoderXPidCtrl;
     public TrcPidController encoderYPidCtrl;
@@ -265,18 +266,21 @@ public class Robot extends FrcRobotBase
         //
         // Inputs.
         //
-        leftDriveStick = new FrcJoystick("leftDriveStick", RobotInfo.JSPORT_LEFT_DRIVESTICK);
-        rightDriveStick = new FrcJoystick("rightDriveStick", RobotInfo.JSPORT_RIGHT_DRIVESTICK);
-        operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
-        buttonPanel = new FrcJoystick("buttonPanel", RobotInfo.JSPORT_BUTTON_PANEL);
-        switchPanel = new FrcJoystick("switchPanel", RobotInfo.JSPORT_SWITCH_PANEL);
-        xboxController = new XboxController(2);
+        if (USE_CONTROLLER)
+        {
+            xboxController = new XboxController(2);
+        }
+        else
+        {
+            leftDriveStick = new FrcJoystick("leftDriveStick", RobotInfo.JSPORT_LEFT_DRIVESTICK);
+            rightDriveStick = new FrcJoystick("rightDriveStick", RobotInfo.JSPORT_RIGHT_DRIVESTICK);
 
-        leftDriveStick.setButtonEventTracer(globalTracer);
-        rightDriveStick.setButtonEventTracer(globalTracer);
+            leftDriveStick.setButtonEventTracer(globalTracer);
+            rightDriveStick.setButtonEventTracer(globalTracer);
+        }
+        operatorStick = new FrcJoystick("operatorStick", RobotInfo.JSPORT_OPERATORSTICK);
         operatorStick.setButtonEventTracer(globalTracer);
-        buttonPanel.setButtonEventTracer(globalTracer);
-        switchPanel.setButtonEventTracer(globalTracer);
+
 
         //
         // Sensors.
@@ -311,6 +315,8 @@ public class Robot extends FrcRobotBase
         rightFrontWheel = createModule("RightFrontWheel", rfDriveMotor, rfSteerMotor, zeros[1]);
         leftRearWheel = createModule("LeftRearWheel", lrDriveMotor, lrSteerMotor, zeros[2]);
         rightRearWheel = createModule("RightRearWheel", rrDriveMotor, rrSteerMotor, zeros[3]);
+
+        pickup = new Pickup();
 
         //
         // Initialize DriveBase subsystem.

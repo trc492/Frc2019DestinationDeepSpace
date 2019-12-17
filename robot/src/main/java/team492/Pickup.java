@@ -63,12 +63,14 @@ public class Pickup
     public void deploy()
     {
         reset();
+        deployTrigger.setEnabled(true);
         motor.set(RobotInfo.DEPLOY_POWER);
     }
 
     public void pickup()
     {
         reset();
+        pickupTrigger.setEnabled(true);
         timer.set(RobotInfo.PICKUP_BLIND_PERIOD, timerEvent);
         motor.set(RobotInfo.PICKUP_POWER);
     }
