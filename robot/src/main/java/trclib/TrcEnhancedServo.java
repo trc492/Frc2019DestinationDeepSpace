@@ -72,22 +72,22 @@ public class TrcEnhancedServo
 
     /**
      * Constructor: Creates an instance of the object.
-     * This method is called by different constructors to do common initialization.
      *
-     * @param instanceName     specifies the instance name.
-     * @param continuousServo  specifies true if servos are continuous servo.
-     * @param servo1           specifies the first physical servo object.
-     * @param servo2           specifies the second physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param continuousServo specifies true if servos are continuous servo.
+     * @param servo1 specifies the first physical servo object.
+     * @param servo2 specifies the second physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      * @param upperLimitSwitch specifies the high limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, boolean continuousServo, TrcServo servo1, TrcServo servo2,
+    public TrcEnhancedServo(
+        String instanceName, boolean continuousServo, TrcServo servo1, TrcServo servo2,
         TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch)
     {
         if (debugEnabled)
         {
-            dbgTrace = useGlobalTracer ?
-                TrcDbgTrace.getGlobalTracer() :
+            dbgTrace = useGlobalTracer?
+                TrcDbgTrace.getGlobalTracer():
                 new TrcDbgTrace(moduleName + "." + instanceName, tracingEnabled, traceLevel, msgLevel);
         }
 
@@ -106,13 +106,14 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param continuousServo  specifies true if servos are continuous servo.
-     * @param servo            specifies the physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param continuousServo specifies true if servos are continuous servo.
+     * @param servo specifies the physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      * @param upperLimitSwitch specifies the high limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, boolean continuousServo, TrcServo servo,
+    public TrcEnhancedServo(
+        String instanceName, boolean continuousServo, TrcServo servo,
         TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch)
     {
         this(instanceName, continuousServo, servo, null, lowerLimitSwitch, upperLimitSwitch);
@@ -121,13 +122,13 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param continuousServo  specifies true if servos are continuous servo.
-     * @param servo            specifies the physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param continuousServo specifies true if servos are continuous servo.
+     * @param servo specifies the physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, boolean continuousServo, TrcServo servo,
-        TrcDigitalInput lowerLimitSwitch)
+    public TrcEnhancedServo(
+        String instanceName, boolean continuousServo, TrcServo servo, TrcDigitalInput lowerLimitSwitch)
     {
         this(instanceName, continuousServo, servo, null, lowerLimitSwitch, null);
     }   //TrcEnhancedServo
@@ -135,14 +136,15 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param servo1           specifies the first physical servo object.
-     * @param servo2           specifies the second physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param servo1 specifies the first physical servo object.
+     * @param servo2 specifies the second physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      * @param upperLimitSwitch specifies the high limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, TrcServo servo1, TrcServo servo2, TrcDigitalInput lowerLimitSwitch,
-        TrcDigitalInput upperLimitSwitch)
+    public TrcEnhancedServo(
+        String instanceName, TrcServo servo1, TrcServo servo2,
+        TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch)
     {
         this(instanceName, false, servo1, servo2, lowerLimitSwitch, upperLimitSwitch);
     }   //TrcEnhancedServo
@@ -150,12 +152,13 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param servo1           specifies the first physical servo object.
-     * @param servo2           specifies the second physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param servo1 specifies the first physical servo object.
+     * @param servo2 specifies the second physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, TrcServo servo1, TrcServo servo2, TrcDigitalInput lowerLimitSwitch)
+    public TrcEnhancedServo(
+        String instanceName, TrcServo servo1, TrcServo servo2, TrcDigitalInput lowerLimitSwitch)
     {
         this(instanceName, false, servo1, servo2, lowerLimitSwitch, null);
     }   //TrcEnhancedServo
@@ -164,10 +167,11 @@ public class TrcEnhancedServo
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param servo1       specifies the first physical servo object.
-     * @param servo2       specifies the second physical servo object.
+     * @param servo1 specifies the first physical servo object.
+     * @param servo2 specifies the second physical servo object.
      */
-    public TrcEnhancedServo(String instanceName, TrcServo servo1, TrcServo servo2)
+    public TrcEnhancedServo(
+        String instanceName, TrcServo servo1, TrcServo servo2)
     {
         this(instanceName, false, servo1, servo2, null, null);
     }   //TrcEnhancedServo
@@ -175,13 +179,13 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param servo            specifies the physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param servo specifies the physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      * @param upperLimitSwitch specifies the high limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, TrcServo servo, TrcDigitalInput lowerLimitSwitch,
-        TrcDigitalInput upperLimitSwitch)
+    public TrcEnhancedServo(
+        String instanceName, TrcServo servo, TrcDigitalInput lowerLimitSwitch, TrcDigitalInput upperLimitSwitch)
     {
         this(instanceName, false, servo, null, lowerLimitSwitch, upperLimitSwitch);
     }   //TrcEnhancedServo
@@ -189,11 +193,12 @@ public class TrcEnhancedServo
     /**
      * Constructor: Creates an instance of the object.
      *
-     * @param instanceName     specifies the instance name.
-     * @param servo            specifies the physical servo object.
+     * @param instanceName specifies the instance name.
+     * @param servo specifies the physical servo object.
      * @param lowerLimitSwitch specifies the lower limit switch object.
      */
-    public TrcEnhancedServo(String instanceName, TrcServo servo, TrcDigitalInput lowerLimitSwitch)
+    public TrcEnhancedServo(
+        String instanceName, TrcServo servo, TrcDigitalInput lowerLimitSwitch)
     {
         this(instanceName, false, servo, null, lowerLimitSwitch, null);
     }   //TrcEnhancedServo
@@ -202,7 +207,7 @@ public class TrcEnhancedServo
      * Constructor: Creates an instance of the object.
      *
      * @param instanceName specifies the instance name.
-     * @param servo        specifies the physical servo object.
+     * @param servo specifies the physical servo object.
      */
     public TrcEnhancedServo(String instanceName, TrcServo servo)
     {
@@ -278,7 +283,7 @@ public class TrcEnhancedServo
      *
      * @param physicalRangeMin specifies the desired physical range minimum (typically 0.0).
      * @param physicalRangeMax specifies the desired physical range maximum (typically 180.0).
-     * @param stepRate         specifies the step rate to use for the calibration.
+     * @param stepRate specifies the step rate to use for the calibration (physicalPos/sec).
      */
     public void rangeCalibrate(double physicalRangeMin, double physicalRangeMax, double stepRate)
     {
@@ -304,7 +309,7 @@ public class TrcEnhancedServo
             logicalRangeLow = logicalRangeHigh = -1.0;
             setPosition(physicalRangeMin, stepRate);
             calibrating = true;
-        }
+       }
 
         if (debugEnabled)
         {
@@ -369,11 +374,14 @@ public class TrcEnhancedServo
     }   //getPosition
 
     /**
-     * This method sets the servo position.
+     * This method sets the servo position. If an event is given, it sets the event after the given amount of time
+     * has passed.
      *
      * @param position specifies the position to set.
+     * @param timeout specifies a maximum time value the operation should be completed in seconds.
+     * @param event specifies an event object to signal when the timeout event has expired.
      */
-    public void setPosition(double position)
+    public void setPosition(double position, double timeout, TrcEvent event)
     {
         final String funcName = "setPosition";
 
@@ -388,7 +396,7 @@ public class TrcEnhancedServo
 
             if (servo1 != null)
             {
-                servo1.setPosition(position);
+                servo1.setPosition(position, timeout, event);
             }
 
             if (servo2 != null)
@@ -404,11 +412,21 @@ public class TrcEnhancedServo
     }   //setPosition
 
     /**
+     * This method sets the servo position.
+     *
+     * @param position specifies the position to set.
+     */
+    public void setPosition(double position)
+    {
+        setPosition(position, 0.0, null);
+    }   //setPosition
+
+    /**
      * This method sets the servo to the specifies position but with the specified step rate in effect controlling
      * the speed to get there.
      *
      * @param position specifies the target position.
-     * @param stepRate specifies the stepping rate to get there (degrees/sec).
+     * @param stepRate specifies the stepping rate to get there (physicalPos/sec).
      */
     public synchronized void setPosition(double position, double stepRate)
     {
@@ -437,9 +455,9 @@ public class TrcEnhancedServo
     /**
      * This method sets the stepping mode characteristics.
      *
-     * @param maxStepRate specifies the maximum stepping rate.
-     * @param minPos      specifies the minimum position.
-     * @param maxPos      specifies the maximum position.
+     * @param maxStepRate specifies the maximum stepping rate (physicalPos/sec).
+     * @param minPos specifies the minimum position.
+     * @param maxPos specifies the maximum position.
      */
     public synchronized void setStepMode(double maxStepRate, double minPos, double maxPos)
     {
@@ -447,8 +465,8 @@ public class TrcEnhancedServo
 
         if (debugEnabled)
         {
-            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API, "maxStepRate=%f,minPos=%f,maxPos=%f", maxStepRate,
-                minPos, maxPos);
+            dbgTrace.traceEnter(funcName, TrcDbgTrace.TraceLevel.API,
+                                "maxStepRate=%f,minPos=%f,maxPos=%f", maxStepRate, minPos, maxPos);
         }
 
         if (!continuousServo)
@@ -482,8 +500,8 @@ public class TrcEnhancedServo
         power = TrcUtil.clipRange(power, -1.0, 1.0);
         if (continuousServo)
         {
-            if (lowerLimitSwitch != null && lowerLimitSwitch.isActive() && power < 0.0
-                || upperLimitSwitch != null && upperLimitSwitch.isActive() && power > 0.0)
+            if (lowerLimitSwitch != null && lowerLimitSwitch.isActive() && power < 0.0 ||
+                upperLimitSwitch != null && upperLimitSwitch.isActive() && power > 0.0)
             {
                 //
                 // One of the limit switches is hit, so stop!
@@ -492,7 +510,8 @@ public class TrcEnhancedServo
             }
             else
             {
-                power = TrcUtil.scaleRange(power, -1.0, 1.0, SERVO_CONTINUOUS_REV_MAX, SERVO_CONTINUOUS_FWD_MAX);
+                power = TrcUtil.scaleRange(
+                        power, -1.0, 1.0, SERVO_CONTINUOUS_REV_MAX, SERVO_CONTINUOUS_FWD_MAX);
                 servo1.setPosition(power);
             }
         }
@@ -503,15 +522,15 @@ public class TrcEnhancedServo
             // If we are calibrating, cancel calibration.
             //
             calibrating = false;
-            setPosition(power > 0.0 ? maxPos : minPos, Math.abs(power) * maxStepRate);
+            setPosition(power > 0.0? maxPos: minPos, Math.abs(power)*maxStepRate);
         }
         else if (power != 0.0)
         {
             //
             // We are already in stepping mode, just change the stepping parameters.
             //
-            targetPosition = power > 0.0 ? maxPos : minPos;
-            currStepRate = Math.abs(power) * maxStepRate;
+            targetPosition = power > 0.0? maxPos: minPos;
+            currStepRate = Math.abs(power)*maxStepRate;
         }
         else
         {
@@ -551,7 +570,7 @@ public class TrcEnhancedServo
      * the next position to set the servo to according to its step rate.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the competition mode that is running. (e.g. Autonomous, TeleOp, Test).
+     * @param runMode specifies the competition mode that is running. (e.g. Autonomous, TeleOp, Test).
      */
     private synchronized void steppingServoTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
@@ -647,7 +666,7 @@ public class TrcEnhancedServo
      * This method is called when the competition mode is about to end so it will stop the servo if necessary.
      *
      * @param taskType specifies the type of task being run.
-     * @param runMode  specifies the competition mode that is running. (e.g. Autonomous, TeleOp, Test).
+     * @param runMode specifies the competition mode that is running. (e.g. Autonomous, TeleOp, Test).
      */
     private void stopServoTask(TrcTaskMgr.TaskType taskType, TrcRobot.RunMode runMode)
     {
