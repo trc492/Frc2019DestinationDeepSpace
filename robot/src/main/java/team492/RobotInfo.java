@@ -83,9 +83,9 @@ public class RobotInfo
     //
     // TODO: tune this garbage
     public static final double PICKUP_BLIND_PERIOD = 0.1; //seconds
-    public static final double PICKUP_POWER = 0.7;
-    public static final double DEPLOY_POWER = -0.7;
-    public static final double[] PICKUP_CURR_THRESH = new double[] { 2.0 };
+    public static final double PICKUP_POWER = 1.0;
+    public static final double DEPLOY_POWER = -1.0;
+    public static final double[] PICKUP_CURR_THRESH = new double[] { 25.0 };
     public static final double[] DEPLOY_CURR_THRESH = new double[] { 0.7 };
 
     //

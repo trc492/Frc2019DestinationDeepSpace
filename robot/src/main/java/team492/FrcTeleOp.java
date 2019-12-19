@@ -24,6 +24,7 @@ package team492;
 
 import edu.wpi.first.wpilibj.GenericHID;
 import frclib.FrcJoystick;
+import hallib.HalDashboard;
 import trclib.TrcLoopPerformanceMonitor;
 import trclib.TrcRobot;
 import trclib.TrcRobot.RunMode;
@@ -131,6 +132,7 @@ public class FrcTeleOp implements TrcRobot.RobotMode
     @Override
     public void runContinuous(double elapsedTime)
     {
+        HalDashboard.putNumber("Current", robot.pickup.getMotor().motor.getOutputCurrent());
         if (DEBUG_LOOP_TIME)
         {
             loopPerformanceMonitor.update();
@@ -237,7 +239,8 @@ public class FrcTeleOp implements TrcRobot.RobotMode
             case FrcJoystick.LOGITECH_TRIGGER:
                 if (pressed)
                 {
-                    robot.pickup.setPower(1);
+//                    robot.pickup.setPower(1);
+                    robot.pickup.pickup();
                 }
                 else
                 {

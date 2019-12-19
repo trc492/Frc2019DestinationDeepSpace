@@ -16,7 +16,7 @@ public class Pickup
     public Pickup()
     {
         motor = new FrcCANSparkMax("PickupMotor", RobotInfo.CANID_PICKUP, true);
-        motor.setBrakeModeEnabled(false);
+        motor.setBrakeModeEnabled(true);
         motor.setInverted(true);
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor("CurrentSensor", motor.motor::getOutputCurrent);
@@ -28,6 +28,11 @@ public class Pickup
 
         timer = new TrcTimer("PickupTimer");
         timerEvent = new TrcEvent("TimerEvent");
+    }
+
+    public FrcCANSparkMax getMotor()
+    {
+        return motor;
     }
 
     private void pickupEvent(int currZone, int prevZone, double value)

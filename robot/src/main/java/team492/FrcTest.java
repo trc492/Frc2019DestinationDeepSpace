@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frclib.FrcChoiceMenu;
 import frclib.FrcJoystick;
+import hallib.HalDashboard;
 import trclib.TrcEvent;
 import trclib.TrcRobot.RunMode;
 import trclib.TrcStateMachine;
@@ -492,6 +493,7 @@ public class FrcTest extends FrcTeleOp
         robot.dashboard.displayPrintf(6, "Angles (AbsTick): lf=%d, rf=%d, lr=%d, rr=%d",
             robot.lfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), robot.rfSteerMotor.motor.getSensorCollection().getPulseWidthPosition(),
             robot.lrSteerMotor.motor.getSensorCollection().getPulseWidthPosition(), robot.rrSteerMotor.motor.getSensorCollection().getPulseWidthPosition());
+        HalDashboard.putNumber("Current", robot.pickup.getMotor().motor.getOutputCurrent());
     } // doSensorsTest
 
     /**
