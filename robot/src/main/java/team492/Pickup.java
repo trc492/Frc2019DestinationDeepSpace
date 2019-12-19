@@ -17,14 +17,14 @@ public class Pickup
     {
         motor = new FrcCANSparkMax("PickupMotor", RobotInfo.CANID_PICKUP, true);
         motor.setBrakeModeEnabled(false);
-        motor.setInverted(false);
+        motor.setInverted(true);
 
         TrcAnalogSensor currentSensor = new TrcAnalogSensor("CurrentSensor", motor.motor::getOutputCurrent);
 
         pickupTrigger = new TrcAnalogSensorTrigger<>("PickupTrigger", currentSensor, 0,
-            TrcAnalogSensor.DataType.RAW_DATA, RobotInfo.PICKUP_CURR_THRESH, this::pickupEvent, true);
+            TrcAnalogSensor.DataType.RAW_DATA, RobotInfo.PICKUP_CURR_THRESH, this::pickupEvent, false);
         deployTrigger = new TrcAnalogSensorTrigger<>("DeployTrigger", currentSensor, 0,
-            TrcAnalogSensor.DataType.RAW_DATA, RobotInfo.DEPLOY_CURR_THRESH, this::deployEvent, true);
+            TrcAnalogSensor.DataType.RAW_DATA, RobotInfo.DEPLOY_CURR_THRESH, this::deployEvent, false);
 
         timer = new TrcTimer("PickupTimer");
         timerEvent = new TrcEvent("TimerEvent");

@@ -268,7 +268,7 @@ public class Robot extends FrcRobotBase
         //
         if (USE_CONTROLLER)
         {
-            xboxController = new XboxController(2);
+            xboxController = new XboxController(3);
         }
         else
         {
