@@ -403,8 +403,8 @@ public class Robot extends FrcRobotBase
             setTraceLogEnabled(true);
 
             Date now = new Date();
-            globalTracer
-                .traceInfo(funcName, "[%.3f] %s: ***** %s *****", Robot.getModeElapsedTime(), now.toString(), runMode);
+            globalTracer.traceInfo(
+                funcName, "[%.3f] %s: ***** %s *****", TrcUtil.getModeElapsedTime(), now.toString(), runMode);
 
             driveInverted = false;
             climbingButDriving = false;
@@ -576,7 +576,7 @@ public class Robot extends FrcRobotBase
     public void updateDashboard(RunMode runMode)
     {
         final String funcName = "updateDashboard";
-        double currTime = Robot.getModeElapsedTime();
+        double currTime = TrcUtil.getModeElapsedTime();
 
         if (currTime >= nextUpdateTime)
         {

@@ -85,7 +85,6 @@ public abstract class FrcRobotBase extends RobotBase
     private HalDashboard dashboard = new HalDashboard();
 
     private static FrcRobotBase instance = null;
-    private static double modeStartTime = 0.0;
     private static long loopCounter = 0;
 
     private final String progName;
@@ -117,8 +116,8 @@ public abstract class FrcRobotBase extends RobotBase
 
         this.progName = progName;
         FrcRobotBase.instance = this;
-        // Initialize modeStartTime just in case somebody's calling getModeElapsedTime before it's initialized.
-        FrcRobotBase.modeStartTime = TrcUtil.getCurrentTime();
+        // Initialize modeStartTime just in case somebody's calling TrcUtil.getModeElapsedTime before it's initialized.
+        TrcUtil.recordModeStartTime();
         dashboard.clearDisplay();
     }   //FrcRobotBase
 
@@ -133,17 +132,6 @@ public abstract class FrcRobotBase extends RobotBase
     {
         return instance;
     }   //getInstance
-
-    /**
-     * This method returns the elapsed time since the robot mode starts. This is the elapsed time after
-     * RobotMode.startMode() is called.
-     *
-     * @return robot mode elapsed time in seconds.
-     */
-    public static double getModeElapsedTime()
-    {
-        return TrcUtil.getCurrentTime() - modeStartTime;
-    }   //getModeElapsedTime
 
     /**
      * This method returns the loop counter. This is very useful for code to determine if it is called multiple times
@@ -260,7 +248,7 @@ public abstract class FrcRobotBase extends RobotBase
                 // Detected mode transition.
                 //
                 globalTracer.traceInfo(funcName, "*** Transitioning from %s to %s ***", prevMode, currMode);
-                modeStartTime = TrcUtil.getCurrentTime();
+                TrcUtil.recordModeStartTime();
 
                 if (prevMode != RunMode.INVALID_MODE)
                 {
@@ -408,7 +396,7 @@ public abstract class FrcRobotBase extends RobotBase
             //
             // Run the time slice.
             //
-            double modeElapsedTime = TrcUtil.getCurrentTime() - modeStartTime;
+            double modeElapsedTime = TrcUtil.getModeElapsedTime();
             boolean periodReady = nextPeriodReady();
             //
             // PreContinuous

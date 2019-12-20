@@ -199,9 +199,9 @@ public class FrcAuto extends FrcTeleOp
 
             if (robot.pidDrive.isActive())
             {
-                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
-                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
-                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, elapsedTime, false, robot.battery);
+                robot.encoderXPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                robot.encoderYPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
+                robot.gyroTurnPidCtrl.printPidInfo(robot.globalTracer, false, robot.battery);
             }
         }
     } // runContinuous
